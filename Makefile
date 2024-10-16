@@ -1,29 +1,29 @@
 .SECONDEXPANSION:
 
 CPP=g++
-CPPFLAGS+=-std=c++11
+CPPFLAGS=-std=c++11 -Iinclude
 
-SOURCE_DIRS+=src
-SOURCES+=$(foreach dir,$(shell find $(SOURCE_DIRS) -type d),$(wildcard $(dir)/*.cpp)
-SOURCES+=$(foreach dir,$(shell find $(SOURCE_DIRS) -type d),$(wildcard $(dir)/*.cc)
+SOURCES=$(shell find src -type f -name '*.cpp')
+OBJECTS=$(patsubst src/%.cpp,build/%.o,$(SOURCES))
 
-INCLUDE_DIRS+=include
-CPPFLAGS+=$(foreach dir,$(INCLUDE_DIRS),-I$(dir))
+TEST_SOURCES=$(shell find test/src -type f -name '*.cpp')
+TEST_OBJECTS=$(patsubst test/src/%.cpp,build/test/%.o,$(TEST_SOURCES))
 
-TEST_SOURCE_DIRS+=test/src
-TEST_SOURCE_DIRS+=test/contrib/src
-TEST_SOURCES+=$(foreach dir,$(shell find $(TEST_SOURCE_DIRS) -type d),$(wildcard $(dir)/*.cpp)
-TEST_SOURCES+=$(foreach dir,$(shell find $(TEST_SOURCE_DIRS) -type d),$(wildcard $(dir)/*.cc)
-
-TEST_INCLUDE_DIRS+=test/include
-TEST_INCLUDE_DIRS+=test/contrib/include
-TEST_CPPFLAGS+=$(foreach dir,$(TEST_INCLUDE_DIRS),-I$(dir))
+TEST_CPPFLAGS=-Itest/include -Itest/contrib/include
 
 all: build/libbadiff.so
 
-build/:
-	mkdir build/
+build/%.o: src/%.cpp
+	$(CPP) $(CPPFLAGS) -c -o $@ $*
 
-build/%.o: src/%.cpp | build/
-	$(CPP) $(CPPFLAGS) -c -o $@ $^
+build/libbadiff.so: $(OBJECTS)
+	$(CPP) $(CPPFLAGS) -shared -o $@ $*
 
+build/test/%.o: test/src/%.cpp
+	$(CPP) $(CPPFLAGS)  -c -o $@ $*
+
+build/test/contrib/%.o: test/contrib/src/%.cpp
+	$(CPP) $(CPPFLAGS)  -c -o $@ $*
+
+build/badiff.test: $(OBJECTS) $(TEST_OBJECTS)
+	$(CPP) $(CPPFLAGS) -o $@ $*
