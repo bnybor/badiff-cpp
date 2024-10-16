@@ -284,8 +284,8 @@
 #include <TargetConditionals.h>
 #endif
 
-#include "../../../../test/contrib/include/gtest/internal/custom/gtest-port.h"
-#include "../../../../test/contrib/include/gtest/internal/gtest-port-arch.h"
+#include "gtest/internal/custom/gtest-port.h"
+#include "gtest/internal/gtest-port-arch.h"
 
 #if GTEST_HAS_ABSL
 #include "absl/flags/declare.h"

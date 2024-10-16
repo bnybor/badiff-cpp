@@ -40,7 +40,7 @@
 #ifndef GOOGLEMOCK_INCLUDE_GMOCK_INTERNAL_GMOCK_PORT_H_
 #define GOOGLEMOCK_INCLUDE_GMOCK_INTERNAL_GMOCK_PORT_H_
 
-#include "../../../../test/contrib/include/gmock/internal/custom/gmock-port.h"
+#include "gmock/internal/custom/gmock-port.h"
 
 #include <assert.h>
 #include <stdlib.h>
@@ -55,7 +55,7 @@
 // here, as Google Mock depends on Google Test.  Only add a utility
 // here if it's truly specific to Google Mock.
 
-#include "../../../../test/contrib/include/gtest/internal/gtest-port.h"
+#include "gtest/internal/gtest-port.h"
 
 #if GTEST_HAS_ABSL
 #include "absl/flags/declare.h"
