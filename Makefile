@@ -14,7 +14,9 @@ TEST_OBJECTS+=build/test/contrib/gtest/gtest_main.o
 
 TEST_CPPFLAGS=-Itest/include -Itest/contrib/include
 
-all: build/libbadiff.so build/badiff.test
+all: build/.f build/libbadiff.so build/badiff.test
+
+build/%: $$(@D)/.f
 
 build/%.o: src/%.cpp
 	$(CPP) $(CPPFLAGS) -c -o $@ $*
@@ -33,3 +35,8 @@ build/test/contrib/gmock/%.o: test/contrib/src/gmock/%.cc
 
 build/badiff.test: $(OBJECTS) $(TEST_OBJECTS)
 	$(CPP) $(CPPFLAGS) -o $@ $*
+
+.PRECIOUS: %/.f
+%/.f:
+	mkdir -p $(dir $@)
+	touch $@	
