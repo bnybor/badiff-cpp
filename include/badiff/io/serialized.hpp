@@ -4,6 +4,7 @@
 #include <istream>
 #include <ostream>
 
+#include <badiff/bytes.hpp>
 namespace badiff {
 namespace io {
 
@@ -11,8 +12,8 @@ class Serialized {
 public:
 	virtual ~Serialized() = default;
 
-	void Serialize(std::ostream& out) const = 0;
-	void Deserialize(std::istream& in) = 0;
+	virtual void Serialize(std::ostream& out) = 0;
+	virtual void Deserialize(std::istream& in) = 0;
 };
 }
 }
