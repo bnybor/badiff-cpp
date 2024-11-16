@@ -4,6 +4,10 @@
 #include <cstdint>
 #include <memory>
 
+namespace badiff {
+class Op;
+}
+
 #include <badiff/bytes.hpp>
 #include <badiff/io/serialized.hpp>
 
@@ -13,7 +17,7 @@ class Op : public io::Serialized {
 public:
 	enum Type {
 		// The end of a diff.
-		STOP = 0,
+		NONE = 0,
 		// Skip bytes from the original.
 		DELETE = 1,
 		// Append bytes to the target.
@@ -21,12 +25,12 @@ public:
 		// Copy bytes from the original to the target.
 		NEXT = 3,
 	};
-	using Value = Bytes;
+	using Value = ByteArray;
 	using Length = std::size_t;
 
 
 	Op();
-	Op(Type, Length, Value);
+	Op(Type, Length = 0, Value = nullptr);
 
 	Op(const Op&) = default;
 	Op(Op&&) = default;

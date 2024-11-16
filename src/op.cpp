@@ -3,11 +3,11 @@
 namespace badiff {
 
 Op::Op() :
-		type_(STOP), length_(0), value_(nullptr) {
+		type_(NONE), length_(0), value_(nullptr) {
 }
 
 Op::Op(Type type, Length length, Value value) :
-		type_(type), length_(length), value_(value) {
+		type_(type), length_(length), value_(std::move(value)) {
 }
 
 void Op::Serialize(std::ostream &out) {
@@ -32,7 +32,7 @@ void Op::Deserialize(std::istream &in) {
 	n >>= 2;
 	length_ = n;
 	if (has_value) {
-		value_ = Bytes(new Byte[length_]);
+		value_ = ByteArray(new Byte[length_]);
 		for (std::size_t i = 0; i < length_; ++i) {
 			in >> value_[i];
 		}

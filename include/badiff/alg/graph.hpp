@@ -12,7 +12,7 @@ public:
 	/**
 	 * \brief Compute an OpQueue that transforms `original` into `target`.
 	 */
-	virtual void Compute(Bytes original, Bytes target) = 0;
+	virtual void Compute(ByteArray original, ByteArray target) = 0;
 
 	/**
 	 * \brief Return a copy of the OpQueue computed by `Compute`.

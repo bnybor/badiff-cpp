@@ -4,7 +4,6 @@
 #include <istream>
 #include <ostream>
 
-#include <badiff/bytes.hpp>
 namespace badiff {
 namespace io {
 
