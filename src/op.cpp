@@ -3,8 +3,9 @@
 namespace badiff {
 
 Op::Op() :
-		Op(STOP, 0, nullptr) {
+		type_(STOP), length_(0), value_(nullptr) {
 }
+
 Op::Op(Type type, Length length, Value value) :
 		type_(type), length_(length), value_(value) {
 }

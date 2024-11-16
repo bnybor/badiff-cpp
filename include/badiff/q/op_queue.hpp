@@ -6,7 +6,7 @@
 #include <ostream>
 
 #include <badiff/diff.hpp>
-#include <badiff/op.hpp>;
+#include <badiff/op.hpp>
 
 namespace badiff {
 namespace q {
