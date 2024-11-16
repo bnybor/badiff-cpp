@@ -1,18 +1,18 @@
 #ifndef BADIFF_OP_HPP_
 #define BADIFF_OP_HPP_
 
-#include <badiff/bytes.hpp>
 #include <cstdint>
 #include <memory>
 
+#include <badiff/bytes.hpp>
+#include <badiff/io/serialized.hpp>
 
 namespace badiff {
 
-class Op {
+class Op : public io::Serialized {
 public:
 	using Value = Bytes;
 	using Length = std::size_t;
-
 
 	enum Type {
 		// The end of a diff.
@@ -32,6 +32,10 @@ public:
 	Op(Op&&) = default;
 	Op& operator=(const Op&) = default;
 	Op& operator=(Op&&) = default;
+
+	void Serialize(std::ostream& out) const override;
+	void Deserialize(std::istream& in) override;
+
 
 private:
 	Type type_;
