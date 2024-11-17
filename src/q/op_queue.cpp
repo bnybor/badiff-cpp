@@ -3,6 +3,8 @@
 namespace badiff {
 namespace q {
 
+OpQueue::OpQueue(std::vector<Op> queue) : queue_(std::move(queue)) {}
+
 bool OpQueue::IsEmpty() {
 	if (queue_.empty()) Pull();
 	return queue_.empty();

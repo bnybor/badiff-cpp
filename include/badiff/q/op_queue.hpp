@@ -24,6 +24,14 @@ protected:
 public:
 	virtual ~OpQueue() = default;
 
+	OpQueue() = default;
+	OpQueue(const OpQueue&) = delete;
+	OpQueue(OpQueue&&) = default;
+	OpQueue& operator=(const OpQueue&) = delete;
+	OpQueue& operator=(OpQueue&&) = default;
+
+	OpQueue(std::vector<Op>);
+
 	virtual bool IsEmpty();
 	virtual Op PopFront();
 	virtual void PushBack(Op);

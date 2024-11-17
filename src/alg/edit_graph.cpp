@@ -50,7 +50,6 @@ void EditGraph::Compute(const Byte *original, std::size_t original_length,
 		}
 	}
 
-
 	std::vector<Op> ret;
 	std::vector<Byte> buf;
 	Op::Type op = Op::STOP;
@@ -62,7 +61,7 @@ void EditGraph::Compute(const Byte *original, std::size_t original_length,
 		if (op != Op::STOP && op != fop) {
 			ByteArray data;
 			if (op == Op::INSERT || op == Op::DELETE) {
-				auto* rdata = &buf[0];
+				auto *rdata = &buf[0];
 				data.reset(new Byte[buf.size()]);
 				for (std::size_t i = 0; i < buf.size(); ++i) {
 					data[buf.size() - i - 1] = rdata[i];
@@ -89,7 +88,7 @@ void EditGraph::Compute(const Byte *original, std::size_t original_length,
 	if (op != Op::STOP) {
 		ByteArray data;
 		if (op == Op::INSERT || op == Op::DELETE) {
-			auto* rdata = &buf[0];
+			auto *rdata = &buf[0];
 			data.reset(new Byte[buf.size()]);
 			for (std::size_t i = 0; i < buf.size(); ++i) {
 				data[buf.size() - i - 1] = rdata[i];
@@ -99,10 +98,20 @@ void EditGraph::Compute(const Byte *original, std::size_t original_length,
 	}
 
 	op_queue_.resize(ret.size());
-	std::copy(ret.rbegin(), ret.rend(), op_queue_.begin());
+	std::move(ret.rbegin(), ret.rend(), op_queue_.begin());
 }
 
 std::unique_ptr<q::OpQueue> EditGraph::MakeOpQueue() const {
+	std::vector<Op> queue;
+	for (const auto& op : op_queue_) {
+		ByteArray value;
+		if (op.GetValue()) {
+			value.reset(new Byte[op.GetLength()]);
+			std::copy(op.GetValue().get(), op.GetValue().get() + op.GetLength(), value.get());
+		}
+		queue.push_back(Op(op.GetType(), op.GetLength(), std::move(value))); // @suppress("Ambiguous problem")
+	}
+	return std::unique_ptr<q::OpQueue>(new q::OpQueue(std::move(queue)));
 }
 
 }
