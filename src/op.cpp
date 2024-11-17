@@ -3,7 +3,7 @@
 namespace badiff {
 
 Op::Op() :
-		type_(NONE), length_(0), value_(nullptr) {
+		type_(STOP), length_(0), value_(nullptr) {
 }
 
 Op::Op(Type type, Length length, Value value) :

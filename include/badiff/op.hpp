@@ -17,7 +17,7 @@ class Op : public io::Serialized {
 public:
 	enum Type {
 		// The end of a diff.
-		NONE = 0,
+		STOP = 0,
 		// Skip bytes from the original.
 		DELETE = 1,
 		// Append bytes to the target.
@@ -32,9 +32,9 @@ public:
 	Op();
 	Op(Type, Length = 0, Value = nullptr);
 
-	Op(const Op&) = default;
+	Op(const Op&) = delete;
 	Op(Op&&) = default;
-	Op& operator=(const Op&) = default;
+	Op& operator=(const Op&) = delete;
 	Op& operator=(Op&&) = default;
 
 	void Serialize(std::ostream& out) override;

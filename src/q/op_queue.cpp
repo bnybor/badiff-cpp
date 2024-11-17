@@ -10,7 +10,7 @@ bool OpQueue::IsEmpty() {
 
 Op OpQueue::PopFront() {
 	if (queue_.empty()) Pull();
-	if (queue_.empty()) return Op::NONE;
+	if (queue_.empty()) return Op::STOP;
 	Op op = std::move(queue_.front());
 	queue_.erase(queue_.begin());
 	return op;
@@ -21,7 +21,7 @@ void OpQueue::PushBack(Op op) {
 }
 
 void OpQueue::PushBack(OpQueue& other) {
-	for (Op op = other.PopFront(); op.GetType() != Op::NONE; op = other.PopFront()) {
+	for (Op op = other.PopFront(); op.GetType() != Op::STOP; op = other.PopFront()) {
 		PushBack(std::move(op));
 	}
 }
