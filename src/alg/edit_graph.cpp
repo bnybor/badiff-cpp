@@ -9,6 +9,14 @@ namespace alg {
 void EditGraph::Compute(const Byte *original, std::size_t original_length,
 		const Byte *target, std::size_t target_length) {
 
+	/*
+	 * Construct a rectangular graph as the edit graph.
+	 * The edit graph supports down (insert), right (delete), and
+	 * diagonal down-right (next) traversal.  The edit graph
+	 * is a digraph without cycles and can be traversed in
+	 * O(n^2) complexity and memory.
+	 */
+
 	std::size_t xlen = original_length + 1;
 	std::size_t ylen = target_length + 1;
 
@@ -21,12 +29,17 @@ void EditGraph::Compute(const Byte *original, std::size_t original_length,
 	std::copy(target, target + target_length, &yval[1]);
 
 	// The best operation to enter a comparison.
-	Op::Type flags[xlen * ylen];
+	Op::Type best_op[xlen * ylen];
 	// The path length of the best operation to enter a comparison.
-	std::size_t lengths[xlen * ylen];
+	std::size_t best_length[xlen * ylen];
 
-	std::fill(flags, flags + xlen * ylen, Op::STOP);
-	std::fill(lengths, lengths + xlen * ylen, 0);
+	std::fill(best_op, best_op + xlen * ylen, Op::STOP);
+	std::fill(best_length, best_length + xlen * ylen, 0);
+
+	/*
+	 * Actually traverse the graph, using dynamic programming to store
+	 * the best path.
+	 */
 
 	for (std::size_t y = 0; y < target_length + 1; ++y) {
 		for (std::size_t x = 0; x < original_length + 1; ++x) {
@@ -34,18 +47,18 @@ void EditGraph::Compute(const Byte *original, std::size_t original_length,
 				continue;
 			std::size_t pos = x + y * xlen;
 			if (x > 0 && y > 0 && xval[x] == yval[y]) {
-				flags[pos] = Op::NEXT;
-				lengths[pos] = (1 + lengths[pos - xlen - 1]);
+				best_op[pos] = Op::NEXT;
+				best_length[pos] = (1 + best_length[pos - xlen - 1]);
 				continue;
 			}
-			std::size_t dlen = (x > 0) ? (1 + lengths[pos - 1]) : -1;
-			std::size_t ilen = (y > 0) ? (1 + lengths[pos - xlen]) : -1;
+			std::size_t dlen = (x > 0) ? (1 + best_length[pos - 1]) : -1;
+			std::size_t ilen = (y > 0) ? (1 + best_length[pos - xlen]) : -1;
 			if (dlen <= ilen) {
-				flags[pos] = Op::DELETE;
-				lengths[pos] = dlen;
+				best_op[pos] = Op::DELETE;
+				best_length[pos] = dlen;
 			} else {
-				flags[pos] = Op::INSERT;
-				lengths[pos] = ilen;
+				best_op[pos] = Op::INSERT;
+				best_length[pos] = ilen;
 			}
 		}
 	}
@@ -55,9 +68,14 @@ void EditGraph::Compute(const Byte *original, std::size_t original_length,
 	Op::Type op = Op::STOP;
 	std::size_t run = 0;
 
+	/*
+	 * Traverse backward from lower right corner to upper left corner.
+	 * This gives the edit script in reverse order.
+	 */
+
 	int pos = xlen * ylen - 1;
 	while (pos > 0) {
-		Op::Type fop = flags[pos];
+		Op::Type fop = best_op[pos];
 		if (op != Op::STOP && op != fop) {
 			ByteArray data;
 			if (op == Op::INSERT || op == Op::DELETE) {
@@ -97,11 +115,18 @@ void EditGraph::Compute(const Byte *original, std::size_t original_length,
 		ret.push_back(Op(op, run, std::move(data))); // @suppress("Ambiguous problem")
 	}
 
+
+	/*
+	 * Finally, reverse the edit script and store it.
+	 */
 	op_queue_.resize(ret.size());
 	std::move(ret.rbegin(), ret.rend(), op_queue_.begin());
 }
 
 std::unique_ptr<q::OpQueue> EditGraph::MakeOpQueue() const {
+	/*
+	 * Copy the edit script and return it as an OpQueue.
+	 */
 	std::vector<Op> queue;
 	for (const auto& op : op_queue_) {
 		ByteArray value;
