@@ -4,6 +4,8 @@
 #include <istream>
 #include <ostream>
 #include <memory>
+#include <string>
+#include <sstream>
 #include <vector>
 
 namespace badiff {
@@ -36,6 +38,8 @@ public:
 	virtual Op PopFront();
 	virtual void PushBack(Op);
 	virtual void PushBack(OpQueue&);
+
+	static std::string SummarizeConsuming(OpQueue& op_queue);
 
 protected:
 	virtual void Pull();
