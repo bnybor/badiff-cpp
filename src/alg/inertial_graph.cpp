@@ -54,7 +54,7 @@ struct Node {
 					*previous_insert_cost_
 							+ CostOfOperation(Op::INSERT, Op::NEXT));
 		}
-		if (previous_delete_cost_) {
+		if (original_ == target_ && previous_next_cost_) {
 			delete_cost_ = std::min(delete_cost_,
 					*previous_next_cost_
 							+ CostOfOperation(Op::NEXT, Op::DELETE));
@@ -62,8 +62,7 @@ struct Node {
 					*previous_next_cost_
 							+ CostOfOperation(Op::NEXT, Op::INSERT));
 			next_cost_ = std::min(next_cost_,
-					*previous_next_cost_
-							+ CostOfOperation(Op::NEXT, Op::NEXT));
+					*previous_next_cost_ + CostOfOperation(Op::NEXT, Op::NEXT));
 		}
 
 	}
@@ -100,17 +99,27 @@ void InertialGraph::Compute(const Byte *original, std::size_t original_length,
 
 	for (std::size_t y = 0; y < target_length + 1; ++y) {
 		for (std::size_t x = 0; x < original_length + 1; ++x) {
-			Node& node = nodes[y][x];
+			Node &node = nodes[y][x];
 			if (x == 0 && y == 0) {
 				node.delete_cost_ = 0;
 				node.insert_cost_ = 0;
 				node.next_cost_ = 0;
-				continue;
+			} else if (x == 0) {
+				node.insert_cost_ = 0;
+				node.next_cost_ = 0;
+				node.previous_insert_cost_ = &nodes[y - 1][x].insert_cost_;
+			} else if (y == 0) {
+				node.delete_cost_ = 0;
+				node.next_cost_ = 0;
+				node.previous_delete_cost_ = &nodes[y][x - 1].delete_cost_;
+			} else { /* x > 0 && y > 0 */
+				node.previous_delete_cost_ = &nodes[y - 1][x].insert_cost_;
+				node.previous_insert_cost_ = &nodes[y][x - 1].delete_cost_;
+				node.previous_next_cost_ = &nodes[y - 1][x - 1].next_cost_;
 			}
-
-			if (x > 0) {
-				node.insert_cost_ =
-			}
+			node.original_ = original[x];
+			node.target_ = target[y];
+			node.Compute();
 		}
 	}
 
