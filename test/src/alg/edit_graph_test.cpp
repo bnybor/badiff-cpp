@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <stdlib.h>
+
 #include <badiff/alg/edit_graph.hpp>
 
 #include <gtest/gtest.h>

@@ -13,16 +13,7 @@ class InertialGraph: public Graph {
 	std::vector<Op> op_queue_;
 
 public:
-	// @formatter:off
-	static constexpr std::size_t TRANSITION_COSTS[4][4] = //
-			{ //
-			{ 0, 2, 3, 2, }, // From STOP
-			{ 2, 0, 3, 2, }, // From DELETE
-			{ 2, 2, 1, 2, }, // From INSERT
-			{ 2, 2, 3, 0, } // From NEXT
-			}; // To S D I N
-				// @formatter:on
-
+	static std::size_t TRANSITION_COSTS[4][4];
 	virtual ~InertialGraph() = default;
 
 	void Compute(const Byte *original, std::size_t original_length,
@@ -33,6 +24,7 @@ public:
 };
 
 }
+
 }
 
 #endif /* BADIFF_ALG_EDIT_GRAPH_HPP_ */

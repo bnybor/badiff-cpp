@@ -1,15 +1,26 @@
 #include <badiff/alg/inertial_graph.hpp>
+#include <badiff/q/op_queue.hpp>
 
 #include <algorithm>
+#include <numeric>
+#include <iostream>
 
 namespace badiff {
 
 namespace alg {
 
+std::size_t InertialGraph::TRANSITION_COSTS[4][4] = //
+		{ //
+		{ 0, 2, 3, 2, }, // From STOP
+				{ 2, 0, 3, 2, }, // From DELETE
+				{ 2, 2, 1, 2, }, // From INSERT
+				{ 2, 2, 3, 0, } // From NEXT
+		}; // To S D I N
+
 namespace {
-constexpr inline std::size_t CostOfOperation(Op::Type previous_op,
+inline std::size_t CostOfOperation(Op::Type previous_op,
 		Op::Type op) {
-	return InertialGraph::TRANSITION_COSTS[previous_op][op];
+	return InertialGraph::TRANSITION_COSTS[(std::size_t) previous_op][(std::size_t) op];
 }
 struct Node {
 	const std::size_t *previous_delete_cost_;
@@ -26,9 +37,11 @@ struct Node {
 		previous_delete_cost_ = nullptr;
 		previous_insert_cost_ = nullptr;
 		previous_next_cost_ = nullptr;
-		delete_cost_ = -1;
-		insert_cost_ = -1;
-		next_cost_ = -1;
+		delete_cost_ = (std::uint32_t) -1;
+		insert_cost_ = (std::uint32_t) -1;
+		next_cost_ = (std::uint32_t) -1;
+		original_ = 0;
+		target_ = 0;
 	}
 
 	void Compute() {
@@ -39,9 +52,10 @@ struct Node {
 			insert_cost_ = std::min(insert_cost_,
 					*previous_delete_cost_
 							+ CostOfOperation(Op::DELETE, Op::INSERT));
-			next_cost_ = std::min(next_cost_,
-					*previous_delete_cost_
-							+ CostOfOperation(Op::DELETE, Op::NEXT));
+			if (original_ == target_)
+				next_cost_ = std::min(next_cost_,
+						*previous_delete_cost_
+								+ CostOfOperation(Op::DELETE, Op::NEXT));
 		}
 		if (previous_insert_cost_) {
 			delete_cost_ = std::min(delete_cost_,
@@ -50,28 +64,29 @@ struct Node {
 			insert_cost_ = std::min(insert_cost_,
 					*previous_insert_cost_
 							+ CostOfOperation(Op::INSERT, Op::INSERT));
-			next_cost_ = std::min(next_cost_,
-					*previous_insert_cost_
-							+ CostOfOperation(Op::INSERT, Op::NEXT));
+			if (original_ == target_)
+				next_cost_ = std::min(next_cost_,
+						*previous_insert_cost_
+								+ CostOfOperation(Op::INSERT, Op::NEXT));
 		}
-		if (original_ == target_ && previous_next_cost_) {
+		if (previous_next_cost_) {
 			delete_cost_ = std::min(delete_cost_,
 					*previous_next_cost_
 							+ CostOfOperation(Op::NEXT, Op::DELETE));
 			insert_cost_ = std::min(insert_cost_,
 					*previous_next_cost_
 							+ CostOfOperation(Op::NEXT, Op::INSERT));
-			next_cost_ = std::min(next_cost_,
-					*previous_next_cost_ + CostOfOperation(Op::NEXT, Op::NEXT));
+			if (original_ == target_)
+				next_cost_ = std::min(next_cost_,
+						*previous_next_cost_
+								+ CostOfOperation(Op::NEXT, Op::NEXT));
 		}
-
 	}
 };
 }
 
 void InertialGraph::Compute(const Byte *original, std::size_t original_length,
 		const Byte *target, std::size_t target_length) {
-
 	/*
 	 * Construct a rectangular graph as the edit graph.
 	 * The edit graph supports down (insert), right (delete), and
@@ -100,17 +115,14 @@ void InertialGraph::Compute(const Byte *original, std::size_t original_length,
 	for (std::size_t y = 0; y < target_length + 1; ++y) {
 		for (std::size_t x = 0; x < original_length + 1; ++x) {
 			Node &node = nodes[y][x];
+			printf("Node at x=%iy=%i",x,y);
 			if (x == 0 && y == 0) {
 				node.delete_cost_ = 0;
 				node.insert_cost_ = 0;
 				node.next_cost_ = 0;
 			} else if (x == 0) {
-				node.insert_cost_ = 0;
-				node.next_cost_ = 0;
 				node.previous_insert_cost_ = &nodes[y - 1][x].insert_cost_;
 			} else if (y == 0) {
-				node.delete_cost_ = 0;
-				node.next_cost_ = 0;
 				node.previous_delete_cost_ = &nodes[y][x - 1].delete_cost_;
 			} else { /* x > 0 && y > 0 */
 				node.previous_delete_cost_ = &nodes[y - 1][x].insert_cost_;
@@ -120,6 +132,7 @@ void InertialGraph::Compute(const Byte *original, std::size_t original_length,
 			node.original_ = original[x];
 			node.target_ = target[y];
 			node.Compute();
+			printf( " costs delete=%i insert=%i next=%i\n", node.delete_cost_, node.insert_cost_, node.next_cost_);
 		}
 	}
 
@@ -133,53 +146,50 @@ void InertialGraph::Compute(const Byte *original, std::size_t original_length,
 	 * This gives the edit script in reverse order.
 	 */
 
-	int pos = xlen * ylen - 1;
-	while (pos > 0) {
-		Op::Type fop = best_op[pos];
-		if (op != Op::STOP && op != fop) {
-			ByteArray data;
-			if (op == Op::INSERT || op == Op::DELETE) {
-				auto *rdata = &buf[0];
-				data.reset(new Byte[buf.size()]);
-				for (std::size_t i = 0; i < buf.size(); ++i) {
-					data[buf.size() - i - 1] = rdata[i];
-				}
-			}
-			ret.push_back(Op(op, run, std::move(data))); // @suppress("Ambiguous problem")
-			run = 0;
-			buf.clear();
-		}
-		op = fop;
-		run++;
-		if (op == Op::INSERT) {
-			buf.push_back(yval[pos / xlen]);
-			pos -= xlen;
-		}
-		if (op == Op::DELETE) {
-			buf.push_back(xval[pos % xlen]);
-			pos -= 1;
-		}
-		if (op == Op::NEXT) {
-			pos -= xlen + 1;
+	op_queue_.clear();
+	op_queue_.push_back(Op(Op::STOP, 1));
+	std::size_t x = xlen - 1, y = ylen - 1;
+	while (x > 0 || y > 0) {
+		Node &node = nodes[y][x];
+		if (x > 0 && y > 0 && node.next_cost_ <= node.delete_cost_
+				&& node.next_cost_ <= node.insert_cost_) {
+			if (op_queue_.back().GetType() != Op::NEXT) {
+				op_queue_.push_back(Op(Op::NEXT, 1));
+			} else {
+				op_queue_.back().MutableLength()++;}
+			x -= 1;
+			y -= 1;
+		} else if (x > 0 && node.delete_cost_ <= node.insert_cost_
+				&& node.delete_cost_ <= node.next_cost_) {
+			if (op_queue_.back().GetType() != Op::DELETE) {
+				op_queue_.push_back(Op(Op::DELETE, 1));
+			} else {
+				op_queue_.back().MutableLength()++;}
+			x -= 1;
+		} else if (y > 0 && node.insert_cost_ <= node.delete_cost_
+				&& node.next_cost_ <= node.next_cost_) {
+			if (op_queue_.back().GetType() != Op::INSERT) {
+				ByteArray data(new Byte[1]);
+				data[0] = node.target_;
+				op_queue_.push_back(Op(Op::INSERT, 1, std::move(data)));
+			} else {
+				ByteArray data(new Byte[op_queue_.back().GetLength() + 1]);
+				std::copy(
+						op_queue_.back().GetValue().get(), //
+						op_queue_.back().GetValue().get()
+								+ op_queue_.back().GetLength(), data.get());
+				data[op_queue_.back().GetLength()] = node.target_;
+				op_queue_.back().MutableValue() = std::move(data);
+				op_queue_.back().MutableLength()++;}
+			y -= 1;
 		}
 	}
-	if (op != Op::STOP) {
-		ByteArray data;
-		if (op == Op::INSERT || op == Op::DELETE) {
-			auto *rdata = &buf[0];
-			data.reset(new Byte[buf.size()]);
-			for (std::size_t i = 0; i < buf.size(); ++i) {
-				data[buf.size() - i - 1] = rdata[i];
-			}
-		}
-		ret.push_back(Op(op, run, std::move(data))); // @suppress("Ambiguous problem")
-	}
+	op_queue_.erase(op_queue_.begin());
 
-	/*
-	 * Finally, reverse the edit script and store it.
-	 */
-	op_queue_.resize(ret.size());
-	std::move(ret.rbegin(), ret.rend(), op_queue_.begin());
+	auto op_queue = std::move(op_queue_);
+	op_queue_.resize(op_queue.size());
+	std::move(op_queue.rbegin(), op_queue.rend(), op_queue_.begin());
+
 }
 
 std::unique_ptr<q::OpQueue> InertialGraph::MakeOpQueue() const {
@@ -200,5 +210,4 @@ std::unique_ptr<q::OpQueue> InertialGraph::MakeOpQueue() const {
 }
 
 }
-
 }

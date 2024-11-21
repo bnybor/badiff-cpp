@@ -1,7 +1,7 @@
 .SECONDEXPANSION:
 
 CPP=g++
-CPPFLAGS=-std=c++11 -Iinclude
+CPPFLAGS=-g -std=gnu++11 -Iinclude
 
 SOURCES=$(shell find src -type f -name '*.cpp')
 OBJECTS=$(patsubst src/%.cpp,build/%.o,$(SOURCES))
@@ -12,7 +12,7 @@ TEST_OBJECTS+=build/test/contrib/gmock/gmock-all.o
 TEST_OBJECTS+=build/test/contrib/gtest/gtest-all.o
 TEST_OBJECTS+=build/test/contrib/gtest/gtest_main.o
 
-TEST_CPPFLAGS=-Itest/include -Itest/contrib/include -U__STRICT_ANSI__ 
+TEST_CPPFLAGS=-Itest/include -Itest/contrib/include
 
 all: build/libbadiff.so build/badiff.test
 
@@ -32,7 +32,7 @@ build/test/contrib/gmock/%.o: test/contrib/src/gmock/%.cc | $$(@D)/.f
 	$(CPP) $(CPPFLAGS) $(TEST_CPPFLAGS) -c -o $@ $^
 
 build/badiff.test: $(OBJECTS) $(TEST_OBJECTS)
-	$(CPP) $(CPPFLAGS) -o $@ $^
+	$(CPP) $(CPPFLAGS) -o $@ $^ -lstdc++
 
 .PRECIOUS: %/.f
 %/.f:
