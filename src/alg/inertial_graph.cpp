@@ -115,7 +115,7 @@ void InertialGraph::Compute(const Byte *original, std::size_t original_length,
 	for (std::size_t y = 0; y < ylen; ++y) {
 		for (std::size_t x = 0; x < xlen; ++x) {
 			Node &node = nodes[y][x];
-			printf("Node at x=%iy=%i",x,y);
+//			printf("Node at x=%iy=%i",x,y);
 			if (x == 0 && y == 0) {
 				node.delete_cost_ = 0;
 				node.insert_cost_ = 0;
@@ -132,7 +132,7 @@ void InertialGraph::Compute(const Byte *original, std::size_t original_length,
 			node.original_ = xval[x];
 			node.target_ = yval[y];
 			node.Compute();
-			printf( " costs delete=%i insert=%i next=%i\n", node.delete_cost_, node.insert_cost_, node.next_cost_);
+//			printf( " costs delete=%i insert=%i next=%i\n", node.delete_cost_, node.insert_cost_, node.next_cost_);
 		}
 	}
 
