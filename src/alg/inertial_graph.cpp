@@ -11,10 +11,10 @@ namespace alg {
 
 std::size_t InertialGraph::TRANSITION_COSTS[4][4] = //
 		{ //
-		{ 0, 2, 3, 2, }, // From STOP
-				{ 2, 0, 3, 2, }, // From DELETE
-				{ 2, 2, 1, 2, }, // From INSERT
-				{ 2, 2, 3, 0, } // From NEXT
+		{ 1, 1, 1, 1, }, // From STOP
+				{ 3, 1, 3, 4, }, // From DELETE
+				{ 2, 2, 1, 3, }, // From INSERT
+				{ 1, 2, 3, 1, } // From NEXT
 		}; // To S D I N
 
 namespace {
@@ -112,8 +112,8 @@ void InertialGraph::Compute(const Byte *original, std::size_t original_length,
 	 * the best path.
 	 */
 
-	for (std::size_t y = 0; y < target_length + 1; ++y) {
-		for (std::size_t x = 0; x < original_length + 1; ++x) {
+	for (std::size_t y = 0; y < ylen; ++y) {
+		for (std::size_t x = 0; x < xlen; ++x) {
 			Node &node = nodes[y][x];
 			printf("Node at x=%iy=%i",x,y);
 			if (x == 0 && y == 0) {
@@ -125,12 +125,12 @@ void InertialGraph::Compute(const Byte *original, std::size_t original_length,
 			} else if (y == 0) {
 				node.previous_delete_cost_ = &nodes[y][x - 1].delete_cost_;
 			} else { /* x > 0 && y > 0 */
-				node.previous_delete_cost_ = &nodes[y - 1][x].insert_cost_;
-				node.previous_insert_cost_ = &nodes[y][x - 1].delete_cost_;
+				node.previous_delete_cost_ = &nodes[y - 1][x].delete_cost_;
+				node.previous_insert_cost_ = &nodes[y][x - 1].insert_cost_;
 				node.previous_next_cost_ = &nodes[y - 1][x - 1].next_cost_;
 			}
-			node.original_ = original[x];
-			node.target_ = target[y];
+			node.original_ = xval[x];
+			node.target_ = yval[y];
 			node.Compute();
 			printf( " costs delete=%i insert=%i next=%i\n", node.delete_cost_, node.insert_cost_, node.next_cost_);
 		}

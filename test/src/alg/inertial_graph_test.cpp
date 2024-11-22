@@ -48,20 +48,37 @@ TEST_F(InertialGraphTest, TestHelloWorld) {
 	ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), std::string("+3-2>1+1-2"));
 }
 
-//TEST_F(InertialGraphTest, TestHelloHellish) {
-//	alg::InertialGraph graph;
-//	std::string hello = "hello world1234567890";
-//	std::string world = "hello ish world";
-//
-//	ByteArray original(new Byte[hello.size()]);
-//	std::copy(hello.begin(), hello.end(), original.get());
-//
-//	ByteArray target(new Byte[world.size()]);
-//	std::copy(world.begin(), world.end(), target.get());
-//
-//	graph.Compute(original.get(), hello.size(), target.get(), world.size());
-//
-//	auto op_queue = graph.MakeOpQueue();
-//
-//	ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), std::string(">2+1>1+8>1-1>6"));
-//}
+TEST_F(InertialGraphTest, TestHelloAB) {
+	alg::InertialGraph graph;
+	std::string hello = "ab";
+	std::string world = "bb";
+
+	ByteArray original(new Byte[hello.size()]);
+	std::copy(hello.begin(), hello.end(), original.get());
+
+	ByteArray target(new Byte[world.size()]);
+	std::copy(world.begin(), world.end(), target.get());
+
+	graph.Compute(original.get(), hello.size(), target.get(), world.size());
+
+	auto op_queue = graph.MakeOpQueue();
+
+	ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), std::string(">2+1>1+8>1-1>6"));
+}
+TEST_F(InertialGraphTest, TestHelloA8B8) {
+	alg::InertialGraph graph;
+	std::string hello = "aaaaaaaabbbbbbbb";
+	std::string world = "bbbbbbbbbbbbbbbb";
+
+	ByteArray original(new Byte[hello.size()]);
+	std::copy(hello.begin(), hello.end(), original.get());
+
+	ByteArray target(new Byte[world.size()]);
+	std::copy(world.begin(), world.end(), target.get());
+
+	graph.Compute(original.get(), hello.size(), target.get(), world.size());
+
+	auto op_queue = graph.MakeOpQueue();
+
+	ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), std::string(">2+1>1+8>1-1>6"));
+}
