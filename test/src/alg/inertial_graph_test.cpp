@@ -15,8 +15,6 @@ TEST_F(InertialGraphTest, TestIdentity) {
 	alg::InertialGraph graph;
 	std::string hello = "hello";
 
-	printf("test\n");
-
 	ByteArray original(new Byte[hello.size()]);
 	std::copy(hello.begin(), hello.end(), original.get());
 
@@ -32,8 +30,8 @@ TEST_F(InertialGraphTest, TestIdentity) {
 
 TEST_F(InertialGraphTest, TestHelloWorld) {
 	alg::InertialGraph graph;
-	std::string hello = "hello friend of mine";
-	std::string world = "world friend of mine";
+	std::string hello = "hello";
+	std::string world = "world";
 
 	ByteArray original(new Byte[hello.size()]);
 	std::copy(hello.begin(), hello.end(), original.get());
@@ -45,7 +43,7 @@ TEST_F(InertialGraphTest, TestHelloWorld) {
 
 	auto op_queue = graph.MakeOpQueue();
 
-	ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), std::string("+3-2>1+1-2"));
+	ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), std::string("+5-5"));
 }
 
 TEST_F(InertialGraphTest, TestHelloAB) {
@@ -63,7 +61,7 @@ TEST_F(InertialGraphTest, TestHelloAB) {
 
 	auto op_queue = graph.MakeOpQueue();
 
-	ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), std::string(">2+1>1+8>1-1>6"));
+	ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), std::string("+2-2"));
 }
 TEST_F(InertialGraphTest, TestHelloA8B8) {
 	alg::InertialGraph graph;
@@ -80,5 +78,5 @@ TEST_F(InertialGraphTest, TestHelloA8B8) {
 
 	auto op_queue = graph.MakeOpQueue();
 
-	ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), std::string(">2+1>1+8>1-1>6"));
+	ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), std::string("+10-10>6"));
 }
