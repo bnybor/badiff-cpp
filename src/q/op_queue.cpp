@@ -56,13 +56,7 @@ std::string OpQueue::SummarizeConsuming(OpQueue &op_queue) {
 
 OpQueue::OpQueue(const OpQueue &other) {
   for (auto &op : other.queue_) {
-    ByteArray value;
-    if (op.GetValue()) {
-      value.reset(new Byte[op.GetLength()]);
-      std::copy(op.GetValue().get(), op.GetValue().get() + op.GetLength(),
-                value.get());
-    }
-    PushBack(Op(op.GetType(), op.GetLength(), std::move(value)));
+    PushBack(Op(op));
   }
 }
 
