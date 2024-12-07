@@ -57,19 +57,21 @@ namespace internal {
 // "=value" part can be omitted.
 //
 // Returns the value of the flag, or NULL if the parsing failed.
-static const char* ParseGoogleMockFlagValue(const char* str,
-                                            const char* flag_name,
+static const char *ParseGoogleMockFlagValue(const char *str,
+                                            const char *flag_name,
                                             bool def_optional) {
   // str and flag must not be NULL.
-  if (str == nullptr || flag_name == nullptr) return nullptr;
+  if (str == nullptr || flag_name == nullptr)
+    return nullptr;
 
   // The flag must start with "--gmock_".
   const std::string flag_name_str = std::string("--gmock_") + flag_name;
   const size_t flag_name_len = flag_name_str.length();
-  if (strncmp(str, flag_name_str.c_str(), flag_name_len) != 0) return nullptr;
+  if (strncmp(str, flag_name_str.c_str(), flag_name_len) != 0)
+    return nullptr;
 
   // Skips the flag name.
-  const char* flag_end = str + flag_name_len;
+  const char *flag_end = str + flag_name_len;
 
   // When def_optional is true, it's OK to not have a "=value" part.
   if (def_optional && (flag_end[0] == '\0')) {
@@ -79,7 +81,8 @@ static const char* ParseGoogleMockFlagValue(const char* str,
   // If def_optional is true and there are more characters after the
   // flag name, or if def_optional is false, there must be a '=' after
   // the flag name.
-  if (flag_end[0] != '=') return nullptr;
+  if (flag_end[0] != '=')
+    return nullptr;
 
   // Returns the string after "=".
   return flag_end + 1;
@@ -90,13 +93,14 @@ static const char* ParseGoogleMockFlagValue(const char* str,
 //
 // On success, stores the value of the flag in *value, and returns
 // true.  On failure, returns false without changing *value.
-static bool ParseGoogleMockFlag(const char* str, const char* flag_name,
-                                bool* value) {
+static bool ParseGoogleMockFlag(const char *str, const char *flag_name,
+                                bool *value) {
   // Gets the value of the flag as a string.
-  const char* const value_str = ParseGoogleMockFlagValue(str, flag_name, true);
+  const char *const value_str = ParseGoogleMockFlagValue(str, flag_name, true);
 
   // Aborts if the parsing failed.
-  if (value_str == nullptr) return false;
+  if (value_str == nullptr)
+    return false;
 
   // Converts the string value to a bool.
   *value = !(*value_str == '0' || *value_str == 'f' || *value_str == 'F');
@@ -109,26 +113,28 @@ static bool ParseGoogleMockFlag(const char* str, const char* flag_name,
 // On success, stores the value of the flag in *value, and returns
 // true.  On failure, returns false without changing *value.
 template <typename String>
-static bool ParseGoogleMockFlag(const char* str, const char* flag_name,
-                                String* value) {
+static bool ParseGoogleMockFlag(const char *str, const char *flag_name,
+                                String *value) {
   // Gets the value of the flag as a string.
-  const char* const value_str = ParseGoogleMockFlagValue(str, flag_name, false);
+  const char *const value_str = ParseGoogleMockFlagValue(str, flag_name, false);
 
   // Aborts if the parsing failed.
-  if (value_str == nullptr) return false;
+  if (value_str == nullptr)
+    return false;
 
   // Sets *value to the value of the flag.
   *value = value_str;
   return true;
 }
 
-static bool ParseGoogleMockFlag(const char* str, const char* flag_name,
-                                int32_t* value) {
+static bool ParseGoogleMockFlag(const char *str, const char *flag_name,
+                                int32_t *value) {
   // Gets the value of the flag as a string.
-  const char* const value_str = ParseGoogleMockFlagValue(str, flag_name, true);
+  const char *const value_str = ParseGoogleMockFlagValue(str, flag_name, true);
 
   // Aborts if the parsing failed.
-  if (value_str == nullptr) return false;
+  if (value_str == nullptr)
+    return false;
 
   // Sets *value to the value of the flag.
   return ParseInt32(Message() << "The value of flag --" << flag_name, value_str,
@@ -140,26 +146,27 @@ static bool ParseGoogleMockFlag(const char* str, const char* flag_name,
 // The type parameter CharType can be instantiated to either char or
 // wchar_t.
 template <typename CharType>
-void InitGoogleMockImpl(int* argc, CharType** argv) {
+void InitGoogleMockImpl(int *argc, CharType **argv) {
   // Makes sure Google Test is initialized.  InitGoogleTest() is
   // idempotent, so it's fine if the user has already called it.
   InitGoogleTest(argc, argv);
-  if (*argc <= 0) return;
+  if (*argc <= 0)
+    return;
 
   for (int i = 1; i != *argc; i++) {
     const std::string arg_string = StreamableToString(argv[i]);
-    const char* const arg = arg_string.c_str();
+    const char *const arg = arg_string.c_str();
 
     // Do we see a Google Mock flag?
     bool found_gmock_flag = false;
 
-#define GMOCK_INTERNAL_PARSE_FLAG(flag_name)            \
-  if (!found_gmock_flag) {                              \
-    auto value = GMOCK_FLAG_GET(flag_name);             \
-    if (ParseGoogleMockFlag(arg, #flag_name, &value)) { \
-      GMOCK_FLAG_SET(flag_name, value);                 \
-      found_gmock_flag = true;                          \
-    }                                                   \
+#define GMOCK_INTERNAL_PARSE_FLAG(flag_name)                                   \
+  if (!found_gmock_flag) {                                                     \
+    auto value = GMOCK_FLAG_GET(flag_name);                                    \
+    if (ParseGoogleMockFlag(arg, #flag_name, &value)) {                        \
+      GMOCK_FLAG_SET(flag_name, value);                                        \
+      found_gmock_flag = true;                                                 \
+    }                                                                          \
   }
 
     GMOCK_INTERNAL_PARSE_FLAG(catch_leaked_mocks)
@@ -185,7 +192,7 @@ void InitGoogleMockImpl(int* argc, CharType** argv) {
   }
 }
 
-}  // namespace internal
+} // namespace internal
 
 // Initializes Google Mock.  This must be called before running the
 // tests.  In particular, it parses a command line for the flags that
@@ -198,13 +205,13 @@ void InitGoogleMockImpl(int* argc, CharType** argv) {
 // Since Google Test is needed for Google Mock to work, this function
 // also initializes Google Test and parses its flags, if that hasn't
 // been done.
-GTEST_API_ void InitGoogleMock(int* argc, char** argv) {
+GTEST_API_ void InitGoogleMock(int *argc, char **argv) {
   internal::InitGoogleMockImpl(argc, argv);
 }
 
 // This overloaded version can be used in Windows programs compiled in
 // UNICODE mode.
-GTEST_API_ void InitGoogleMock(int* argc, wchar_t** argv) {
+GTEST_API_ void InitGoogleMock(int *argc, wchar_t **argv) {
   internal::InitGoogleMockImpl(argc, argv);
 }
 
@@ -214,10 +221,10 @@ GTEST_API_ void InitGoogleMock() {
   // Since Arduino doesn't have a command line, fake out the argc/argv arguments
   int argc = 1;
   const auto arg0 = "dummy";
-  char* argv0 = const_cast<char*>(arg0);
-  char** argv = &argv0;
+  char *argv0 = const_cast<char *>(arg0);
+  char **argv = &argv0;
 
   internal::InitGoogleMockImpl(&argc, argv);
 }
 
-}  // namespace testing
+} // namespace testing

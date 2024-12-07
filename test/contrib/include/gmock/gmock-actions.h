@@ -173,8 +173,7 @@ template <typename T, bool kDefaultConstructible>
 struct BuiltInDefaultValueGetter {
   static T Get() { return T(); }
 };
-template <typename T>
-struct BuiltInDefaultValueGetter<T, false> {
+template <typename T> struct BuiltInDefaultValueGetter<T, false> {
   static T Get() {
     Assert(false, __FILE__, __LINE__,
            "Default action undefined for the function return type.");
@@ -191,9 +190,8 @@ struct BuiltInDefaultValueGetter<T, false> {
 // default-constructed T value if T is default constructible.  For any
 // other type T, the built-in default T value is undefined, and the
 // function will abort the process.
-template <typename T>
-class BuiltInDefaultValue {
- public:
+template <typename T> class BuiltInDefaultValue {
+public:
   // This function returns true if and only if type T has a built-in default
   // value.
   static bool Exists() { return ::std::is_default_constructible<T>::value; }
@@ -206,33 +204,30 @@ class BuiltInDefaultValue {
 
 // This partial specialization says that we use the same built-in
 // default value for T and const T.
-template <typename T>
-class BuiltInDefaultValue<const T> {
- public:
+template <typename T> class BuiltInDefaultValue<const T> {
+public:
   static bool Exists() { return BuiltInDefaultValue<T>::Exists(); }
   static T Get() { return BuiltInDefaultValue<T>::Get(); }
 };
 
 // This partial specialization defines the default values for pointer
 // types.
-template <typename T>
-class BuiltInDefaultValue<T*> {
- public:
+template <typename T> class BuiltInDefaultValue<T *> {
+public:
   static bool Exists() { return true; }
-  static T* Get() { return nullptr; }
+  static T *Get() { return nullptr; }
 };
 
 // The following specializations define the default values for
 // specific types we care about.
-#define GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(type, value) \
-  template <>                                                     \
-  class BuiltInDefaultValue<type> {                               \
-   public:                                                        \
-    static bool Exists() { return true; }                         \
-    static type Get() { return value; }                           \
+#define GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(type, value)              \
+  template <> class BuiltInDefaultValue<type> {                                \
+  public:                                                                      \
+    static bool Exists() { return true; }                                      \
+    static type Get() { return value; }                                        \
   }
 
-GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(void, );  // NOLINT
+GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(void, ); // NOLINT
 GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(::std::string, "");
 GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(bool, false);
 GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(unsigned char, '\0');
@@ -246,17 +241,17 @@ GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(char, '\0');
 // that type is the same as unsigned int for gcc, and invalid for
 // MSVC.
 #if GMOCK_WCHAR_T_IS_NATIVE_
-GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(wchar_t, 0U);  // NOLINT
+GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(wchar_t, 0U); // NOLINT
 #endif
 
-GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(unsigned short, 0U);  // NOLINT
-GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(signed short, 0);     // NOLINT
+GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(unsigned short, 0U); // NOLINT
+GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(signed short, 0);    // NOLINT
 GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(unsigned int, 0U);
 GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(signed int, 0);
-GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(unsigned long, 0UL);     // NOLINT
-GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(signed long, 0L);        // NOLINT
-GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(unsigned long long, 0);  // NOLINT
-GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(signed long long, 0);    // NOLINT
+GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(unsigned long, 0UL);    // NOLINT
+GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(signed long, 0L);       // NOLINT
+GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(unsigned long long, 0); // NOLINT
+GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(signed long long, 0);   // NOLINT
 GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(float, 0);
 GMOCK_DEFINE_DEFAULT_ACTION_FOR_RETURN_TYPE_(double, 0);
 
@@ -271,12 +266,10 @@ struct negation
     : std::integral_constant<bool, bool(!P::value)> {};
 
 // Base case: with zero predicates the answer is always true.
-template <typename...>
-struct conjunction : std::true_type {};
+template <typename...> struct conjunction : std::true_type {};
 
 // With a single predicate, the answer is that predicate.
-template <typename P1>
-struct conjunction<P1> : P1 {};
+template <typename P1> struct conjunction<P1> : P1 {};
 
 // With multiple predicates the answer is the first predicate if that is false,
 // and we recurse otherwise.
@@ -284,19 +277,16 @@ template <typename P1, typename... Ps>
 struct conjunction<P1, Ps...>
     : std::conditional<bool(P1::value), conjunction<Ps...>, P1>::type {};
 
-template <typename...>
-struct disjunction : std::false_type {};
+template <typename...> struct disjunction : std::false_type {};
 
-template <typename P1>
-struct disjunction<P1> : P1 {};
+template <typename P1> struct disjunction<P1> : P1 {};
 
 template <typename P1, typename... Ps>
 struct disjunction<P1, Ps...>
     // NOLINTNEXTLINE
     : std::conditional<!bool(P1::value), disjunction<Ps...>, P1>::type {};
 
-template <typename...>
-using void_t = void;
+template <typename...> using void_t = void;
 
 // Detects whether an expression of type `From` can be implicitly converted to
 // `To` according to [conv]. In C++17, [conv]/3 defines this as follows:
@@ -320,27 +310,23 @@ using void_t = void;
 // this function work.
 //
 // REQUIRES: `From` is not cv void.
-template <typename From, typename To>
-struct is_implicitly_convertible {
- private:
+template <typename From, typename To> struct is_implicitly_convertible {
+private:
   // A function that accepts a parameter of type T. This can be called with type
   // U successfully only if U is implicitly convertible to T.
-  template <typename T>
-  static void Accept(T);
+  template <typename T> static void Accept(T);
 
   // A function that creates a value of type T.
-  template <typename T>
-  static T Make();
+  template <typename T> static T Make();
 
   // An overload be selected when implicit conversion from T to To is possible.
   template <typename T, typename = decltype(Accept<To>(Make<T>()))>
   static std::true_type TestImplicitConversion(int);
 
   // A fallback overload selected in all other cases.
-  template <typename T>
-  static std::false_type TestImplicitConversion(...);
+  template <typename T> static std::false_type TestImplicitConversion(...);
 
- public:
+public:
   using type = decltype(TestImplicitConversion<From>(0));
   static constexpr bool value = type::value;
 };
@@ -360,8 +346,8 @@ struct is_callable_r_impl : std::false_type {};
 template <typename R, typename F, typename... Args>
 struct is_callable_r_impl<void_t<call_result_t<F, Args...>>, R, F, Args...>
     : std::conditional<
-          std::is_void<R>::value,  //
-          std::true_type,          //
+          std::is_void<R>::value, //
+          std::true_type,         //
           is_implicitly_convertible<call_result_t<F, Args...>, R>>::type {};
 
 // Like std::is_invocable_r from C++17, but works only for objects with call
@@ -370,16 +356,14 @@ template <typename R, typename F, typename... Args>
 using is_callable_r = is_callable_r_impl<void, R, F, Args...>;
 
 // Like std::as_const from C++17.
-template <typename T>
-typename std::add_const<T>::type& as_const(T& t) {
+template <typename T> typename std::add_const<T>::type &as_const(T &t) {
   return t;
 }
 
-}  // namespace internal
+} // namespace internal
 
 // Specialized for function types below.
-template <typename F>
-class OnceAction;
+template <typename F> class OnceAction;
 
 // An action that can only be used once.
 //
@@ -418,7 +402,7 @@ class OnceAction;
 // whose &&-qualified call operator is capable of dealing with move-only types.
 template <typename Result, typename... Args>
 class OnceAction<Result(Args...)> final {
- private:
+private:
   // True iff we can use the given callable type (or lvalue reference) directly
   // via StdFunctionAdaptor.
   template <typename Callable>
@@ -439,7 +423,7 @@ class OnceAction<Result(Args...)> final {
       // convertible to Result.
       internal::is_callable_r<Result, typename std::decay<Callable>::type>>;
 
- public:
+public:
   // Construct from a callable that is directly compatible with our mocked
   // signature: it accepts our function type's arguments and returns something
   // convertible to our result type.
@@ -452,10 +436,10 @@ class OnceAction<Result(Args...)> final {
                     // traits above.
                     internal::negation<std::is_same<
                         OnceAction, typename std::decay<Callable>::type>>,
-                    IsDirectlyCompatible<Callable>>  //
+                    IsDirectlyCompatible<Callable>> //
                 ::value,
                 int>::type = 0>
-  OnceAction(Callable&& callable)  // NOLINT
+  OnceAction(Callable &&callable) // NOLINT
       : function_(StdFunctionAdaptor<typename std::decay<Callable>::type>(
             {}, std::forward<Callable>(callable))) {}
 
@@ -474,17 +458,17 @@ class OnceAction<Result(Args...)> final {
                     internal::negation<IsDirectlyCompatible<Callable>>,
                     IsCompatibleAfterIgnoringArguments<Callable>>::value,
                 int>::type = 0>
-  OnceAction(Callable&& callable)  // NOLINT
-                                   // Call the constructor above with a callable
-                                   // that ignores the input arguments.
+  OnceAction(Callable &&callable) // NOLINT
+                                  // Call the constructor above with a callable
+                                  // that ignores the input arguments.
       : OnceAction(IgnoreIncomingArguments<typename std::decay<Callable>::type>{
             std::forward<Callable>(callable)}) {}
 
   // We are naturally copyable because we store only an std::function, but
   // semantically we should not be copyable.
-  OnceAction(const OnceAction&) = delete;
-  OnceAction& operator=(const OnceAction&) = delete;
-  OnceAction(OnceAction&&) = default;
+  OnceAction(const OnceAction &) = delete;
+  OnceAction &operator=(const OnceAction &) = delete;
+  OnceAction(OnceAction &&) = default;
 
   // Invoke the underlying action callable with which we were constructed,
   // handing it the supplied arguments.
@@ -492,7 +476,7 @@ class OnceAction<Result(Args...)> final {
     return function_(std::forward<Args>(args)...);
   }
 
- private:
+private:
   // An adaptor that wraps a callable that is compatible with our signature and
   // being invoked as an rvalue reference so that it can be used as an
   // StdFunctionAdaptor. This throws away type safety, but that's fine because
@@ -500,16 +484,15 @@ class OnceAction<Result(Args...)> final {
   //
   // Once we have something like std::move_only_function from C++23, we can do
   // away with this.
-  template <typename Callable>
-  class StdFunctionAdaptor final {
-   public:
+  template <typename Callable> class StdFunctionAdaptor final {
+  public:
     // A tag indicating that the (otherwise universal) constructor is accepting
     // the callable itself, instead of e.g. stealing calls for the move
     // constructor.
     struct CallableTag final {};
 
     template <typename F>
-    explicit StdFunctionAdaptor(CallableTag, F&& callable)
+    explicit StdFunctionAdaptor(CallableTag, F &&callable)
         : callable_(std::make_shared<Callable>(std::forward<F>(callable))) {}
 
     // Rather than explicitly returning Result, we return whatever the wrapped
@@ -531,12 +514,12 @@ class OnceAction<Result(Args...)> final {
     // OnceAction already checks this for us. std::is_invocable_r_v itself makes
     // the same allowance for void result types.
     template <typename... ArgRefs>
-    internal::call_result_t<Callable, ArgRefs...> operator()(
-        ArgRefs&&... args) const {
+    internal::call_result_t<Callable, ArgRefs...>
+    operator()(ArgRefs &&...args) const {
       return std::move(*callable_)(std::forward<ArgRefs>(args)...);
     }
 
-   private:
+  private:
     // We must put the callable on the heap so that we are copyable, which
     // std::function needs.
     std::shared_ptr<Callable> callable_;
@@ -544,9 +527,8 @@ class OnceAction<Result(Args...)> final {
 
   // An adaptor that makes a callable that accepts zero arguments callable with
   // our mocked arguments.
-  template <typename Callable>
-  struct IgnoreIncomingArguments {
-    internal::call_result_t<Callable> operator()(Args&&...) {
+  template <typename Callable> struct IgnoreIncomingArguments {
+    internal::call_result_t<Callable> operator()(Args &&...) {
       return std::move(callable)();
     }
 
@@ -569,9 +551,8 @@ class OnceAction<Result(Args...)> final {
 //
 //   // Sets the default value for type T to be foo.
 //   DefaultValue<T>::Set(foo);
-template <typename T>
-class DefaultValue {
- public:
+template <typename T> class DefaultValue {
+public:
   // Sets the default value for type T; requires T to be
   // copy-constructable and have a public destructor.
   static void Set(T x) {
@@ -611,46 +592,45 @@ class DefaultValue {
                                 : producer_->Produce();
   }
 
- private:
+private:
   class ValueProducer {
-   public:
+  public:
     virtual ~ValueProducer() {}
     virtual T Produce() = 0;
   };
 
   class FixedValueProducer : public ValueProducer {
-   public:
+  public:
     explicit FixedValueProducer(T value) : value_(value) {}
     T Produce() override { return value_; }
 
-   private:
+  private:
     const T value_;
-    FixedValueProducer(const FixedValueProducer&) = delete;
-    FixedValueProducer& operator=(const FixedValueProducer&) = delete;
+    FixedValueProducer(const FixedValueProducer &) = delete;
+    FixedValueProducer &operator=(const FixedValueProducer &) = delete;
   };
 
   class FactoryValueProducer : public ValueProducer {
-   public:
+  public:
     explicit FactoryValueProducer(FactoryFunction factory)
         : factory_(factory) {}
     T Produce() override { return factory_(); }
 
-   private:
+  private:
     const FactoryFunction factory_;
-    FactoryValueProducer(const FactoryValueProducer&) = delete;
-    FactoryValueProducer& operator=(const FactoryValueProducer&) = delete;
+    FactoryValueProducer(const FactoryValueProducer &) = delete;
+    FactoryValueProducer &operator=(const FactoryValueProducer &) = delete;
   };
 
-  static ValueProducer* producer_;
+  static ValueProducer *producer_;
 };
 
 // This partial specialization allows a user to set default values for
 // reference types.
-template <typename T>
-class DefaultValue<T&> {
- public:
+template <typename T> class DefaultValue<T &> {
+public:
   // Sets the default value for type T&.
-  static void Set(T& x) {  // NOLINT
+  static void Set(T &x) { // NOLINT
     address_ = &x;
   }
 
@@ -663,42 +643,39 @@ class DefaultValue<T&> {
   // Returns true if T has a default return value set by the user or there
   // exists a built-in default value.
   static bool Exists() {
-    return IsSet() || internal::BuiltInDefaultValue<T&>::Exists();
+    return IsSet() || internal::BuiltInDefaultValue<T &>::Exists();
   }
 
   // Returns the default value for type T& if the user has set one;
   // otherwise returns the built-in default value if there is one;
   // otherwise aborts the process.
-  static T& Get() {
-    return address_ == nullptr ? internal::BuiltInDefaultValue<T&>::Get()
+  static T &Get() {
+    return address_ == nullptr ? internal::BuiltInDefaultValue<T &>::Get()
                                : *address_;
   }
 
- private:
-  static T* address_;
+private:
+  static T *address_;
 };
 
 // This specialization allows DefaultValue<void>::Get() to
 // compile.
-template <>
-class DefaultValue<void> {
- public:
+template <> class DefaultValue<void> {
+public:
   static bool Exists() { return true; }
   static void Get() {}
 };
 
 // Points to the user-set default value for type T.
 template <typename T>
-typename DefaultValue<T>::ValueProducer* DefaultValue<T>::producer_ = nullptr;
+typename DefaultValue<T>::ValueProducer *DefaultValue<T>::producer_ = nullptr;
 
 // Points to the user-set default value for type T&.
-template <typename T>
-T* DefaultValue<T&>::address_ = nullptr;
+template <typename T> T *DefaultValue<T &>::address_ = nullptr;
 
 // Implement this interface to define an action for function type F.
-template <typename F>
-class ActionInterface {
- public:
+template <typename F> class ActionInterface {
+public:
   typedef typename internal::Function<F>::Result Result;
   typedef typename internal::Function<F>::ArgumentTuple ArgumentTuple;
 
@@ -709,15 +686,14 @@ class ActionInterface {
   // action can have side effects and be stateful.  For example, a
   // get-the-next-element-from-the-collection action will need to
   // remember the current element.
-  virtual Result Perform(const ArgumentTuple& args) = 0;
+  virtual Result Perform(const ArgumentTuple &args) = 0;
 
- private:
-  ActionInterface(const ActionInterface&) = delete;
-  ActionInterface& operator=(const ActionInterface&) = delete;
+private:
+  ActionInterface(const ActionInterface &) = delete;
+  ActionInterface &operator=(const ActionInterface &) = delete;
 };
 
-template <typename F>
-class Action;
+template <typename F> class Action;
 
 // An Action<R(Args...)> is a copyable and IMMUTABLE (except by assignment)
 // object that represents an action to be taken when a mock function of type
@@ -725,9 +701,8 @@ class Action;
 // std::shared_ptr to const ActionInterface<T>. Don't inherit from Action! You
 // can view an object implementing ActionInterface<F> as a concrete action
 // (including its current state), and an Action<F> object as a handle to it.
-template <typename R, typename... Args>
-class Action<R(Args...)> {
- private:
+template <typename R, typename... Args> class Action<R(Args...)> {
+private:
   using F = R(Args...);
 
   // Adapter class to allow constructing Action from a legacy ActionInterface.
@@ -737,7 +712,7 @@ class Action<R(Args...)> {
     ::std::shared_ptr<ActionInterface<F>> impl_;
 
     template <typename... InArgs>
-    typename internal::Function<F>::Result operator()(InArgs&&... args) {
+    typename internal::Function<F>::Result operator()(InArgs &&...args) {
       return impl_->Perform(
           ::std::forward_as_tuple(::std::forward<InArgs>(args)...));
     }
@@ -746,7 +721,7 @@ class Action<R(Args...)> {
   template <typename G>
   using IsCompatibleFunctor = std::is_constructible<std::function<F>, G>;
 
- public:
+public:
   typedef typename internal::Function<F>::Result Result;
   typedef typename internal::Function<F>::ArgumentTuple ArgumentTuple;
 
@@ -762,19 +737,19 @@ class Action<R(Args...)> {
       typename = typename std::enable_if<internal::disjunction<
           IsCompatibleFunctor<G>, std::is_constructible<std::function<Result()>,
                                                         G>>::value>::type>
-  Action(G&& fun) {  // NOLINT
+  Action(G &&fun) { // NOLINT
     Init(::std::forward<G>(fun), IsCompatibleFunctor<G>());
   }
 
   // Constructs an Action from its implementation.
-  explicit Action(ActionInterface<F>* impl)
+  explicit Action(ActionInterface<F> *impl)
       : fun_(ActionAdapter{::std::shared_ptr<ActionInterface<F>>(impl)}) {}
 
   // This constructor allows us to turn an Action<Func> object into an
   // Action<F>, as long as F's arguments can be implicitly converted
   // to Func's and Func's return type can be implicitly converted to F's.
   template <typename Func>
-  Action(const Action<Func>& action)  // NOLINT
+  Action(const Action<Func> &action) // NOLINT
       : fun_(action.fun_) {}
 
   // Returns true if and only if this is the DoDefault() action.
@@ -795,7 +770,7 @@ class Action<R(Args...)> {
 
   // An action can be used as a OnceAction, since it's obviously safe to call it
   // once.
-  operator OnceAction<F>() const {  // NOLINT
+  operator OnceAction<F>() const { // NOLINT
     // Return a OnceAction-compatible callable that calls Perform with the
     // arguments it is provided. We could instead just return fun_, but then
     // we'd need to handle the IsDoDefault() case separately.
@@ -811,24 +786,19 @@ class Action<R(Args...)> {
     return OA{*this};
   }
 
- private:
-  template <typename G>
-  friend class Action;
+private:
+  template <typename G> friend class Action;
 
-  template <typename G>
-  void Init(G&& g, ::std::true_type) {
+  template <typename G> void Init(G &&g, ::std::true_type) {
     fun_ = ::std::forward<G>(g);
   }
 
-  template <typename G>
-  void Init(G&& g, ::std::false_type) {
+  template <typename G> void Init(G &&g, ::std::false_type) {
     fun_ = IgnoreArgs<typename ::std::decay<G>::type>{::std::forward<G>(g)};
   }
 
-  template <typename FunctionImpl>
-  struct IgnoreArgs {
-    template <typename... InArgs>
-    Result operator()(const InArgs&...) const {
+  template <typename FunctionImpl> struct IgnoreArgs {
+    template <typename... InArgs> Result operator()(const InArgs &...) const {
       return function_impl();
     }
 
@@ -860,30 +830,27 @@ class Action<R(Args...)> {
 // MakePolymorphicAction(object) where object has type FooAction.  See
 // the definition of Return(void) and SetArgumentPointee<N>(value) for
 // complete examples.
-template <typename Impl>
-class PolymorphicAction {
- public:
-  explicit PolymorphicAction(const Impl& impl) : impl_(impl) {}
+template <typename Impl> class PolymorphicAction {
+public:
+  explicit PolymorphicAction(const Impl &impl) : impl_(impl) {}
 
-  template <typename F>
-  operator Action<F>() const {
+  template <typename F> operator Action<F>() const {
     return Action<F>(new MonomorphicImpl<F>(impl_));
   }
 
- private:
-  template <typename F>
-  class MonomorphicImpl : public ActionInterface<F> {
-   public:
+private:
+  template <typename F> class MonomorphicImpl : public ActionInterface<F> {
+  public:
     typedef typename internal::Function<F>::Result Result;
     typedef typename internal::Function<F>::ArgumentTuple ArgumentTuple;
 
-    explicit MonomorphicImpl(const Impl& impl) : impl_(impl) {}
+    explicit MonomorphicImpl(const Impl &impl) : impl_(impl) {}
 
-    Result Perform(const ArgumentTuple& args) override {
+    Result Perform(const ArgumentTuple &args) override {
       return impl_.template Perform<Result>(args);
     }
 
-   private:
+  private:
     Impl impl_;
   };
 
@@ -892,8 +859,7 @@ class PolymorphicAction {
 
 // Creates an Action from its implementation and returns it.  The
 // created Action object owns the implementation.
-template <typename F>
-Action<F> MakeAction(ActionInterface<F>* impl) {
+template <typename F> Action<F> MakeAction(ActionInterface<F> *impl) {
   return Action<F>(impl);
 }
 
@@ -905,7 +871,7 @@ Action<F> MakeAction(ActionInterface<F>* impl) {
 // vs
 //   PolymorphicAction<TypeOfFoo>(foo);
 template <typename Impl>
-inline PolymorphicAction<Impl> MakePolymorphicAction(const Impl& impl) {
+inline PolymorphicAction<Impl> MakePolymorphicAction(const Impl &impl) {
   return PolymorphicAction<Impl>(impl);
 }
 
@@ -913,26 +879,24 @@ namespace internal {
 
 // Helper struct to specialize ReturnAction to execute a move instead of a copy
 // on return. Useful for move-only types, but could be used on any type.
-template <typename T>
-struct ByMoveWrapper {
+template <typename T> struct ByMoveWrapper {
   explicit ByMoveWrapper(T value) : payload(std::move(value)) {}
   T payload;
 };
 
 // The general implementation of Return(R). Specializations follow below.
-template <typename R>
-class ReturnAction final {
- public:
+template <typename R> class ReturnAction final {
+public:
   explicit ReturnAction(R value) : value_(std::move(value)) {}
 
   template <typename U, typename... Args,
             typename = typename std::enable_if<conjunction<
                 // See the requirements documented on Return.
-                negation<std::is_same<void, U>>,  //
-                negation<std::is_reference<U>>,   //
-                std::is_convertible<R, U>,        //
+                negation<std::is_same<void, U>>, //
+                negation<std::is_reference<U>>,  //
+                std::is_convertible<R, U>,       //
                 std::is_move_constructible<U>>::value>::type>
-  operator OnceAction<U(Args...)>() && {  // NOLINT
+  operator OnceAction<U(Args...)>() && { // NOLINT
     return Impl<U>(std::move(value_));
   }
 
@@ -941,30 +905,29 @@ class ReturnAction final {
                 // See the requirements documented on Return.
                 negation<std::is_same<void, U>>,   //
                 negation<std::is_reference<U>>,    //
-                std::is_convertible<const R&, U>,  //
+                std::is_convertible<const R &, U>, //
                 std::is_copy_constructible<U>>::value>::type>
-  operator Action<U(Args...)>() const {  // NOLINT
+  operator Action<U(Args...)>() const { // NOLINT
     return Impl<U>(value_);
   }
 
- private:
+private:
   // Implements the Return(x) action for a mock function that returns type U.
-  template <typename U>
-  class Impl final {
-   public:
+  template <typename U> class Impl final {
+  public:
     // The constructor used when the return value is allowed to move from the
     // input value (i.e. we are converting to OnceAction).
-    explicit Impl(R&& input_value)
+    explicit Impl(R &&input_value)
         : state_(new State(std::move(input_value))) {}
 
     // The constructor used when the return value is not allowed to move from
     // the input value (i.e. we are converting to Action).
-    explicit Impl(const R& input_value) : state_(new State(input_value)) {}
+    explicit Impl(const R &input_value) : state_(new State(input_value)) {}
 
     U operator()() && { return std::move(state_->value); }
-    U operator()() const& { return state_->value; }
+    U operator()() const & { return state_->value; }
 
-   private:
+  private:
     // We put our state on the heap so that the compiler-generated copy/move
     // constructors work correctly even when U is a reference-like type. This is
     // necessary only because we eagerly create State::value (see the note on
@@ -977,7 +940,7 @@ class ReturnAction final {
     // same contents) and a reference to the *old* input_value object rather
     // than the new one.
     struct State {
-      explicit State(const R& input_value_in)
+      explicit State(const R &input_value_in)
           : input_value(input_value_in),
             // Make an implicit conversion to Result before initializing the U
             // object we store, avoiding calling any explicit constructor of U
@@ -991,7 +954,7 @@ class ReturnAction final {
 
       // As above, but for the case where we're moving from the ReturnAction
       // object because it's being used as a OnceAction.
-      explicit State(R&& input_value_in)
+      explicit State(R &&input_value_in)
           : input_value(std::move(input_value_in)),
             // For the same reason as above we make an implicit conversion to U
             // before initializing the value.
@@ -1086,9 +1049,8 @@ class ReturnAction final {
 // This version applies the type system-defeating hack of moving from T even in
 // the const call operator, checking at runtime that it isn't called more than
 // once, since the user has declared their intent to do so by using ByMove.
-template <typename T>
-class ReturnAction<ByMoveWrapper<T>> final {
- public:
+template <typename T> class ReturnAction<ByMoveWrapper<T>> final {
+public:
   explicit ReturnAction(ByMoveWrapper<T> wrapper)
       : state_(new State(std::move(wrapper.payload))) {}
 
@@ -1100,11 +1062,11 @@ class ReturnAction<ByMoveWrapper<T>> final {
     return std::move(state_->value);
   }
 
- private:
+private:
   // We store our state on the heap so that we are copyable as required by
   // Action, despite the fact that we are stateful and T may not be copyable.
   struct State {
-    explicit State(T&& value_in) : value(std::move(value_in)) {}
+    explicit State(T &&value_in) : value(std::move(value_in)) {}
 
     T value;
     bool called = false;
@@ -1115,22 +1077,22 @@ class ReturnAction<ByMoveWrapper<T>> final {
 
 // Implements the ReturnNull() action.
 class ReturnNullAction {
- public:
+public:
   // Allows ReturnNull() to be used in any pointer-returning function. In C++11
   // this is enforced by returning nullptr, and in non-C++11 by asserting a
   // pointer type on compile time.
   template <typename Result, typename ArgumentTuple>
-  static Result Perform(const ArgumentTuple&) {
+  static Result Perform(const ArgumentTuple &) {
     return nullptr;
   }
 };
 
 // Implements the Return() action.
 class ReturnVoidAction {
- public:
+public:
   // Allows Return() to be used in any void-returning function.
   template <typename Result, typename ArgumentTuple>
-  static void Perform(const ArgumentTuple&) {
+  static void Perform(const ArgumentTuple &) {
     static_assert(std::is_void<Result>::value, "Result should be void.");
   }
 };
@@ -1138,16 +1100,14 @@ class ReturnVoidAction {
 // Implements the polymorphic ReturnRef(x) action, which can be used
 // in any function that returns a reference to the type of x,
 // regardless of the argument types.
-template <typename T>
-class ReturnRefAction {
- public:
+template <typename T> class ReturnRefAction {
+public:
   // Constructs a ReturnRefAction object from the reference to be returned.
-  explicit ReturnRefAction(T& ref) : ref_(ref) {}  // NOLINT
+  explicit ReturnRefAction(T &ref) : ref_(ref) {} // NOLINT
 
   // This template type conversion operator allows ReturnRef(x) to be
   // used in ANY function that returns a reference to x's type.
-  template <typename F>
-  operator Action<F>() const {
+  template <typename F> operator Action<F>() const {
     typedef typename Function<F>::Result Result;
     // Asserts that the function return type is a reference.  This
     // catches the user error of using ReturnRef(x) when Return(x)
@@ -1157,39 +1117,36 @@ class ReturnRefAction {
     return Action<F>(new Impl<F>(ref_));
   }
 
- private:
+private:
   // Implements the ReturnRef(x) action for a particular function type F.
-  template <typename F>
-  class Impl : public ActionInterface<F> {
-   public:
+  template <typename F> class Impl : public ActionInterface<F> {
+  public:
     typedef typename Function<F>::Result Result;
     typedef typename Function<F>::ArgumentTuple ArgumentTuple;
 
-    explicit Impl(T& ref) : ref_(ref) {}  // NOLINT
+    explicit Impl(T &ref) : ref_(ref) {} // NOLINT
 
-    Result Perform(const ArgumentTuple&) override { return ref_; }
+    Result Perform(const ArgumentTuple &) override { return ref_; }
 
-   private:
-    T& ref_;
+  private:
+    T &ref_;
   };
 
-  T& ref_;
+  T &ref_;
 };
 
 // Implements the polymorphic ReturnRefOfCopy(x) action, which can be
 // used in any function that returns a reference to the type of x,
 // regardless of the argument types.
-template <typename T>
-class ReturnRefOfCopyAction {
- public:
+template <typename T> class ReturnRefOfCopyAction {
+public:
   // Constructs a ReturnRefOfCopyAction object from the reference to
   // be returned.
-  explicit ReturnRefOfCopyAction(const T& value) : value_(value) {}  // NOLINT
+  explicit ReturnRefOfCopyAction(const T &value) : value_(value) {} // NOLINT
 
   // This template type conversion operator allows ReturnRefOfCopy(x) to be
   // used in ANY function that returns a reference to x's type.
-  template <typename F>
-  operator Action<F>() const {
+  template <typename F> operator Action<F>() const {
     typedef typename Function<F>::Result Result;
     // Asserts that the function return type is a reference.  This
     // catches the user error of using ReturnRefOfCopy(x) when Return(x)
@@ -1199,19 +1156,18 @@ class ReturnRefOfCopyAction {
     return Action<F>(new Impl<F>(value_));
   }
 
- private:
+private:
   // Implements the ReturnRefOfCopy(x) action for a particular function type F.
-  template <typename F>
-  class Impl : public ActionInterface<F> {
-   public:
+  template <typename F> class Impl : public ActionInterface<F> {
+  public:
     typedef typename Function<F>::Result Result;
     typedef typename Function<F>::ArgumentTuple ArgumentTuple;
 
-    explicit Impl(const T& value) : value_(value) {}  // NOLINT
+    explicit Impl(const T &value) : value_(value) {} // NOLINT
 
-    Result Perform(const ArgumentTuple&) override { return value_; }
+    Result Perform(const ArgumentTuple &) override { return value_; }
 
-   private:
+  private:
     T value_;
   };
 
@@ -1220,25 +1176,24 @@ class ReturnRefOfCopyAction {
 
 // Implements the polymorphic ReturnRoundRobin(v) action, which can be
 // used in any function that returns the element_type of v.
-template <typename T>
-class ReturnRoundRobinAction {
- public:
+template <typename T> class ReturnRoundRobinAction {
+public:
   explicit ReturnRoundRobinAction(std::vector<T> values) {
     GTEST_CHECK_(!values.empty())
         << "ReturnRoundRobin requires at least one element.";
     state_->values = std::move(values);
   }
 
-  template <typename... Args>
-  T operator()(Args&&...) const {
+  template <typename... Args> T operator()(Args &&...) const {
     return state_->Next();
   }
 
- private:
+private:
   struct State {
     T Next() {
       T ret_val = values[i++];
-      if (i == values.size()) i = 0;
+      if (i == values.size())
+        i = 0;
       return ret_val;
     }
 
@@ -1250,29 +1205,27 @@ class ReturnRoundRobinAction {
 
 // Implements the polymorphic DoDefault() action.
 class DoDefaultAction {
- public:
+public:
   // This template type conversion operator allows DoDefault() to be
   // used in any function.
-  template <typename F>
-  operator Action<F>() const {
+  template <typename F> operator Action<F>() const {
     return Action<F>();
-  }  // NOLINT
+  } // NOLINT
 };
 
 // Implements the Assign action to set a given pointer referent to a
 // particular value.
-template <typename T1, typename T2>
-class AssignAction {
- public:
-  AssignAction(T1* ptr, T2 value) : ptr_(ptr), value_(value) {}
+template <typename T1, typename T2> class AssignAction {
+public:
+  AssignAction(T1 *ptr, T2 value) : ptr_(ptr), value_(value) {}
 
   template <typename Result, typename ArgumentTuple>
-  void Perform(const ArgumentTuple& /* args */) const {
+  void Perform(const ArgumentTuple & /* args */) const {
     *ptr_ = value_;
   }
 
- private:
-  T1* const ptr_;
+private:
+  T1 *const ptr_;
   const T2 value_;
 };
 
@@ -1280,23 +1233,22 @@ class AssignAction {
 
 // Implements the SetErrnoAndReturn action to simulate return from
 // various system calls and libc functions.
-template <typename T>
-class SetErrnoAndReturnAction {
- public:
+template <typename T> class SetErrnoAndReturnAction {
+public:
   SetErrnoAndReturnAction(int errno_value, T result)
       : errno_(errno_value), result_(result) {}
   template <typename Result, typename ArgumentTuple>
-  Result Perform(const ArgumentTuple& /* args */) const {
+  Result Perform(const ArgumentTuple & /* args */) const {
     errno = errno_;
     return result_;
   }
 
- private:
+private:
   const int errno_;
   const T result_;
 };
 
-#endif  // !GTEST_OS_WINDOWS_MOBILE
+#endif // !GTEST_OS_WINDOWS_MOBILE
 
 // Implements the SetArgumentPointee<N>(x) action for any function
 // whose N-th argument (0-based) is a pointer to x's type.
@@ -1304,20 +1256,18 @@ template <size_t N, typename A, typename = void>
 struct SetArgumentPointeeAction {
   A value;
 
-  template <typename... Args>
-  void operator()(const Args&... args) const {
+  template <typename... Args> void operator()(const Args &...args) const {
     *::std::get<N>(std::tie(args...)) = value;
   }
 };
 
 // Implements the Invoke(object_ptr, &Class::Method) action.
-template <class Class, typename MethodPtr>
-struct InvokeMethodAction {
-  Class* const obj_ptr;
+template <class Class, typename MethodPtr> struct InvokeMethodAction {
+  Class *const obj_ptr;
   const MethodPtr method_ptr;
 
   template <typename... Args>
-  auto operator()(Args&&... args) const
+  auto operator()(Args &&...args) const
       -> decltype((obj_ptr->*method_ptr)(std::forward<Args>(args)...)) {
     return (obj_ptr->*method_ptr)(std::forward<Args>(args)...);
   }
@@ -1327,14 +1277,13 @@ struct InvokeMethodAction {
 // FunctionImpl is the implementation type of f, which can be either a
 // function pointer or a functor.  InvokeWithoutArgs(f) can be used as an
 // Action<F> as long as f's type is compatible with F.
-template <typename FunctionImpl>
-struct InvokeWithoutArgsAction {
+template <typename FunctionImpl> struct InvokeWithoutArgsAction {
   FunctionImpl function_impl;
 
   // Allows InvokeWithoutArgs(f) to be used as any action whose type is
   // compatible with f.
   template <typename... Args>
-  auto operator()(const Args&...) -> decltype(function_impl()) {
+  auto operator()(const Args &...) -> decltype(function_impl()) {
     return function_impl();
   }
 };
@@ -1342,26 +1291,23 @@ struct InvokeWithoutArgsAction {
 // Implements the InvokeWithoutArgs(object_ptr, &Class::Method) action.
 template <class Class, typename MethodPtr>
 struct InvokeMethodWithoutArgsAction {
-  Class* const obj_ptr;
+  Class *const obj_ptr;
   const MethodPtr method_ptr;
 
   using ReturnType =
-      decltype((std::declval<Class*>()->*std::declval<MethodPtr>())());
+      decltype((std::declval<Class *>()->*std::declval<MethodPtr>())());
 
-  template <typename... Args>
-  ReturnType operator()(const Args&...) const {
+  template <typename... Args> ReturnType operator()(const Args &...) const {
     return (obj_ptr->*method_ptr)();
   }
 };
 
 // Implements the IgnoreResult(action) action.
-template <typename A>
-class IgnoreResultAction {
- public:
-  explicit IgnoreResultAction(const A& action) : action_(action) {}
+template <typename A> class IgnoreResultAction {
+public:
+  explicit IgnoreResultAction(const A &action) : action_(action) {}
 
-  template <typename F>
-  operator Action<F>() const {
+  template <typename F> operator Action<F>() const {
     // Assert statement belongs here because this is the best place to verify
     // conditions on F. It produces the clearest error messages
     // in most compilers.
@@ -1378,21 +1324,20 @@ class IgnoreResultAction {
     return Action<F>(new Impl<F>(action_));
   }
 
- private:
-  template <typename F>
-  class Impl : public ActionInterface<F> {
-   public:
+private:
+  template <typename F> class Impl : public ActionInterface<F> {
+  public:
     typedef typename internal::Function<F>::Result Result;
     typedef typename internal::Function<F>::ArgumentTuple ArgumentTuple;
 
-    explicit Impl(const A& action) : action_(action) {}
+    explicit Impl(const A &action) : action_(action) {}
 
-    void Perform(const ArgumentTuple& args) override {
+    void Perform(const ArgumentTuple &args) override {
       // Performs the action and ignores its result.
       action_.Perform(args);
     }
 
-   private:
+  private:
     // Type OriginalFunction is the same as F except that its return
     // type is IgnoredValue.
     typedef
@@ -1404,8 +1349,7 @@ class IgnoreResultAction {
   const A action_;
 };
 
-template <typename InnerAction, size_t... I>
-struct WithArgsAction {
+template <typename InnerAction, size_t... I> struct WithArgsAction {
   InnerAction inner_action;
 
   // The signature of the function as seen by the inner action, given an out
@@ -1431,11 +1375,11 @@ struct WithArgsAction {
                     OnceAction<R(typename std::tuple_element<
                                  I, std::tuple<Args...>>::type...)>>::value,
                 int>::type = 0>
-  operator OnceAction<R(Args...)>() && {  // NOLINT
+  operator OnceAction<R(Args...)>() && { // NOLINT
     struct OA {
       OnceAction<InnerSignature<R, Args...>> inner_action;
 
-      R operator()(Args&&... args) && {
+      R operator()(Args &&...args) && {
         return std::move(inner_action)
             .Call(std::get<I>(
                 std::forward_as_tuple(std::forward<Args>(args)...))...);
@@ -1448,7 +1392,7 @@ struct WithArgsAction {
   template <typename R, typename... Args,
             typename std::enable_if<
                 std::is_convertible<
-                    const InnerAction&,
+                    const InnerAction &,
                     // Unfortunately we can't use the InnerSignature alias here;
                     // MSVC complains about the I parameter pack not being
                     // expanded (error C3520) despite it being expanded in the
@@ -1456,27 +1400,25 @@ struct WithArgsAction {
                     Action<R(typename std::tuple_element<
                              I, std::tuple<Args...>>::type...)>>::value,
                 int>::type = 0>
-  operator Action<R(Args...)>() const {  // NOLINT
+  operator Action<R(Args...)>() const { // NOLINT
     Action<InnerSignature<R, Args...>> converted(inner_action);
 
-    return [converted](Args&&... args) -> R {
+    return [converted](Args &&...args) -> R {
       return converted.Perform(std::forward_as_tuple(
           std::get<I>(std::forward_as_tuple(std::forward<Args>(args)...))...));
     };
   }
 };
 
-template <typename... Actions>
-class DoAllAction;
+template <typename... Actions> class DoAllAction;
 
 // Base case: only a single action.
-template <typename FinalAction>
-class DoAllAction<FinalAction> {
- public:
+template <typename FinalAction> class DoAllAction<FinalAction> {
+public:
   struct UserConstructorTag {};
 
   template <typename T>
-  explicit DoAllAction(UserConstructorTag, T&& action)
+  explicit DoAllAction(UserConstructorTag, T &&action)
       : final_action_(std::forward<T>(action)) {}
 
   // Rather than a call operator, we must define conversion operators to
@@ -1489,20 +1431,20 @@ class DoAllAction<FinalAction> {
             typename std::enable_if<
                 std::is_convertible<FinalAction, OnceAction<R(Args...)>>::value,
                 int>::type = 0>
-  operator OnceAction<R(Args...)>() && {  // NOLINT
+  operator OnceAction<R(Args...)>() && { // NOLINT
     return std::move(final_action_);
   }
 
   template <
       typename R, typename... Args,
       typename std::enable_if<
-          std::is_convertible<const FinalAction&, Action<R(Args...)>>::value,
+          std::is_convertible<const FinalAction &, Action<R(Args...)>>::value,
           int>::type = 0>
-  operator Action<R(Args...)>() const {  // NOLINT
+  operator Action<R(Args...)>() const { // NOLINT
     return final_action_;
   }
 
- private:
+private:
   FinalAction final_action_;
 };
 
@@ -1511,7 +1453,7 @@ class DoAllAction<FinalAction> {
 template <typename InitialAction, typename... OtherActions>
 class DoAllAction<InitialAction, OtherActions...>
     : private DoAllAction<OtherActions...> {
- private:
+private:
   using Base = DoAllAction<OtherActions...>;
 
   // The type of reference that should be provided to an initial action for a
@@ -1561,14 +1503,14 @@ class DoAllAction<InitialAction, OtherActions...>
   //
   template <typename T>
   using InitialActionArgType =
-      typename std::conditional<std::is_scalar<T>::value, T, const T&>::type;
+      typename std::conditional<std::is_scalar<T>::value, T, const T &>::type;
 
- public:
+public:
   struct UserConstructorTag {};
 
   template <typename T, typename... U>
-  explicit DoAllAction(UserConstructorTag, T&& initial_action,
-                       U&&... other_actions)
+  explicit DoAllAction(UserConstructorTag, T &&initial_action,
+                       U &&...other_actions)
       : Base({}, std::forward<U>(other_actions)...),
         initial_action_(std::forward<T>(initial_action)) {}
 
@@ -1582,7 +1524,7 @@ class DoAllAction<InitialAction, OtherActions...>
                         OnceAction<void(InitialActionArgType<Args>...)>>,
                     std::is_convertible<Base, OnceAction<R(Args...)>>>::value,
                 int>::type = 0>
-  operator OnceAction<R(Args...)>() && {  // NOLINT
+  operator OnceAction<R(Args...)>() && { // NOLINT
     // Return an action that first calls the initial action with arguments
     // filtered through InitialActionArgType, then forwards arguments directly
     // to the base class to deal with the remaining actions.
@@ -1600,7 +1542,7 @@ class DoAllAction<InitialAction, OtherActions...>
 
     return OA{
         std::move(initial_action_),
-        std::move(static_cast<Base&>(*this)),
+        std::move(static_cast<Base &>(*this)),
     };
   }
 
@@ -1610,11 +1552,11 @@ class DoAllAction<InitialAction, OtherActions...>
           conjunction<
               // Both the initial action and the rest must support conversion to
               // Action.
-              std::is_convertible<const InitialAction&,
+              std::is_convertible<const InitialAction &,
                                   Action<void(InitialActionArgType<Args>...)>>,
-              std::is_convertible<const Base&, Action<R(Args...)>>>::value,
+              std::is_convertible<const Base &, Action<R(Args...)>>>::value,
           int>::type = 0>
-  operator Action<R(Args...)>() const {  // NOLINT
+  operator Action<R(Args...)>() const { // NOLINT
     // Return an action that first calls the initial action with arguments
     // filtered through InitialActionArgType, then forwards arguments directly
     // to the base class to deal with the remaining actions.
@@ -1633,19 +1575,18 @@ class DoAllAction<InitialAction, OtherActions...>
 
     return OA{
         initial_action_,
-        static_cast<const Base&>(*this),
+        static_cast<const Base &>(*this),
     };
   }
 
- private:
+private:
   InitialAction initial_action_;
 };
 
-template <typename T, typename... Params>
-struct ReturnNewAction {
-  T* operator()() const {
+template <typename T, typename... Params> struct ReturnNewAction {
+  T *operator()() const {
     return internal::Apply(
-        [](const Params&... unpacked_params) {
+        [](const Params &...unpacked_params) {
           return new T(unpacked_params...);
         },
         params);
@@ -1653,42 +1594,35 @@ struct ReturnNewAction {
   std::tuple<Params...> params;
 };
 
-template <size_t k>
-struct ReturnArgAction {
+template <size_t k> struct ReturnArgAction {
   template <typename... Args,
             typename = typename std::enable_if<(k < sizeof...(Args))>::type>
-  auto operator()(Args&&... args) const -> decltype(std::get<k>(
+  auto operator()(Args &&...args) const -> decltype(std::get<k>(
       std::forward_as_tuple(std::forward<Args>(args)...))) {
     return std::get<k>(std::forward_as_tuple(std::forward<Args>(args)...));
   }
 };
 
-template <size_t k, typename Ptr>
-struct SaveArgAction {
+template <size_t k, typename Ptr> struct SaveArgAction {
   Ptr pointer;
 
-  template <typename... Args>
-  void operator()(const Args&... args) const {
+  template <typename... Args> void operator()(const Args &...args) const {
     *pointer = std::get<k>(std::tie(args...));
   }
 };
 
-template <size_t k, typename Ptr>
-struct SaveArgPointeeAction {
+template <size_t k, typename Ptr> struct SaveArgPointeeAction {
   Ptr pointer;
 
-  template <typename... Args>
-  void operator()(const Args&... args) const {
+  template <typename... Args> void operator()(const Args &...args) const {
     *pointer = *std::get<k>(std::tie(args...));
   }
 };
 
-template <size_t k, typename T>
-struct SetArgRefereeAction {
+template <size_t k, typename T> struct SetArgRefereeAction {
   T value;
 
-  template <typename... Args>
-  void operator()(Args&&... args) const {
+  template <typename... Args> void operator()(Args &&...args) const {
     using argk_type =
         typename ::std::tuple_element<k, std::tuple<Args...>>::type;
     static_assert(std::is_lvalue_reference<argk_type>::value,
@@ -1697,13 +1631,11 @@ struct SetArgRefereeAction {
   }
 };
 
-template <size_t k, typename I1, typename I2>
-struct SetArrayArgumentAction {
+template <size_t k, typename I1, typename I2> struct SetArrayArgumentAction {
   I1 first;
   I2 last;
 
-  template <typename... Args>
-  void operator()(const Args&... args) const {
+  template <typename... Args> void operator()(const Args &...args) const {
     auto value = std::get<k>(std::tie(args...));
     for (auto it = first; it != last; ++it, (void)++value) {
       *value = *it;
@@ -1711,37 +1643,33 @@ struct SetArrayArgumentAction {
   }
 };
 
-template <size_t k>
-struct DeleteArgAction {
-  template <typename... Args>
-  void operator()(const Args&... args) const {
+template <size_t k> struct DeleteArgAction {
+  template <typename... Args> void operator()(const Args &...args) const {
     delete std::get<k>(std::tie(args...));
   }
 };
 
-template <typename Ptr>
-struct ReturnPointeeAction {
+template <typename Ptr> struct ReturnPointeeAction {
   Ptr pointer;
   template <typename... Args>
-  auto operator()(const Args&...) const -> decltype(*pointer) {
+  auto operator()(const Args &...) const -> decltype(*pointer) {
     return *pointer;
   }
 };
 
 #if GTEST_HAS_EXCEPTIONS
-template <typename T>
-struct ThrowAction {
+template <typename T> struct ThrowAction {
   T exception;
   // We use a conversion operator to adapt to any return type.
   template <typename R, typename... Args>
-  operator Action<R(Args...)>() const {  // NOLINT
+  operator Action<R(Args...)>() const { // NOLINT
     T copy = exception;
     return [copy](Args...) -> R { throw copy; };
   }
 };
-#endif  // GTEST_HAS_EXCEPTIONS
+#endif // GTEST_HAS_EXCEPTIONS
 
-}  // namespace internal
+} // namespace internal
 
 // An Unused object can be implicitly constructed from ANY value.
 // This is handy when defining actions that ignore some or all of the
@@ -1779,8 +1707,8 @@ typedef internal::IgnoredValue Unused;
 // each invocation. All but the last action will have a readonly view of the
 // arguments.
 template <typename... Action>
-internal::DoAllAction<typename std::decay<Action>::type...> DoAll(
-    Action&&... action) {
+internal::DoAllAction<typename std::decay<Action>::type...>
+DoAll(Action &&...action) {
   return internal::DoAllAction<typename std::decay<Action>::type...>(
       {}, std::forward<Action>(action)...);
 }
@@ -1791,8 +1719,8 @@ internal::DoAllAction<typename std::decay<Action>::type...> DoAll(
 // multiple arguments.  For convenience, we also provide
 // WithArgs<k>(an_action) (defined below) as a synonym.
 template <size_t k, typename InnerAction>
-internal::WithArgsAction<typename std::decay<InnerAction>::type, k> WithArg(
-    InnerAction&& action) {
+internal::WithArgsAction<typename std::decay<InnerAction>::type, k>
+WithArg(InnerAction &&action) {
   return {std::forward<InnerAction>(action)};
 }
 
@@ -1802,7 +1730,7 @@ internal::WithArgsAction<typename std::decay<InnerAction>::type, k> WithArg(
 // different argument lists.
 template <size_t k, size_t... ks, typename InnerAction>
 internal::WithArgsAction<typename std::decay<InnerAction>::type, k, ks...>
-WithArgs(InnerAction&& action) {
+WithArgs(InnerAction &&action) {
   return {std::forward<InnerAction>(action)};
 }
 
@@ -1811,8 +1739,8 @@ WithArgs(InnerAction&& action) {
 // argument.  In other words, it adapts an action accepting no
 // argument to one that accepts (and ignores) arguments.
 template <typename InnerAction>
-internal::WithArgsAction<typename std::decay<InnerAction>::type> WithoutArgs(
-    InnerAction&& action) {
+internal::WithArgsAction<typename std::decay<InnerAction>::type>
+WithoutArgs(InnerAction &&action) {
   return {std::forward<InnerAction>(action)};
 }
 
@@ -1840,8 +1768,7 @@ internal::WithArgsAction<typename std::decay<InnerAction>::type> WithoutArgs(
 //     const std::string_view result = mock.AsStdFunction()();
 //     EXPECT_EQ("taco", result);
 //
-template <typename R>
-internal::ReturnAction<R> Return(R value) {
+template <typename R> internal::ReturnAction<R> Return(R value) {
   return internal::ReturnAction<R>(std::move(value));
 }
 
@@ -1857,19 +1784,19 @@ inline PolymorphicAction<internal::ReturnVoidAction> Return() {
 
 // Creates an action that returns the reference to a variable.
 template <typename R>
-inline internal::ReturnRefAction<R> ReturnRef(R& x) {  // NOLINT
+inline internal::ReturnRefAction<R> ReturnRef(R &x) { // NOLINT
   return internal::ReturnRefAction<R>(x);
 }
 
 // Prevent using ReturnRef on reference to temporary.
-template <typename R, R* = nullptr>
-internal::ReturnRefAction<R> ReturnRef(R&&) = delete;
+template <typename R, R * = nullptr>
+internal::ReturnRefAction<R> ReturnRef(R &&) = delete;
 
 // Creates an action that returns the reference to a copy of the
 // argument.  The copy is created when the action is constructed and
 // lives as long as the action.
 template <typename R>
-inline internal::ReturnRefOfCopyAction<R> ReturnRefOfCopy(const R& x) {
+inline internal::ReturnRefOfCopyAction<R> ReturnRefOfCopy(const R &x) {
   return internal::ReturnRefOfCopyAction<R>(x);
 }
 
@@ -1879,8 +1806,7 @@ inline internal::ReturnRefOfCopyAction<R> ReturnRefOfCopy(const R& x) {
 // argument instead of a copy.
 // Return(ByMove()) actions can only be executed once and will assert this
 // invariant.
-template <typename R>
-internal::ByMoveWrapper<R> ByMove(R x) {
+template <typename R> internal::ByMoveWrapper<R> ByMove(R x) {
   return internal::ByMoveWrapper<R>(std::move(x));
 }
 
@@ -1896,8 +1822,8 @@ internal::ReturnRoundRobinAction<T> ReturnRoundRobin(std::vector<T> vals) {
 // repeatedly return the next value from `vals` until it reaches the end and
 // will restart from the beginning.
 template <typename T>
-internal::ReturnRoundRobinAction<T> ReturnRoundRobin(
-    std::initializer_list<T> vals) {
+internal::ReturnRoundRobinAction<T>
+ReturnRoundRobin(std::initializer_list<T> vals) {
   return internal::ReturnRoundRobinAction<T>(std::vector<T>(vals));
 }
 
@@ -1921,7 +1847,7 @@ internal::SetArgumentPointeeAction<N, T> SetArgumentPointee(T value) {
 
 // Creates an action that sets a pointer referent to a given value.
 template <typename T1, typename T2>
-PolymorphicAction<internal::AssignAction<T1, T2>> Assign(T1* ptr, T2 val) {
+PolymorphicAction<internal::AssignAction<T1, T2>> Assign(T1 *ptr, T2 val) {
   return MakePolymorphicAction(internal::AssignAction<T1, T2>(ptr, val));
 }
 
@@ -1929,13 +1855,13 @@ PolymorphicAction<internal::AssignAction<T1, T2>> Assign(T1* ptr, T2 val) {
 
 // Creates an action that sets errno and returns the appropriate error.
 template <typename T>
-PolymorphicAction<internal::SetErrnoAndReturnAction<T>> SetErrnoAndReturn(
-    int errval, T result) {
+PolymorphicAction<internal::SetErrnoAndReturnAction<T>>
+SetErrnoAndReturn(int errval, T result) {
   return MakePolymorphicAction(
       internal::SetErrnoAndReturnAction<T>(errval, result));
 }
 
-#endif  // !GTEST_OS_WINDOWS_MOBILE
+#endif // !GTEST_OS_WINDOWS_MOBILE
 
 // Various overloads for Invoke().
 
@@ -1944,14 +1870,14 @@ PolymorphicAction<internal::SetErrnoAndReturnAction<T>> SetErrnoAndReturn(
 // wrapper objects.
 // This function exists for backwards compatibility.
 template <typename FunctionImpl>
-typename std::decay<FunctionImpl>::type Invoke(FunctionImpl&& function_impl) {
+typename std::decay<FunctionImpl>::type Invoke(FunctionImpl &&function_impl) {
   return std::forward<FunctionImpl>(function_impl);
 }
 
 // Creates an action that invokes the given method on the given object
 // with the mock function's arguments.
 template <class Class, typename MethodPtr>
-internal::InvokeMethodAction<Class, MethodPtr> Invoke(Class* obj_ptr,
+internal::InvokeMethodAction<Class, MethodPtr> Invoke(Class *obj_ptr,
                                                       MethodPtr method_ptr) {
   return {obj_ptr, method_ptr};
 }
@@ -1966,8 +1892,8 @@ InvokeWithoutArgs(FunctionImpl function_impl) {
 // Creates an action that invokes the given method on the given object
 // with no argument.
 template <class Class, typename MethodPtr>
-internal::InvokeMethodWithoutArgsAction<Class, MethodPtr> InvokeWithoutArgs(
-    Class* obj_ptr, MethodPtr method_ptr) {
+internal::InvokeMethodWithoutArgsAction<Class, MethodPtr>
+InvokeWithoutArgs(Class *obj_ptr, MethodPtr method_ptr) {
   return {obj_ptr, method_ptr};
 }
 
@@ -1975,7 +1901,7 @@ internal::InvokeMethodWithoutArgsAction<Class, MethodPtr> InvokeWithoutArgs(
 // result.  In other words, it changes the return type of an_action to
 // void.  an_action MUST NOT return void, or the code won't compile.
 template <typename A>
-inline internal::IgnoreResultAction<A> IgnoreResult(const A& an_action) {
+inline internal::IgnoreResultAction<A> IgnoreResult(const A &an_action) {
   return internal::IgnoreResultAction<A>(an_action);
 }
 
@@ -1990,7 +1916,7 @@ inline internal::IgnoreResultAction<A> IgnoreResult(const A& an_action) {
 // N.B. ByRef is redundant with std::ref, std::cref and std::reference_wrapper.
 // However, it may still be used for consistency with ByMove().
 template <typename T>
-inline ::std::reference_wrapper<T> ByRef(T& l_value) {  // NOLINT
+inline ::std::reference_wrapper<T> ByRef(T &l_value) { // NOLINT
   return ::std::reference_wrapper<T>(l_value);
 }
 
@@ -1998,16 +1924,13 @@ inline ::std::reference_wrapper<T> ByRef(T& l_value) {  // NOLINT
 // instance of type T, constructed on the heap with constructor arguments
 // a1, a2, ..., and a_k. The caller assumes ownership of the returned value.
 template <typename T, typename... Params>
-internal::ReturnNewAction<T, typename std::decay<Params>::type...> ReturnNew(
-    Params&&... params) {
+internal::ReturnNewAction<T, typename std::decay<Params>::type...>
+ReturnNew(Params &&...params) {
   return {std::forward_as_tuple(std::forward<Params>(params)...)};
 }
 
 // Action ReturnArg<k>() returns the k-th argument of the mock function.
-template <size_t k>
-internal::ReturnArgAction<k> ReturnArg() {
-  return {};
-}
+template <size_t k> internal::ReturnArgAction<k> ReturnArg() { return {}; }
 
 // Action SaveArg<k>(pointer) saves the k-th (0-based) argument of the
 // mock function to *pointer.
@@ -2026,8 +1949,8 @@ internal::SaveArgPointeeAction<k, Ptr> SaveArgPointee(Ptr pointer) {
 // Action SetArgReferee<k>(value) assigns 'value' to the variable
 // referenced by the k-th (0-based) argument of the mock function.
 template <size_t k, typename T>
-internal::SetArgRefereeAction<k, typename std::decay<T>::type> SetArgReferee(
-    T&& value) {
+internal::SetArgRefereeAction<k, typename std::decay<T>::type>
+SetArgReferee(T &&value) {
   return {std::forward<T>(value)};
 }
 
@@ -2044,10 +1967,7 @@ internal::SetArrayArgumentAction<k, I1, I2> SetArrayArgument(I1 first,
 
 // Action DeleteArg<k>() deletes the k-th (0-based) argument of the mock
 // function.
-template <size_t k>
-internal::DeleteArgAction<k> DeleteArg() {
-  return {};
-}
+template <size_t k> internal::DeleteArgAction<k> DeleteArg() { return {}; }
 
 // This action returns the value pointed to by 'pointer'.
 template <typename Ptr>
@@ -2059,10 +1979,10 @@ internal::ReturnPointeeAction<Ptr> ReturnPointee(Ptr pointer) {
 // to throw the given exception.  Any copyable value can be thrown.
 #if GTEST_HAS_EXCEPTIONS
 template <typename T>
-internal::ThrowAction<typename std::decay<T>::type> Throw(T&& exception) {
+internal::ThrowAction<typename std::decay<T>::type> Throw(T &&exception) {
   return {std::forward<T>(exception)};
 }
-#endif  // GTEST_HAS_EXCEPTIONS
+#endif // GTEST_HAS_EXCEPTIONS
 
 namespace internal {
 
@@ -2084,14 +2004,12 @@ struct ExcessiveArg {};
 
 // Builds an implementation of an Action<> for some particular signature, using
 // a class defined by an ACTION* macro.
-template <typename F, typename Impl>
-struct ActionImpl;
+template <typename F, typename Impl> struct ActionImpl;
 
-template <typename Impl>
-struct ImplBase {
+template <typename Impl> struct ImplBase {
   struct Holder {
     // Allows each copy of the Action<> to get to the Impl.
-    explicit operator const Impl&() const { return *ptr; }
+    explicit operator const Impl &() const { return *ptr; }
     std::shared_ptr<Impl> ptr;
   };
   using type = typename std::conditional<std::is_constructible<Impl>::value,
@@ -2104,10 +2022,10 @@ struct ActionImpl<R(Args...), Impl> : ImplBase<Impl>::type {
   using function_type = R(Args...);
   using args_type = std::tuple<Args...>;
 
-  ActionImpl() = default;  // Only defined if appropriate for Base.
+  ActionImpl() = default; // Only defined if appropriate for Base.
   explicit ActionImpl(std::shared_ptr<Impl> impl) : Base{std::move(impl)} {}
 
-  R operator()(Args&&... arg) const {
+  R operator()(Args &&...arg) const {
     static constexpr size_t kMaxArgs =
         sizeof...(Args) <= 10 ? sizeof...(Args) : 10;
     return Apply(MakeIndexSequence<kMaxArgs>{},
@@ -2117,14 +2035,14 @@ struct ActionImpl<R(Args...), Impl> : ImplBase<Impl>::type {
 
   template <std::size_t... arg_id, std::size_t... excess_id>
   R Apply(IndexSequence<arg_id...>, IndexSequence<excess_id...>,
-          const args_type& args) const {
+          const args_type &args) const {
     // Impl need not be specific to the signature of action being implemented;
     // only the implementing function body needs to have all of the specific
     // types instantiated.  Up to 10 of the args that are provided by the
     // args_type get passed, followed by a dummy of unspecified type for the
     // remainder up to 10 explicit args.
     static constexpr ExcessiveArg kExcessArg{};
-    return static_cast<const Impl&>(*this)
+    return static_cast<const Impl &>(*this)
         .template gmock_PerformImpl<
             /*function_type=*/function_type, /*return_type=*/R,
             /*args_type=*/args_type,
@@ -2137,8 +2055,7 @@ struct ActionImpl<R(Args...), Impl> : ImplBase<Impl>::type {
 
 // Stores a default-constructed Impl as part of the Action<>'s
 // std::function<>. The Impl should be trivial to copy.
-template <typename F, typename Impl>
-::testing::Action<F> MakeAction() {
+template <typename F, typename Impl>::testing::Action<F> MakeAction() {
   return ::testing::Action<F>(ActionImpl<F, Impl>());
 }
 
@@ -2148,64 +2065,62 @@ template <typename F, typename Impl>
   return ::testing::Action<F>(ActionImpl<F, Impl>(std::move(impl)));
 }
 
-#define GMOCK_INTERNAL_ARG_UNUSED(i, data, el) \
-  , const arg##i##_type& arg##i GTEST_ATTRIBUTE_UNUSED_
-#define GMOCK_ACTION_ARG_TYPES_AND_NAMES_UNUSED_                 \
-  const args_type& args GTEST_ATTRIBUTE_UNUSED_ GMOCK_PP_REPEAT( \
+#define GMOCK_INTERNAL_ARG_UNUSED(i, data, el)                                 \
+  , const arg##i##_type &arg##i GTEST_ATTRIBUTE_UNUSED_
+#define GMOCK_ACTION_ARG_TYPES_AND_NAMES_UNUSED_                               \
+  const args_type &args GTEST_ATTRIBUTE_UNUSED_ GMOCK_PP_REPEAT(               \
       GMOCK_INTERNAL_ARG_UNUSED, , 10)
 
-#define GMOCK_INTERNAL_ARG(i, data, el) , const arg##i##_type& arg##i
-#define GMOCK_ACTION_ARG_TYPES_AND_NAMES_ \
-  const args_type& args GMOCK_PP_REPEAT(GMOCK_INTERNAL_ARG, , 10)
+#define GMOCK_INTERNAL_ARG(i, data, el) , const arg##i##_type &arg##i
+#define GMOCK_ACTION_ARG_TYPES_AND_NAMES_                                      \
+  const args_type &args GMOCK_PP_REPEAT(GMOCK_INTERNAL_ARG, , 10)
 
 #define GMOCK_INTERNAL_TEMPLATE_ARG(i, data, el) , typename arg##i##_type
-#define GMOCK_ACTION_TEMPLATE_ARGS_NAMES_ \
+#define GMOCK_ACTION_TEMPLATE_ARGS_NAMES_                                      \
   GMOCK_PP_TAIL(GMOCK_PP_REPEAT(GMOCK_INTERNAL_TEMPLATE_ARG, , 10))
 
 #define GMOCK_INTERNAL_TYPENAME_PARAM(i, data, param) , typename param##_type
-#define GMOCK_ACTION_TYPENAME_PARAMS_(params) \
+#define GMOCK_ACTION_TYPENAME_PARAMS_(params)                                  \
   GMOCK_PP_TAIL(GMOCK_PP_FOR_EACH(GMOCK_INTERNAL_TYPENAME_PARAM, , params))
 
 #define GMOCK_INTERNAL_TYPE_PARAM(i, data, param) , param##_type
-#define GMOCK_ACTION_TYPE_PARAMS_(params) \
+#define GMOCK_ACTION_TYPE_PARAMS_(params)                                      \
   GMOCK_PP_TAIL(GMOCK_PP_FOR_EACH(GMOCK_INTERNAL_TYPE_PARAM, , params))
 
-#define GMOCK_INTERNAL_TYPE_GVALUE_PARAM(i, data, param) \
+#define GMOCK_INTERNAL_TYPE_GVALUE_PARAM(i, data, param)                       \
   , param##_type gmock_p##i
-#define GMOCK_ACTION_TYPE_GVALUE_PARAMS_(params) \
+#define GMOCK_ACTION_TYPE_GVALUE_PARAMS_(params)                               \
   GMOCK_PP_TAIL(GMOCK_PP_FOR_EACH(GMOCK_INTERNAL_TYPE_GVALUE_PARAM, , params))
 
-#define GMOCK_INTERNAL_GVALUE_PARAM(i, data, param) \
+#define GMOCK_INTERNAL_GVALUE_PARAM(i, data, param)                            \
   , std::forward<param##_type>(gmock_p##i)
-#define GMOCK_ACTION_GVALUE_PARAMS_(params) \
+#define GMOCK_ACTION_GVALUE_PARAMS_(params)                                    \
   GMOCK_PP_TAIL(GMOCK_PP_FOR_EACH(GMOCK_INTERNAL_GVALUE_PARAM, , params))
 
-#define GMOCK_INTERNAL_INIT_PARAM(i, data, param) \
+#define GMOCK_INTERNAL_INIT_PARAM(i, data, param)                              \
   , param(::std::forward<param##_type>(gmock_p##i))
-#define GMOCK_ACTION_INIT_PARAMS_(params) \
+#define GMOCK_ACTION_INIT_PARAMS_(params)                                      \
   GMOCK_PP_TAIL(GMOCK_PP_FOR_EACH(GMOCK_INTERNAL_INIT_PARAM, , params))
 
 #define GMOCK_INTERNAL_FIELD_PARAM(i, data, param) param##_type param;
-#define GMOCK_ACTION_FIELD_PARAMS_(params) \
+#define GMOCK_ACTION_FIELD_PARAMS_(params)                                     \
   GMOCK_PP_FOR_EACH(GMOCK_INTERNAL_FIELD_PARAM, , params)
 
 #define GMOCK_INTERNAL_ACTION(name, full_name, params)                         \
-  template <GMOCK_ACTION_TYPENAME_PARAMS_(params)>                             \
-  class full_name {                                                            \
-   public:                                                                     \
+  template <GMOCK_ACTION_TYPENAME_PARAMS_(params)> class full_name {           \
+  public:                                                                      \
     explicit full_name(GMOCK_ACTION_TYPE_GVALUE_PARAMS_(params))               \
         : impl_(std::make_shared<gmock_Impl>(                                  \
               GMOCK_ACTION_GVALUE_PARAMS_(params))) {}                         \
-    full_name(const full_name&) = default;                                     \
-    full_name(full_name&&) noexcept = default;                                 \
-    template <typename F>                                                      \
-    operator ::testing::Action<F>() const {                                    \
+    full_name(const full_name &) = default;                                    \
+    full_name(full_name &&) noexcept = default;                                \
+    template <typename F> operator ::testing::Action<F>() const {              \
       return ::testing::internal::MakeAction<F>(impl_);                        \
     }                                                                          \
                                                                                \
-   private:                                                                    \
+  private:                                                                     \
     class gmock_Impl {                                                         \
-     public:                                                                   \
+    public:                                                                    \
       explicit gmock_Impl(GMOCK_ACTION_TYPE_GVALUE_PARAMS_(params))            \
           : GMOCK_ACTION_INIT_PARAMS_(params) {}                               \
       template <typename function_type, typename return_type,                  \
@@ -2231,68 +2146,67 @@ template <typename F, typename Impl>
   full_name<GMOCK_ACTION_TYPE_PARAMS_(params)>::gmock_Impl::gmock_PerformImpl( \
       GMOCK_ACTION_ARG_TYPES_AND_NAMES_UNUSED_) const
 
-}  // namespace internal
+} // namespace internal
 
 // Similar to GMOCK_INTERNAL_ACTION, but no bound parameters are stored.
-#define ACTION(name)                                                          \
-  class name##Action {                                                        \
-   public:                                                                    \
-    explicit name##Action() noexcept {}                                       \
-    name##Action(const name##Action&) noexcept {}                             \
-    template <typename F>                                                     \
-    operator ::testing::Action<F>() const {                                   \
-      return ::testing::internal::MakeAction<F, gmock_Impl>();                \
-    }                                                                         \
-                                                                              \
-   private:                                                                   \
-    class gmock_Impl {                                                        \
-     public:                                                                  \
-      template <typename function_type, typename return_type,                 \
-                typename args_type, GMOCK_ACTION_TEMPLATE_ARGS_NAMES_>        \
-      return_type gmock_PerformImpl(GMOCK_ACTION_ARG_TYPES_AND_NAMES_) const; \
-    };                                                                        \
-  };                                                                          \
-  inline name##Action name() GTEST_MUST_USE_RESULT_;                          \
-  inline name##Action name() { return name##Action(); }                       \
-  template <typename function_type, typename return_type, typename args_type, \
-            GMOCK_ACTION_TEMPLATE_ARGS_NAMES_>                                \
-  return_type name##Action::gmock_Impl::gmock_PerformImpl(                    \
+#define ACTION(name)                                                           \
+  class name##Action {                                                         \
+  public:                                                                      \
+    explicit name##Action() noexcept {}                                        \
+    name##Action(const name##Action &) noexcept {}                             \
+    template <typename F> operator ::testing::Action<F>() const {              \
+      return ::testing::internal::MakeAction<F, gmock_Impl>();                 \
+    }                                                                          \
+                                                                               \
+  private:                                                                     \
+    class gmock_Impl {                                                         \
+    public:                                                                    \
+      template <typename function_type, typename return_type,                  \
+                typename args_type, GMOCK_ACTION_TEMPLATE_ARGS_NAMES_>         \
+      return_type gmock_PerformImpl(GMOCK_ACTION_ARG_TYPES_AND_NAMES_) const;  \
+    };                                                                         \
+  };                                                                           \
+  inline name##Action name() GTEST_MUST_USE_RESULT_;                           \
+  inline name##Action name() { return name##Action(); }                        \
+  template <typename function_type, typename return_type, typename args_type,  \
+            GMOCK_ACTION_TEMPLATE_ARGS_NAMES_>                                 \
+  return_type name##Action::gmock_Impl::gmock_PerformImpl(                     \
       GMOCK_ACTION_ARG_TYPES_AND_NAMES_UNUSED_) const
 
-#define ACTION_P(name, ...) \
+#define ACTION_P(name, ...)                                                    \
   GMOCK_INTERNAL_ACTION(name, name##ActionP, (__VA_ARGS__))
 
-#define ACTION_P2(name, ...) \
+#define ACTION_P2(name, ...)                                                   \
   GMOCK_INTERNAL_ACTION(name, name##ActionP2, (__VA_ARGS__))
 
-#define ACTION_P3(name, ...) \
+#define ACTION_P3(name, ...)                                                   \
   GMOCK_INTERNAL_ACTION(name, name##ActionP3, (__VA_ARGS__))
 
-#define ACTION_P4(name, ...) \
+#define ACTION_P4(name, ...)                                                   \
   GMOCK_INTERNAL_ACTION(name, name##ActionP4, (__VA_ARGS__))
 
-#define ACTION_P5(name, ...) \
+#define ACTION_P5(name, ...)                                                   \
   GMOCK_INTERNAL_ACTION(name, name##ActionP5, (__VA_ARGS__))
 
-#define ACTION_P6(name, ...) \
+#define ACTION_P6(name, ...)                                                   \
   GMOCK_INTERNAL_ACTION(name, name##ActionP6, (__VA_ARGS__))
 
-#define ACTION_P7(name, ...) \
+#define ACTION_P7(name, ...)                                                   \
   GMOCK_INTERNAL_ACTION(name, name##ActionP7, (__VA_ARGS__))
 
-#define ACTION_P8(name, ...) \
+#define ACTION_P8(name, ...)                                                   \
   GMOCK_INTERNAL_ACTION(name, name##ActionP8, (__VA_ARGS__))
 
-#define ACTION_P9(name, ...) \
+#define ACTION_P9(name, ...)                                                   \
   GMOCK_INTERNAL_ACTION(name, name##ActionP9, (__VA_ARGS__))
 
-#define ACTION_P10(name, ...) \
+#define ACTION_P10(name, ...)                                                  \
   GMOCK_INTERNAL_ACTION(name, name##ActionP10, (__VA_ARGS__))
 
-}  // namespace testing
+} // namespace testing
 
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 
-#endif  // GOOGLEMOCK_INCLUDE_GMOCK_GMOCK_ACTIONS_H_
+#endif // GOOGLEMOCK_INCLUDE_GMOCK_GMOCK_ACTIONS_H_

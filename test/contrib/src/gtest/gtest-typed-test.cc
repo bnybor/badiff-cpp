@@ -36,12 +36,13 @@ namespace internal {
 
 // Skips to the first non-space char in str. Returns an empty string if str
 // contains only whitespace characters.
-static const char* SkipSpaces(const char* str) {
-  while (IsSpace(*str)) str++;
+static const char *SkipSpaces(const char *str) {
+  while (IsSpace(*str))
+    str++;
   return str;
 }
 
-static std::vector<std::string> SplitIntoTestNames(const char* src) {
+static std::vector<std::string> SplitIntoTestNames(const char *src) {
   std::vector<std::string> name_vec;
   src = SkipSpaces(src);
   for (; src != nullptr; src = SkipComma(src)) {
@@ -53,9 +54,10 @@ static std::vector<std::string> SplitIntoTestNames(const char* src) {
 // Verifies that registered_tests match the test names in
 // registered_tests_; returns registered_tests if successful, or
 // aborts the program otherwise.
-const char* TypedTestSuitePState::VerifyRegisteredTestNames(
-    const char* test_suite_name, const char* file, int line,
-    const char* registered_tests) {
+const char *
+TypedTestSuitePState::VerifyRegisteredTestNames(const char *test_suite_name,
+                                                const char *file, int line,
+                                                const char *registered_tests) {
   RegisterTypeParameterizedTestSuite(test_suite_name, CodeLocation(file, line));
 
   typedef RegisteredTestsMap::const_iterator RegisteredTestIter;
@@ -68,7 +70,7 @@ const char* TypedTestSuitePState::VerifyRegisteredTestNames(
   std::set<std::string> tests;
   for (std::vector<std::string>::const_iterator name_it = name_vec.begin();
        name_it != name_vec.end(); ++name_it) {
-    const std::string& name = *name_it;
+    const std::string &name = *name_it;
     if (tests.count(name) != 0) {
       errors << "Test " << name << " is listed more than once.\n";
       continue;
@@ -89,7 +91,7 @@ const char* TypedTestSuitePState::VerifyRegisteredTestNames(
     }
   }
 
-  const std::string& errors_str = errors.GetString();
+  const std::string &errors_str = errors.GetString();
   if (errors_str != "") {
     fprintf(stderr, "%s %s", FormatFileLocation(file, line).c_str(),
             errors_str.c_str());
@@ -100,5 +102,5 @@ const char* TypedTestSuitePState::VerifyRegisteredTestNames(
   return registered_tests;
 }
 
-}  // namespace internal
-}  // namespace testing
+} // namespace internal
+} // namespace testing

@@ -47,12 +47,12 @@
 #include <cctype>
 #include <cstdint>
 #include <cwchar>
-#include <ostream>  // NOLINT
+#include <ostream> // NOLINT
 #include <string>
 #include <type_traits>
 
-#include "gtest/internal/gtest-port.h"
 #include "gtest-internal-inl.h"
+#include "gtest/internal/gtest-port.h"
 
 namespace testing {
 
@@ -65,8 +65,8 @@ GTEST_ATTRIBUTE_NO_SANITIZE_MEMORY_
 GTEST_ATTRIBUTE_NO_SANITIZE_ADDRESS_
 GTEST_ATTRIBUTE_NO_SANITIZE_HWADDRESS_
 GTEST_ATTRIBUTE_NO_SANITIZE_THREAD_
-void PrintByteSegmentInObjectTo(const unsigned char* obj_bytes, size_t start,
-                                size_t count, ostream* os) {
+void PrintByteSegmentInObjectTo(const unsigned char *obj_bytes, size_t start,
+                                size_t count, ostream *os) {
   char text[5] = "";
   for (size_t i = 0; i != count; i++) {
     const size_t j = start + i;
@@ -84,8 +84,8 @@ void PrintByteSegmentInObjectTo(const unsigned char* obj_bytes, size_t start,
 }
 
 // Prints the bytes in the given value to the given ostream.
-void PrintBytesInObjectToImpl(const unsigned char* obj_bytes, size_t count,
-                              ostream* os) {
+void PrintBytesInObjectToImpl(const unsigned char *obj_bytes, size_t count,
+                              ostream *os) {
   // Tells the user how big the object is.
   *os << count << "-byte object <";
 
@@ -110,13 +110,12 @@ void PrintBytesInObjectToImpl(const unsigned char* obj_bytes, size_t count,
 // specify if char / wchar_t is signed or unsigned, it is important to first
 // convert it to the unsigned type of the same width before widening it to
 // char32_t.
-template <typename CharType>
-char32_t ToChar32(CharType in) {
+template <typename CharType> char32_t ToChar32(CharType in) {
   return static_cast<char32_t>(
       static_cast<typename std::make_unsigned<CharType>::type>(in));
 }
 
-}  // namespace
+} // namespace
 
 namespace internal {
 
@@ -125,8 +124,8 @@ namespace internal {
 // uses the << operator and thus is easier done outside of the
 // ::testing::internal namespace, which contains a << operator that
 // sometimes conflicts with the one in STL.
-void PrintBytesInObjectTo(const unsigned char* obj_bytes, size_t count,
-                          ostream* os) {
+void PrintBytesInObjectTo(const unsigned char *obj_bytes, size_t count,
+                          ostream *os) {
   PrintBytesInObjectToImpl(obj_bytes, count, os);
 }
 
@@ -146,109 +145,108 @@ inline bool IsPrintableAscii(char32_t c) { return 0x20 <= c && c <= 0x7E; }
 // character literal without the quotes, escaping it when necessary; returns how
 // c was formatted.
 template <typename Char>
-static CharFormat PrintAsCharLiteralTo(Char c, ostream* os) {
+static CharFormat PrintAsCharLiteralTo(Char c, ostream *os) {
   const char32_t u_c = ToChar32(c);
   switch (u_c) {
-    case L'\0':
-      *os << "\\0";
-      break;
-    case L'\'':
-      *os << "\\'";
-      break;
-    case L'\\':
-      *os << "\\\\";
-      break;
-    case L'\a':
-      *os << "\\a";
-      break;
-    case L'\b':
-      *os << "\\b";
-      break;
-    case L'\f':
-      *os << "\\f";
-      break;
-    case L'\n':
-      *os << "\\n";
-      break;
-    case L'\r':
-      *os << "\\r";
-      break;
-    case L'\t':
-      *os << "\\t";
-      break;
-    case L'\v':
-      *os << "\\v";
-      break;
-    default:
-      if (IsPrintableAscii(u_c)) {
-        *os << static_cast<char>(c);
-        return kAsIs;
-      } else {
-        ostream::fmtflags flags = os->flags();
-        *os << "\\x" << std::hex << std::uppercase << static_cast<int>(u_c);
-        os->flags(flags);
-        return kHexEscape;
-      }
+  case L'\0':
+    *os << "\\0";
+    break;
+  case L'\'':
+    *os << "\\'";
+    break;
+  case L'\\':
+    *os << "\\\\";
+    break;
+  case L'\a':
+    *os << "\\a";
+    break;
+  case L'\b':
+    *os << "\\b";
+    break;
+  case L'\f':
+    *os << "\\f";
+    break;
+  case L'\n':
+    *os << "\\n";
+    break;
+  case L'\r':
+    *os << "\\r";
+    break;
+  case L'\t':
+    *os << "\\t";
+    break;
+  case L'\v':
+    *os << "\\v";
+    break;
+  default:
+    if (IsPrintableAscii(u_c)) {
+      *os << static_cast<char>(c);
+      return kAsIs;
+    } else {
+      ostream::fmtflags flags = os->flags();
+      *os << "\\x" << std::hex << std::uppercase << static_cast<int>(u_c);
+      os->flags(flags);
+      return kHexEscape;
+    }
   }
   return kSpecialEscape;
 }
 
 // Prints a char32_t c as if it's part of a string literal, escaping it when
 // necessary; returns how c was formatted.
-static CharFormat PrintAsStringLiteralTo(char32_t c, ostream* os) {
+static CharFormat PrintAsStringLiteralTo(char32_t c, ostream *os) {
   switch (c) {
-    case L'\'':
-      *os << "'";
-      return kAsIs;
-    case L'"':
-      *os << "\\\"";
-      return kSpecialEscape;
-    default:
-      return PrintAsCharLiteralTo(c, os);
+  case L'\'':
+    *os << "'";
+    return kAsIs;
+  case L'"':
+    *os << "\\\"";
+    return kSpecialEscape;
+  default:
+    return PrintAsCharLiteralTo(c, os);
   }
 }
 
-static const char* GetCharWidthPrefix(char) { return ""; }
+static const char *GetCharWidthPrefix(char) { return ""; }
 
-static const char* GetCharWidthPrefix(signed char) { return ""; }
+static const char *GetCharWidthPrefix(signed char) { return ""; }
 
-static const char* GetCharWidthPrefix(unsigned char) { return ""; }
+static const char *GetCharWidthPrefix(unsigned char) { return ""; }
 
 #ifdef __cpp_char8_t
-static const char* GetCharWidthPrefix(char8_t) { return "u8"; }
+static const char *GetCharWidthPrefix(char8_t) { return "u8"; }
 #endif
 
-static const char* GetCharWidthPrefix(char16_t) { return "u"; }
+static const char *GetCharWidthPrefix(char16_t) { return "u"; }
 
-static const char* GetCharWidthPrefix(char32_t) { return "U"; }
+static const char *GetCharWidthPrefix(char32_t) { return "U"; }
 
-static const char* GetCharWidthPrefix(wchar_t) { return "L"; }
+static const char *GetCharWidthPrefix(wchar_t) { return "L"; }
 
 // Prints a char c as if it's part of a string literal, escaping it when
 // necessary; returns how c was formatted.
-static CharFormat PrintAsStringLiteralTo(char c, ostream* os) {
+static CharFormat PrintAsStringLiteralTo(char c, ostream *os) {
   return PrintAsStringLiteralTo(ToChar32(c), os);
 }
 
 #ifdef __cpp_char8_t
-static CharFormat PrintAsStringLiteralTo(char8_t c, ostream* os) {
+static CharFormat PrintAsStringLiteralTo(char8_t c, ostream *os) {
   return PrintAsStringLiteralTo(ToChar32(c), os);
 }
 #endif
 
-static CharFormat PrintAsStringLiteralTo(char16_t c, ostream* os) {
+static CharFormat PrintAsStringLiteralTo(char16_t c, ostream *os) {
   return PrintAsStringLiteralTo(ToChar32(c), os);
 }
 
-static CharFormat PrintAsStringLiteralTo(wchar_t c, ostream* os) {
+static CharFormat PrintAsStringLiteralTo(wchar_t c, ostream *os) {
   return PrintAsStringLiteralTo(ToChar32(c), os);
 }
 
 // Prints a character c (of type char, char8_t, char16_t, char32_t, or wchar_t)
 // and its code. '\0' is printed as "'\\0'", other unprintable characters are
 // also properly escaped using the standard C++ escape sequence.
-template <typename Char>
-void PrintCharAndCodeTo(Char c, ostream* os) {
+template <typename Char> void PrintCharAndCodeTo(Char c, ostream *os) {
   // First, print c as a literal in the most readable form we can find.
   *os << GetCharWidthPrefix(c) << "'";
   const CharFormat format = PrintAsCharLiteralTo(c, os);
@@ -257,7 +255,8 @@ void PrintCharAndCodeTo(Char c, ostream* os) {
   // To aid user debugging, we also print c's code in decimal, unless
   // it's 0 (in which case c was printed as '\\0', making the code
   // obvious).
-  if (c == 0) return;
+  if (c == 0)
+    return;
   *os << " (" << static_cast<int>(c);
 
   // For more convenience, we print c's code again in hexadecimal,
@@ -271,22 +270,22 @@ void PrintCharAndCodeTo(Char c, ostream* os) {
   *os << ")";
 }
 
-void PrintTo(unsigned char c, ::std::ostream* os) { PrintCharAndCodeTo(c, os); }
-void PrintTo(signed char c, ::std::ostream* os) { PrintCharAndCodeTo(c, os); }
+void PrintTo(unsigned char c, ::std::ostream *os) { PrintCharAndCodeTo(c, os); }
+void PrintTo(signed char c, ::std::ostream *os) { PrintCharAndCodeTo(c, os); }
 
 // Prints a wchar_t as a symbol if it is printable or as its internal
 // code otherwise and also as its code.  L'\0' is printed as "L'\\0'".
-void PrintTo(wchar_t wc, ostream* os) { PrintCharAndCodeTo(wc, os); }
+void PrintTo(wchar_t wc, ostream *os) { PrintCharAndCodeTo(wc, os); }
 
 // TODO(dcheng): Consider making this delegate to PrintCharAndCodeTo() as well.
-void PrintTo(char32_t c, ::std::ostream* os) {
+void PrintTo(char32_t c, ::std::ostream *os) {
   *os << std::hex << "U+" << std::uppercase << std::setfill('0') << std::setw(4)
       << static_cast<uint32_t>(c);
 }
 
 // gcc/clang __{u,}int128_t
 #if defined(__SIZEOF_INT128__)
-void PrintTo(__uint128_t v, ::std::ostream* os) {
+void PrintTo(__uint128_t v, ::std::ostream *os) {
   if (v == 0) {
     *os << "0";
     return;
@@ -294,7 +293,7 @@ void PrintTo(__uint128_t v, ::std::ostream* os) {
 
   // Buffer large enough for ceil(log10(2^128))==39 and the null terminator
   char buf[40];
-  char* p = buf + sizeof(buf);
+  char *p = buf + sizeof(buf);
 
   // Some configurations have a __uint128_t, but no support for built in
   // division. Do manual long division instead.
@@ -319,7 +318,7 @@ void PrintTo(__uint128_t v, ::std::ostream* os) {
   }
   *os << p;
 }
-void PrintTo(__int128_t v, ::std::ostream* os) {
+void PrintTo(__int128_t v, ::std::ostream *os) {
   __uint128_t uv = static_cast<__uint128_t>(v);
   if (v < 0) {
     *os << "-";
@@ -327,18 +326,18 @@ void PrintTo(__int128_t v, ::std::ostream* os) {
   }
   PrintTo(uv, os);
 }
-#endif  // __SIZEOF_INT128__
+#endif // __SIZEOF_INT128__
 
 // Prints the given array of characters to the ostream.  CharType must be either
 // char, char8_t, char16_t, char32_t, or wchar_t.
 // The array starts at begin, the length is len, it may include '\0' characters
 // and may not be NUL-terminated.
 template <typename CharType>
-GTEST_ATTRIBUTE_NO_SANITIZE_MEMORY_ GTEST_ATTRIBUTE_NO_SANITIZE_ADDRESS_
-    GTEST_ATTRIBUTE_NO_SANITIZE_HWADDRESS_
+GTEST_ATTRIBUTE_NO_SANITIZE_MEMORY_
+    GTEST_ATTRIBUTE_NO_SANITIZE_ADDRESS_ GTEST_ATTRIBUTE_NO_SANITIZE_HWADDRESS_
         GTEST_ATTRIBUTE_NO_SANITIZE_THREAD_ static CharFormat
-        PrintCharsAsStringTo(const CharType* begin, size_t len, ostream* os) {
-  const char* const quote_prefix = GetCharWidthPrefix(*begin);
+        PrintCharsAsStringTo(const CharType *begin, size_t len, ostream *os) {
+  const char *const quote_prefix = GetCharWidthPrefix(*begin);
   *os << quote_prefix << "\"";
   bool is_previous_hex = false;
   CharFormat print_format = kAsIs;
@@ -363,11 +362,11 @@ GTEST_ATTRIBUTE_NO_SANITIZE_MEMORY_ GTEST_ATTRIBUTE_NO_SANITIZE_ADDRESS_
 // Prints a (const) char/wchar_t array of 'len' elements, starting at address
 // 'begin'.  CharType must be either char or wchar_t.
 template <typename CharType>
-GTEST_ATTRIBUTE_NO_SANITIZE_MEMORY_ GTEST_ATTRIBUTE_NO_SANITIZE_ADDRESS_
-    GTEST_ATTRIBUTE_NO_SANITIZE_HWADDRESS_
+GTEST_ATTRIBUTE_NO_SANITIZE_MEMORY_
+    GTEST_ATTRIBUTE_NO_SANITIZE_ADDRESS_ GTEST_ATTRIBUTE_NO_SANITIZE_HWADDRESS_
         GTEST_ATTRIBUTE_NO_SANITIZE_THREAD_ static void
-        UniversalPrintCharArray(const CharType* begin, size_t len,
-                                ostream* os) {
+        UniversalPrintCharArray(const CharType *begin, size_t len,
+                                ostream *os) {
   // The code
   //   const char kFoo[] = "foo";
   // generates an array of 4, not 3, elements, with the last one being '\0'.
@@ -389,60 +388,59 @@ GTEST_ATTRIBUTE_NO_SANITIZE_MEMORY_ GTEST_ATTRIBUTE_NO_SANITIZE_ADDRESS_
 }
 
 // Prints a (const) char array of 'len' elements, starting at address 'begin'.
-void UniversalPrintArray(const char* begin, size_t len, ostream* os) {
+void UniversalPrintArray(const char *begin, size_t len, ostream *os) {
   UniversalPrintCharArray(begin, len, os);
 }
 
 #ifdef __cpp_char8_t
 // Prints a (const) char8_t array of 'len' elements, starting at address
 // 'begin'.
-void UniversalPrintArray(const char8_t* begin, size_t len, ostream* os) {
+void UniversalPrintArray(const char8_t *begin, size_t len, ostream *os) {
   UniversalPrintCharArray(begin, len, os);
 }
 #endif
 
 // Prints a (const) char16_t array of 'len' elements, starting at address
 // 'begin'.
-void UniversalPrintArray(const char16_t* begin, size_t len, ostream* os) {
+void UniversalPrintArray(const char16_t *begin, size_t len, ostream *os) {
   UniversalPrintCharArray(begin, len, os);
 }
 
 // Prints a (const) char32_t array of 'len' elements, starting at address
 // 'begin'.
-void UniversalPrintArray(const char32_t* begin, size_t len, ostream* os) {
+void UniversalPrintArray(const char32_t *begin, size_t len, ostream *os) {
   UniversalPrintCharArray(begin, len, os);
 }
 
 // Prints a (const) wchar_t array of 'len' elements, starting at address
 // 'begin'.
-void UniversalPrintArray(const wchar_t* begin, size_t len, ostream* os) {
+void UniversalPrintArray(const wchar_t *begin, size_t len, ostream *os) {
   UniversalPrintCharArray(begin, len, os);
 }
 
 namespace {
 
 // Prints a null-terminated C-style string to the ostream.
-template <typename Char>
-void PrintCStringTo(const Char* s, ostream* os) {
+template <typename Char> void PrintCStringTo(const Char *s, ostream *os) {
   if (s == nullptr) {
     *os << "NULL";
   } else {
-    *os << ImplicitCast_<const void*>(s) << " pointing to ";
+    *os << ImplicitCast_<const void *>(s) << " pointing to ";
     PrintCharsAsStringTo(s, std::char_traits<Char>::length(s), os);
   }
 }
 
-}  // anonymous namespace
+} // anonymous namespace
 
-void PrintTo(const char* s, ostream* os) { PrintCStringTo(s, os); }
+void PrintTo(const char *s, ostream *os) { PrintCStringTo(s, os); }
 
 #ifdef __cpp_char8_t
-void PrintTo(const char8_t* s, ostream* os) { PrintCStringTo(s, os); }
+void PrintTo(const char8_t *s, ostream *os) { PrintCStringTo(s, os); }
 #endif
 
-void PrintTo(const char16_t* s, ostream* os) { PrintCStringTo(s, os); }
+void PrintTo(const char16_t *s, ostream *os) { PrintCStringTo(s, os); }
 
-void PrintTo(const char32_t* s, ostream* os) { PrintCStringTo(s, os); }
+void PrintTo(const char32_t *s, ostream *os) { PrintCStringTo(s, os); }
 
 // MSVC compiler can be configured to define whar_t as a typedef
 // of unsigned short. Defining an overload for const wchar_t* in that case
@@ -452,24 +450,24 @@ void PrintTo(const char32_t* s, ostream* os) { PrintCStringTo(s, os); }
 // wchar_t is implemented as a native type.
 #if !defined(_MSC_VER) || defined(_NATIVE_WCHAR_T_DEFINED)
 // Prints the given wide C string to the ostream.
-void PrintTo(const wchar_t* s, ostream* os) { PrintCStringTo(s, os); }
-#endif  // wchar_t is native
+void PrintTo(const wchar_t *s, ostream *os) { PrintCStringTo(s, os); }
+#endif // wchar_t is native
 
 namespace {
 
-bool ContainsUnprintableControlCodes(const char* str, size_t length) {
-  const unsigned char* s = reinterpret_cast<const unsigned char*>(str);
+bool ContainsUnprintableControlCodes(const char *str, size_t length) {
+  const unsigned char *s = reinterpret_cast<const unsigned char *>(str);
 
   for (size_t i = 0; i < length; i++) {
     unsigned char ch = *s++;
     if (std::iscntrl(ch)) {
       switch (ch) {
-        case '\t':
-        case '\n':
-        case '\r':
-          break;
-        default:
-          return true;
+      case '\t':
+      case '\n':
+      case '\r':
+        break;
+      default:
+        return true;
       }
     }
   }
@@ -478,32 +476,32 @@ bool ContainsUnprintableControlCodes(const char* str, size_t length) {
 
 bool IsUTF8TrailByte(unsigned char t) { return 0x80 <= t && t <= 0xbf; }
 
-bool IsValidUTF8(const char* str, size_t length) {
-  const unsigned char* s = reinterpret_cast<const unsigned char*>(str);
+bool IsValidUTF8(const char *str, size_t length) {
+  const unsigned char *s = reinterpret_cast<const unsigned char *>(str);
 
   for (size_t i = 0; i < length;) {
     unsigned char lead = s[i++];
 
     if (lead <= 0x7f) {
-      continue;  // single-byte character (ASCII) 0..7F
+      continue; // single-byte character (ASCII) 0..7F
     }
     if (lead < 0xc2) {
-      return false;  // trail byte or non-shortest form
+      return false; // trail byte or non-shortest form
     } else if (lead <= 0xdf && (i + 1) <= length && IsUTF8TrailByte(s[i])) {
-      ++i;  // 2-byte character
+      ++i; // 2-byte character
     } else if (0xe0 <= lead && lead <= 0xef && (i + 2) <= length &&
                IsUTF8TrailByte(s[i]) && IsUTF8TrailByte(s[i + 1]) &&
                // check for non-shortest form and surrogate
                (lead != 0xe0 || s[i] >= 0xa0) &&
                (lead != 0xed || s[i] < 0xa0)) {
-      i += 2;  // 3-byte character
+      i += 2; // 3-byte character
     } else if (0xf0 <= lead && lead <= 0xf4 && (i + 3) <= length &&
                IsUTF8TrailByte(s[i]) && IsUTF8TrailByte(s[i + 1]) &&
                IsUTF8TrailByte(s[i + 2]) &&
                // check for non-shortest form
                (lead != 0xf0 || s[i] >= 0x90) &&
                (lead != 0xf4 || s[i] < 0x90)) {
-      i += 3;  // 4-byte character
+      i += 3; // 4-byte character
     } else {
       return false;
     }
@@ -511,16 +509,16 @@ bool IsValidUTF8(const char* str, size_t length) {
   return true;
 }
 
-void ConditionalPrintAsText(const char* str, size_t length, ostream* os) {
+void ConditionalPrintAsText(const char *str, size_t length, ostream *os) {
   if (!ContainsUnprintableControlCodes(str, length) &&
       IsValidUTF8(str, length)) {
     *os << "\n    As Text: \"" << str << "\"";
   }
 }
 
-}  // anonymous namespace
+} // anonymous namespace
 
-void PrintStringTo(const ::std::string& s, ostream* os) {
+void PrintStringTo(const ::std::string &s, ostream *os) {
   if (PrintCharsAsStringTo(s.data(), s.size(), os) == kHexEscape) {
     if (GTEST_FLAG_GET(print_utf8)) {
       ConditionalPrintAsText(s.data(), s.size(), os);
@@ -529,25 +527,25 @@ void PrintStringTo(const ::std::string& s, ostream* os) {
 }
 
 #ifdef __cpp_char8_t
-void PrintU8StringTo(const ::std::u8string& s, ostream* os) {
+void PrintU8StringTo(const ::std::u8string &s, ostream *os) {
   PrintCharsAsStringTo(s.data(), s.size(), os);
 }
 #endif
 
-void PrintU16StringTo(const ::std::u16string& s, ostream* os) {
+void PrintU16StringTo(const ::std::u16string &s, ostream *os) {
   PrintCharsAsStringTo(s.data(), s.size(), os);
 }
 
-void PrintU32StringTo(const ::std::u32string& s, ostream* os) {
+void PrintU32StringTo(const ::std::u32string &s, ostream *os) {
   PrintCharsAsStringTo(s.data(), s.size(), os);
 }
 
 #if GTEST_HAS_STD_WSTRING
-void PrintWideStringTo(const ::std::wstring& s, ostream* os) {
+void PrintWideStringTo(const ::std::wstring &s, ostream *os) {
   PrintCharsAsStringTo(s.data(), s.size(), os);
 }
-#endif  // GTEST_HAS_STD_WSTRING
+#endif // GTEST_HAS_STD_WSTRING
 
-}  // namespace internal
+} // namespace internal
 
-}  // namespace testing
+} // namespace testing

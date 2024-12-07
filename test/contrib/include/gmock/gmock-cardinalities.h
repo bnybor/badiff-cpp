@@ -42,7 +42,7 @@
 #include <limits.h>
 
 #include <memory>
-#include <ostream>  // NOLINT
+#include <ostream> // NOLINT
 
 #include "../../../test/contrib/include/gmock/internal/gmock-port.h"
 #include "../../../test/contrib/include/gtest/gtest.h"
@@ -64,7 +64,7 @@ namespace testing {
 
 // The implementation of a cardinality.
 class CardinalityInterface {
- public:
+public:
   virtual ~CardinalityInterface() {}
 
   // Conservative estimate on the lower/upper bound of the number of
@@ -81,7 +81,7 @@ class CardinalityInterface {
   virtual bool IsSaturatedByCallCount(int call_count) const = 0;
 
   // Describes self to an ostream.
-  virtual void DescribeTo(::std::ostream* os) const = 0;
+  virtual void DescribeTo(::std::ostream *os) const = 0;
 };
 
 // A Cardinality is a copyable and IMMUTABLE (except by assignment)
@@ -89,13 +89,13 @@ class CardinalityInterface {
 // be called.  The implementation of Cardinality is just a std::shared_ptr
 // to const CardinalityInterface. Don't inherit from Cardinality!
 class GTEST_API_ Cardinality {
- public:
+public:
   // Constructs a null cardinality.  Needed for storing Cardinality
   // objects in STL containers.
   Cardinality() {}
 
   // Constructs a Cardinality from its implementation.
-  explicit Cardinality(const CardinalityInterface* impl) : impl_(impl) {}
+  explicit Cardinality(const CardinalityInterface *impl) : impl_(impl) {}
 
   // Conservative estimate on the lower/upper bound of the number of
   // calls allowed.
@@ -122,13 +122,13 @@ class GTEST_API_ Cardinality {
   }
 
   // Describes self to an ostream
-  void DescribeTo(::std::ostream* os) const { impl_->DescribeTo(os); }
+  void DescribeTo(::std::ostream *os) const { impl_->DescribeTo(os); }
 
   // Describes the given actual call count to an ostream.
   static void DescribeActualCallCountTo(int actual_call_count,
-                                        ::std::ostream* os);
+                                        ::std::ostream *os);
 
- private:
+private:
   std::shared_ptr<const CardinalityInterface> impl_;
 };
 
@@ -148,12 +148,12 @@ GTEST_API_ Cardinality Between(int min, int max);
 GTEST_API_ Cardinality Exactly(int n);
 
 // Creates a cardinality from its implementation.
-inline Cardinality MakeCardinality(const CardinalityInterface* c) {
+inline Cardinality MakeCardinality(const CardinalityInterface *c) {
   return Cardinality(c);
 }
 
-}  // namespace testing
+} // namespace testing
 
-GTEST_DISABLE_MSC_WARNINGS_POP_()  //  4251
+GTEST_DISABLE_MSC_WARNINGS_POP_() //  4251
 
-#endif  // GOOGLEMOCK_INCLUDE_GMOCK_GMOCK_CARDINALITIES_H_
+#endif // GOOGLEMOCK_INCLUDE_GMOCK_GMOCK_CARDINALITIES_H_

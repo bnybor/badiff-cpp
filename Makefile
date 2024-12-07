@@ -16,6 +16,9 @@ TEST_CPPFLAGS=-Itest/include -Itest/contrib/include
 
 all: build/libbadiff.so build/badiff.test
 
+clean:
+	rm -rf build
+
 build/%.o: src/%.cpp | $$(@D)/.f
 	$(CPP) $(CPPFLAGS) -c -o $@ $^
 

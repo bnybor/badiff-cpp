@@ -10,13 +10,10 @@ class Diff;
 namespace badiff {
 class Diff {
 public:
-	virtual ~Diff() = default;
+  virtual ~Diff() = default;
 
-	virtual void Store(q::OpQueue& out) = 0;
-
+  virtual void Store(q::OpQueue &out) = 0;
 };
-}
-
-
+} // namespace badiff
 
 #endif /* BADIFF_DIFF_HPP_ */

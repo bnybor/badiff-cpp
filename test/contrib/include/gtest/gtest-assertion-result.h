@@ -131,10 +131,10 @@ namespace testing {
 //     Actual: it's 5
 //
 class GTEST_API_ AssertionResult {
- public:
+public:
   // Copy constructor.
   // Used in EXPECT_TRUE/FALSE(assertion_result).
-  AssertionResult(const AssertionResult& other);
+  AssertionResult(const AssertionResult &other);
 
 // C4800 is a level 3 warning in Visual Studio 2015 and earlier.
 // This warning is not emitted in Visual Studio 2017.
@@ -153,9 +153,9 @@ class GTEST_API_ AssertionResult {
   // we want AssertionResult's copy constructor to be used.
   template <typename T>
   explicit AssertionResult(
-      const T& success,
+      const T &success,
       typename std::enable_if<
-          !std::is_convertible<T, AssertionResult>::value>::type*
+          !std::is_convertible<T, AssertionResult>::value>::type *
       /*enabler*/
       = nullptr)
       : success_(success) {}
@@ -165,13 +165,13 @@ class GTEST_API_ AssertionResult {
 #endif
 
   // Assignment operator.
-  AssertionResult& operator=(AssertionResult other) {
+  AssertionResult &operator=(AssertionResult other) {
     swap(other);
     return *this;
   }
 
   // Returns true if and only if the assertion succeeded.
-  operator bool() const { return success_; }  // NOLINT
+  operator bool() const { return success_; } // NOLINT
 
   // Returns the assertion's negation. Used with EXPECT/ASSERT_FALSE.
   AssertionResult operator!() const;
@@ -180,36 +180,36 @@ class GTEST_API_ AssertionResult {
   // use it when they fail (i.e., the predicate's outcome doesn't match the
   // assertion's expectation). When nothing has been streamed into the
   // object, returns an empty string.
-  const char* message() const {
+  const char *message() const {
     return message_.get() != nullptr ? message_->c_str() : "";
   }
   // Deprecated; please use message() instead.
-  const char* failure_message() const { return message(); }
+  const char *failure_message() const { return message(); }
 
   // Streams a custom failure message into this object.
-  template <typename T>
-  AssertionResult& operator<<(const T& value) {
+  template <typename T> AssertionResult &operator<<(const T &value) {
     AppendMessage(Message() << value);
     return *this;
   }
 
   // Allows streaming basic output manipulators such as endl or flush into
   // this object.
-  AssertionResult& operator<<(
-      ::std::ostream& (*basic_manipulator)(::std::ostream& stream)) {
+  AssertionResult &
+  operator<<(::std::ostream &(*basic_manipulator)(::std::ostream &stream)) {
     AppendMessage(Message() << basic_manipulator);
     return *this;
   }
 
- private:
+private:
   // Appends the contents of message to message_.
-  void AppendMessage(const Message& a_message) {
-    if (message_.get() == nullptr) message_.reset(new ::std::string);
+  void AppendMessage(const Message &a_message) {
+    if (message_.get() == nullptr)
+      message_.reset(new ::std::string);
     message_->append(a_message.GetString().c_str());
   }
 
   // Swap the contents of this AssertionResult with other.
-  void swap(AssertionResult& other);
+  void swap(AssertionResult &other);
 
   // Stores result of the assertion predicate.
   bool success_;
@@ -217,7 +217,7 @@ class GTEST_API_ AssertionResult {
   // construct is not satisfied with the predicate's outcome.
   // Referenced via a pointer to avoid taking too much stack frame space
   // with test assertions.
-  std::unique_ptr< ::std::string> message_;
+  std::unique_ptr<::std::string> message_;
 };
 
 // Makes a successful assertion result.
@@ -228,10 +228,10 @@ GTEST_API_ AssertionResult AssertionFailure();
 
 // Makes a failed assertion result with the given failure message.
 // Deprecated; use AssertionFailure() << msg.
-GTEST_API_ AssertionResult AssertionFailure(const Message& msg);
+GTEST_API_ AssertionResult AssertionFailure(const Message &msg);
 
-}  // namespace testing
+} // namespace testing
 
-GTEST_DISABLE_MSC_WARNINGS_POP_()  // 4251
+GTEST_DISABLE_MSC_WARNINGS_POP_() // 4251
 
-#endif  // GOOGLETEST_INCLUDE_GTEST_GTEST_ASSERTION_RESULT_H_
+#endif // GOOGLETEST_INCLUDE_GTEST_GTEST_ASSERTION_RESULT_H_

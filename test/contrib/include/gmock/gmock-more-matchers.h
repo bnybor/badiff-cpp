@@ -86,6 +86,6 @@ MATCHER(IsFalse, negation ? "is true" : "is false") {
 #pragma warning(pop)
 #endif
 
-}  // namespace testing
+} // namespace testing
 
-#endif  // GOOGLEMOCK_INCLUDE_GMOCK_GMOCK_MORE_MATCHERS_H_
+#endif // GOOGLEMOCK_INCLUDE_GMOCK_GMOCK_MORE_MATCHERS_H_
