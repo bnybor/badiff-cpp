@@ -1,2 +1,4 @@
 build
 .f
+.kdev4/
+badiff-cpp.kdev4

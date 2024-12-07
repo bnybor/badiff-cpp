@@ -21,16 +21,29 @@ void Op::Serialize(std::ostream &out) {
   n |= (std::size_t)type_;
   n <<= 1;
   n |= (value_ ? 1 : 0);
-  out << n;
+  char buf[8];
+  buf[7] = (n & 0x7f);
+  n >>= 7;
+  std::size_t i = 7;
+  while (n) {
+    --i;
+    buf[i] = (n & 0x7f);
+    buf[i] |= 0x80;
+    n >>= 7;
+  }
+  out.write(buf + i, 8 - i);
   if (value_) {
-    for (std::size_t i = 0; i < length_; ++i) {
-      out << value_[i];
-    }
+    out.write((char*)value_.get(), length_);
   }
 }
 void Op::Deserialize(std::istream &in) {
-  std::size_t n;
-  in >> n;
+  std::size_t n = 0;
+  std::uint8_t c;
+  do {
+    in.read((char*)&c, 1);
+    n <<= 7;
+    n |= (c & 0x7f);
+  } while (c & 0x80);
   bool has_value = ((1 & n) != 0);
   n >>= 1;
   type_ = Type(0x3 & n);
@@ -38,9 +51,7 @@ void Op::Deserialize(std::istream &in) {
   length_ = n;
   if (has_value) {
     value_ = ByteArray(new Byte[length_]);
-    for (std::size_t i = 0; i < length_; ++i) {
-      in >> value_[i];
-    }
+    in.read((char*)value_.get(), length_);
   } else {
     value_ = nullptr;
   }
