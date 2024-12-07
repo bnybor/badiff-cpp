@@ -1,7 +1,7 @@
 .SECONDEXPANSION:
 
 CPP=g++
-CPPFLAGS=-g -std=gnu++11 -Iinclude
+CPPFLAGS=-g -std=gnu++11 -Iinclude -fPIC
 
 SOURCES=$(shell find src -type f -name '*.cpp')
 OBJECTS=$(patsubst src/%.cpp,build/%.o,$(SOURCES))
