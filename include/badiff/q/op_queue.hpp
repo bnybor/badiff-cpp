@@ -27,7 +27,7 @@ public:
 	virtual ~OpQueue() = default;
 
 	OpQueue() = default;
-	OpQueue(const OpQueue&) = delete;
+	explicit OpQueue(const OpQueue&);
 	OpQueue(OpQueue&&) = default;
 	OpQueue& operator=(const OpQueue&) = delete;
 	OpQueue& operator=(OpQueue&&) = default;
