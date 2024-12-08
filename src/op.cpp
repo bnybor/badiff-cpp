@@ -38,9 +38,9 @@ void Op::Serialize(std::ostream &out) const {
 }
 void Op::Deserialize(std::istream &in) {
   std::size_t n = 0;
-  std::uint8_t c;
+  char c;
   do {
-    in.read((char *)&c, 1);
+    in.read(&c, 1);
     n <<= 7;
     n |= (c & 0x7f);
   } while (c & 0x80);
@@ -51,7 +51,7 @@ void Op::Deserialize(std::istream &in) {
   length_ = n;
   if (has_value) {
     value_ = ByteArray(new Byte[length_]);
-    in.read((char *)value_.get(), length_);
+    in.read(value_.get(), length_);
   } else {
     value_ = nullptr;
   }
