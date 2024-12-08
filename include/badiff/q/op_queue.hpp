@@ -12,7 +12,7 @@ namespace badiff {
 namespace q {
 class OpQueue;
 }
-}  // namespace badiff
+} // namespace badiff
 
 #include <badiff/op.hpp>
 
@@ -20,10 +20,10 @@ namespace badiff {
 namespace q {
 
 class OpQueue {
- protected:
+protected:
   std::vector<Op> prepared_;
 
- public:
+public:
   virtual ~OpQueue() = default;
 
   OpQueue() = default;
@@ -32,19 +32,21 @@ class OpQueue {
   OpQueue &operator=(const OpQueue &) = delete;
   OpQueue &operator=(OpQueue &&) = default;
 
-  virtual std::unique_ptr<Op> Pop();
-  virtual void Push(Op op);
-  virtual bool IsEmpty();
+  std::unique_ptr<Op> Pop();
+  void Push(Op op);
+  bool IsEmpty();
 
- protected:
+  void Apply(std::istream &original, std::ostream &target);
+
+protected:
   virtual bool Pull();
-  virtual void Prepare(Op op);
+  void Prepare(Op op);
 
- public:
+public:
   static std::string SummarizeConsuming(OpQueue &op_queue);
 };
 
-}  // namespace q
-}  // namespace badiff
+} // namespace q
+} // namespace badiff
 
 #endif /* BADIFF_Q_OP_QUEUE_HPP_ */

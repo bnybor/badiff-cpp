@@ -4,15 +4,18 @@ namespace badiff {
 namespace q {
 
 std::unique_ptr<Op> OpQueue::Pop() {
-  if (prepared_.empty()) Pull();
-  if (prepared_.empty()) return nullptr;
+  if (prepared_.empty())
+    Pull();
+  if (prepared_.empty())
+    return nullptr;
   auto ret = std::move(prepared_.front());
   prepared_.erase(prepared_.begin());
   return std::unique_ptr<Op>(new Op(ret));
 }
 
 bool OpQueue::IsEmpty() {
-  if (prepared_.empty()) Pull();
+  if (prepared_.empty())
+    Pull();
   return prepared_.empty();
 }
 
@@ -27,22 +30,29 @@ std::string OpQueue::SummarizeConsuming(OpQueue &op_queue) {
   while (!op_queue.IsEmpty()) {
     Op op = *op_queue.Pop();
     switch (op.GetType()) {
-      case Op::STOP:
-        ss << "!";
-        break;
-      case Op::DELETE:
-        ss << "-" << op.GetLength();
-        break;
-      case Op::INSERT:
-        ss << "+" << op.GetLength();
-        break;
-      case Op::NEXT:
-        ss << ">" << op.GetLength();
-        break;
+    case Op::STOP:
+      ss << "!";
+      break;
+    case Op::DELETE:
+      ss << "-" << op.GetLength();
+      break;
+    case Op::INSERT:
+      ss << "+" << op.GetLength();
+      break;
+    case Op::NEXT:
+      ss << ">" << op.GetLength();
+      break;
     }
   }
   return ss.str();
 }
 
-}  // namespace q
-}  // namespace badiff
+void OpQueue::Apply(std::istream &original, std::ostream &target) {
+  while (!IsEmpty()) {
+    Op op = *Pop();
+    op.Apply(original, target);
+  }
+}
+
+} // namespace q
+} // namespace badiff
