@@ -15,7 +15,7 @@ Op::Op(const Op &other) : type_(other.GetType()), length_(other.GetLength()) {
   }
 }
 
-void Op::Serialize(std::ostream &out) {
+void Op::Serialize(std::ostream &out) const {
   std::size_t n = length_;
   n <<= 2;
   n |= (std::size_t)type_;
@@ -33,14 +33,14 @@ void Op::Serialize(std::ostream &out) {
   }
   out.write(buf + i, 8 - i);
   if (value_) {
-    out.write((char*)value_.get(), length_);
+    out.write((char *)value_.get(), length_);
   }
 }
 void Op::Deserialize(std::istream &in) {
   std::size_t n = 0;
   std::uint8_t c;
   do {
-    in.read((char*)&c, 1);
+    in.read((char *)&c, 1);
     n <<= 7;
     n |= (c & 0x7f);
   } while (c & 0x80);
@@ -51,9 +51,25 @@ void Op::Deserialize(std::istream &in) {
   length_ = n;
   if (has_value) {
     value_ = ByteArray(new Byte[length_]);
-    in.read((char*)value_.get(), length_);
+    in.read((char *)value_.get(), length_);
   } else {
     value_ = nullptr;
+  }
+}
+
+void Op::Apply(std::istream &original, std::ostream &target) const {
+  switch (type_) {
+  case DELETE:
+    original.ignore(length_);
+    break;
+  case INSERT:
+    target.write(value_.get(), length_);
+    break;
+  case NEXT:
+    char buf[length_];
+    original.read(buf, length_);
+    target.write(buf, length_);
+    break;
   }
 }
 

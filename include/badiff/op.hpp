@@ -2,18 +2,19 @@
 #define BADIFF_OP_HPP_
 
 #include <cstdint>
+#include <istream>
 #include <memory>
+#include <ostream>
 
 namespace badiff {
 class Op;
 }
 
 #include <badiff/bytes.hpp>
-#include <badiff/io/serialized.hpp>
 
 namespace badiff {
 
-class Op : public io::Serialized {
+class Op {
 public:
   enum Type {
     // The end of a diff.
@@ -36,8 +37,9 @@ public:
   Op &operator=(const Op &) = delete;
   Op &operator=(Op &&) = default;
 
-  void Serialize(std::ostream &out) override;
-  void Deserialize(std::istream &in) override;
+  void Serialize(std::ostream &out) const;
+  void Deserialize(std::istream &in);
+  void Apply(std::istream &original, std::ostream &target) const;
 
   const Type &GetType() const;
   const Length &GetLength() const;

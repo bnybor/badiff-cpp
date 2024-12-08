@@ -6,7 +6,7 @@
 
 namespace badiff {
 
-using Byte = std::uint8_t;
+using Byte = char;
 using ByteArray = std::unique_ptr<Byte[]>;
 
 } // namespace badiff
