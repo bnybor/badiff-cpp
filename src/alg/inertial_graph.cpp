@@ -106,8 +106,8 @@ struct Node {
 };
 } // namespace
 
-void InertialGraph::Compute(const Byte *original, std::size_t original_length,
-                            const Byte *target, std::size_t target_length) {
+void InertialGraph::Compute(const char *original, std::size_t original_length,
+                            const char *target, std::size_t target_length) {
   /*
    * Construct a rectangular graph as the edit graph.
    * The edit graph supports down (insert), right (delete), and
@@ -119,8 +119,8 @@ void InertialGraph::Compute(const Byte *original, std::size_t original_length,
   std::size_t xlen = original_length + 1;
   std::size_t ylen = target_length + 1;
 
-  std::unique_ptr<Byte[]> xval(new Byte[xlen]);
-  std::unique_ptr<Byte[]> yval(new Byte[ylen]);
+  std::unique_ptr<char[]> xval(new char[xlen]);
+  std::unique_ptr<char[]> yval(new char[ylen]);
 
   xval[0] = 0;
   yval[0] = 0;
@@ -159,7 +159,7 @@ void InertialGraph::Compute(const Byte *original, std::size_t original_length,
   }
 
   std::vector<Op> ret;
-  std::vector<Byte> buf;
+  std::vector<char> buf;
   Op::Type op = Op::STOP;
   std::size_t run = 0;
 
@@ -193,11 +193,11 @@ void InertialGraph::Compute(const Byte *original, std::size_t original_length,
     } else if (y > 0 && node.insert_cost_ <= node.delete_cost_ &&
                node.next_cost_ <= node.next_cost_) {
       if (op_queue_.back().GetType() != Op::INSERT) {
-        ByteArray data(new Byte[1]);
+        std::unique_ptr<char[]> data(new char[1]);
         data[0] = node.target_;
         op_queue_.push_back(Op(Op::INSERT, 1, std::move(data)));
       } else {
-        ByteArray data(new Byte[op_queue_.back().GetLength() + 1]);
+        std::unique_ptr<char[]> data(new char[op_queue_.back().GetLength() + 1]);
         std::copy(op_queue_.back().GetValue().get(), //
                   op_queue_.back().GetValue().get() +
                       op_queue_.back().GetLength(),
@@ -222,9 +222,9 @@ std::unique_ptr<q::OpQueue> InertialGraph::MakeOpQueue() const {
    */
   std::vector<Op> queue;
   for (const auto &op : op_queue_) {
-    ByteArray value;
+    std::unique_ptr<char[]> value;
     if (op.GetValue()) {
-      value.reset(new Byte[op.GetLength()]);
+      value.reset(new char[op.GetLength()]);
       std::copy(op.GetValue().get(), op.GetValue().get() + op.GetLength(),
                 value.get());
     }

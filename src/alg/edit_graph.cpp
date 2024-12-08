@@ -6,8 +6,8 @@ namespace badiff {
 
 namespace alg {
 
-void EditGraph::Compute(const Byte *original, std::size_t original_length,
-                        const Byte *target, std::size_t target_length) {
+void EditGraph::Compute(const char *original, std::size_t original_length,
+                        const char *target, std::size_t target_length) {
   /*
    * Construct a rectangular graph as the edit graph.
    * The edit graph supports down (insert), right (delete), and
@@ -19,8 +19,8 @@ void EditGraph::Compute(const Byte *original, std::size_t original_length,
   std::size_t xlen = original_length + 1;
   std::size_t ylen = target_length + 1;
 
-  std::unique_ptr<Byte[]> xval(new Byte[xlen]);
-  std::unique_ptr<Byte[]> yval(new Byte[ylen]);
+  std::unique_ptr<char[]> xval(new char[xlen]);
+  std::unique_ptr<char[]> yval(new char[ylen]);
 
   xval[0] = 0;
   yval[0] = 0;
@@ -62,7 +62,7 @@ void EditGraph::Compute(const Byte *original, std::size_t original_length,
   }
 
   std::vector<Op> ret;
-  std::vector<Byte> buf;
+  std::vector<char> buf;
   Op::Type op = Op::STOP;
   std::size_t run = 0;
 
@@ -75,10 +75,10 @@ void EditGraph::Compute(const Byte *original, std::size_t original_length,
   while (pos > 0) {
     Op::Type fop = best_op[pos];
     if (op != Op::STOP && op != fop) {
-      ByteArray data;
+      std::unique_ptr<char[]> data;
       if (op == Op::INSERT || op == Op::DELETE) {
         auto *rdata = &buf[0];
-        data.reset(new Byte[buf.size()]);
+        data.reset(new char[buf.size()]);
         for (std::size_t i = 0; i < buf.size(); ++i) {
           data[buf.size() - i - 1] = rdata[i];
         }
@@ -103,10 +103,10 @@ void EditGraph::Compute(const Byte *original, std::size_t original_length,
     }
   }
   if (op != Op::STOP) {
-    ByteArray data;
+    std::unique_ptr<char[]> data;
     if (op == Op::INSERT || op == Op::DELETE) {
       auto *rdata = &buf[0];
-      data.reset(new Byte[buf.size()]);
+      data.reset(new char[buf.size()]);
       for (std::size_t i = 0; i < buf.size(); ++i) {
         data[buf.size() - i - 1] = rdata[i];
       }
@@ -128,9 +128,9 @@ std::unique_ptr<q::OpQueue> EditGraph::MakeOpQueue() const {
    */
   std::vector<Op> queue;
   for (const auto &op : op_queue_) {
-    ByteArray value;
+    std::unique_ptr<char[]> value;
     if (op.GetValue()) {
-      value.reset(new Byte[op.GetLength()]);
+      value.reset(new char[op.GetLength()]);
       std::copy(op.GetValue().get(), op.GetValue().get() + op.GetLength(),
                 value.get());
     }

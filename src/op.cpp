@@ -9,7 +9,7 @@ Op::Op(Type type, Length length, Value value)
 
 Op::Op(const Op &other) : type_(other.GetType()), length_(other.GetLength()) {
   if (other.GetValue()) {
-    value_.reset(new Byte[other.GetLength()]);
+    value_.reset(new char[other.GetLength()]);
     std::copy(other.GetValue().get(),
               other.GetValue().get() + other.GetLength(), value_.get());
   }
@@ -50,7 +50,7 @@ void Op::Deserialize(std::istream &in) {
   n >>= 2;
   length_ = n;
   if (has_value) {
-    value_ = ByteArray(new Byte[length_]);
+    value_ = std::unique_ptr<char[]>(new char[length_]);
     in.read(value_.get(), length_);
   } else {
     value_ = nullptr;

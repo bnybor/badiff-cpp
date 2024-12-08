@@ -16,8 +16,8 @@ public:
   static std::size_t TRANSITION_COSTS[4][4];
   virtual ~InertialGraph() = default;
 
-  void Compute(const Byte *original, std::size_t original_length,
-               const Byte *target, std::size_t target_length) override;
+  void Compute(const char *original, std::size_t original_length,
+               const char *target, std::size_t target_length) override;
 
   virtual std::unique_ptr<q::OpQueue> MakeOpQueue() const override;
 };

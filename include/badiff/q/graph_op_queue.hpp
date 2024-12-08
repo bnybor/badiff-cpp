@@ -2,7 +2,6 @@
 #define BADIFF_Q_GRAPH_OP_QUEUE_HPP_
 
 #include <badiff/alg/graph.hpp>
-#include <badiff/bytes.hpp>
 #include <badiff/q/filter_op_queue.hpp>
 
 namespace badiff {

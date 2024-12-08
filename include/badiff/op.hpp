@@ -10,8 +10,6 @@ namespace badiff {
 class Op;
 }
 
-#include <badiff/bytes.hpp>
-
 namespace badiff {
 
 class Op {
@@ -26,7 +24,7 @@ public:
     // Copy bytes from the original to the target.
     NEXT = 3,
   };
-  using Value = ByteArray;
+  using Value = std::unique_ptr<char[]>;
   using Length = std::size_t;
 
   Op();

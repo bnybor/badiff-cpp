@@ -16,10 +16,10 @@ TEST_F(GraphOpQueueTest, TestIdentity) {
   auto graph = std::unique_ptr<alg::Graph>(new alg::InertialGraph);
   std::string hello = "hello";
 
-  ByteArray original(new Byte[hello.size()]);
+  std::unique_ptr<char[]> original(new char[hello.size()]);
   std::copy(hello.begin(), hello.end(), original.get());
 
-  ByteArray target(new Byte[hello.size()]);
+  std::unique_ptr<char[]> target(new char[hello.size()]);
   std::copy(hello.begin(), hello.end(), target.get());
 
   auto op_queue = std::unique_ptr<q::OpQueue>(new q::ReplaceOpQueue(
@@ -35,10 +35,10 @@ TEST_F(GraphOpQueueTest, TestIdentity) {
 //  std::string hello = "hello";
 //  std::string world = "world";
 //
-//  ByteArray original(new Byte[hello.size()]);
+//  std::unique_ptr<char[]> original(new char[hello.size()]);
 //  std::copy(hello.begin(), hello.end(), original.get());
 //
-//  ByteArray target(new Byte[world.size()]);
+//  std::unique_ptr<char[]> target(new char[world.size()]);
 //  std::copy(world.begin(), world.end(), target.get());
 //
 //  graph.Compute(original.get(), hello.size(), target.get(), world.size());
@@ -53,10 +53,10 @@ TEST_F(GraphOpQueueTest, TestIdentity) {
 //  std::string hello = "ab";
 //  std::string world = "bb";
 //
-//  ByteArray original(new Byte[hello.size()]);
+//  std::unique_ptr<char[]> original(new char[hello.size()]);
 //  std::copy(hello.begin(), hello.end(), original.get());
 //
-//  ByteArray target(new Byte[world.size()]);
+//  std::unique_ptr<char[]> target(new char[world.size()]);
 //  std::copy(world.begin(), world.end(), target.get());
 //
 //  graph.Compute(original.get(), hello.size(), target.get(), world.size());
@@ -70,10 +70,10 @@ TEST_F(GraphOpQueueTest, TestIdentity) {
 //  std::string hello = "aaaaaaaabbbbbbbb";
 //  std::string world = "bbbbbbbbbbbbbbbb";
 //
-//  ByteArray original(new Byte[hello.size()]);
+//  std::unique_ptr<char[]> original(new char[hello.size()]);
 //  std::copy(hello.begin(), hello.end(), original.get());
 //
-//  ByteArray target(new Byte[world.size()]);
+//  std::unique_ptr<char[]> target(new char[world.size()]);
 //  std::copy(world.begin(), world.end(), target.get());
 //
 //  graph.Compute(original.get(), hello.size(), target.get(), world.size());

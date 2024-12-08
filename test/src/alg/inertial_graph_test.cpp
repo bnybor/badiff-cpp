@@ -14,10 +14,10 @@ TEST_F(InertialGraphTest, TestIdentity) {
   alg::InertialGraph graph;
   std::string hello = "hello";
 
-  ByteArray original(new Byte[hello.size()]);
+  std::unique_ptr<char[]> original(new char[hello.size()]);
   std::copy(hello.begin(), hello.end(), original.get());
 
-  ByteArray target(new Byte[hello.size()]);
+  std::unique_ptr<char[]> target(new char[hello.size()]);
   std::copy(hello.begin(), hello.end(), target.get());
 
   graph.Compute(original.get(), hello.size(), target.get(), hello.size());
@@ -32,10 +32,10 @@ TEST_F(InertialGraphTest, TestHelloWorld) {
   std::string hello = "hello";
   std::string world = "world";
 
-  ByteArray original(new Byte[hello.size()]);
+  std::unique_ptr<char[]> original(new char[hello.size()]);
   std::copy(hello.begin(), hello.end(), original.get());
 
-  ByteArray target(new Byte[world.size()]);
+  std::unique_ptr<char[]> target(new char[world.size()]);
   std::copy(world.begin(), world.end(), target.get());
 
   graph.Compute(original.get(), hello.size(), target.get(), world.size());
@@ -50,10 +50,10 @@ TEST_F(InertialGraphTest, TestHelloAB) {
   std::string hello = "ab";
   std::string world = "bb";
 
-  ByteArray original(new Byte[hello.size()]);
+  std::unique_ptr<char[]> original(new char[hello.size()]);
   std::copy(hello.begin(), hello.end(), original.get());
 
-  ByteArray target(new Byte[world.size()]);
+  std::unique_ptr<char[]> target(new char[world.size()]);
   std::copy(world.begin(), world.end(), target.get());
 
   graph.Compute(original.get(), hello.size(), target.get(), world.size());
@@ -67,10 +67,10 @@ TEST_F(InertialGraphTest, TestHelloA8B8) {
   std::string hello = "aaaaaaaabbbbbbbb";
   std::string world = "bbbbbbbbbbbbbbbb";
 
-  ByteArray original(new Byte[hello.size()]);
+  std::unique_ptr<char[]> original(new char[hello.size()]);
   std::copy(hello.begin(), hello.end(), original.get());
 
-  ByteArray target(new Byte[world.size()]);
+  std::unique_ptr<char[]> target(new char[world.size()]);
   std::copy(world.begin(), world.end(), target.get());
 
   graph.Compute(original.get(), hello.size(), target.get(), world.size());
