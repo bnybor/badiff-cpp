@@ -6,8 +6,6 @@ namespace q {
 FilterOpQueue::FilterOpQueue(std::unique_ptr<OpQueue> source)
     : source_(std::move(source)) {}
 
-void FilterOpQueue::Push(Op op) { source_->Push(std::move(op)); }
-
 bool FilterOpQueue::Require(std::size_t count) {
   while (filtering_.size() < count) {
     auto maybe_op = source_->Pop();
