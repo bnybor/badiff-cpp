@@ -1,6 +1,6 @@
-#include <badiff/alg/edit_graph.hpp>
-
 #include <algorithm>
+#include <badiff/alg/edit_graph.hpp>
+#include <badiff/q/vector_op_queue.hpp>
 
 namespace badiff {
 
@@ -8,7 +8,6 @@ namespace alg {
 
 void EditGraph::Compute(const Byte *original, std::size_t original_length,
                         const Byte *target, std::size_t target_length) {
-
   /*
    * Construct a rectangular graph as the edit graph.
    * The edit graph supports down (insert), right (delete), and
@@ -43,8 +42,7 @@ void EditGraph::Compute(const Byte *original, std::size_t original_length,
 
   for (std::size_t y = 0; y < target_length + 1; ++y) {
     for (std::size_t x = 0; x < original_length + 1; ++x) {
-      if (x == 0 && y == 0)
-        continue;
+      if (x == 0 && y == 0) continue;
       std::size_t pos = x + y * xlen;
       if (x > 0 && y > 0 && xval[x] == yval[y]) {
         best_op[pos] = Op::NEXT;
@@ -86,7 +84,7 @@ void EditGraph::Compute(const Byte *original, std::size_t original_length,
         }
       }
       ret.push_back(
-          Op(op, run, std::move(data))); // @suppress("Ambiguous problem")
+          Op(op, run, std::move(data)));  // @suppress("Ambiguous problem")
       run = 0;
       buf.clear();
     }
@@ -114,7 +112,7 @@ void EditGraph::Compute(const Byte *original, std::size_t original_length,
       }
     }
     ret.push_back(
-        Op(op, run, std::move(data))); // @suppress("Ambiguous problem")
+        Op(op, run, std::move(data)));  // @suppress("Ambiguous problem")
   }
 
   /*
@@ -137,11 +135,11 @@ std::unique_ptr<q::OpQueue> EditGraph::MakeOpQueue() const {
                 value.get());
     }
     queue.push_back(Op(op.GetType(), op.GetLength(),
-                       std::move(value))); // @suppress("Ambiguous problem")
+                       std::move(value)));  // @suppress("Ambiguous problem")
   }
-  return std::unique_ptr<q::OpQueue>(new q::OpQueue(std::move(queue)));
+  return std::unique_ptr<q::OpQueue>(new q::VectorOpQueue(std::move(queue)));
 }
 
-} // namespace alg
+}  // namespace alg
 
-} // namespace badiff
+}  // namespace badiff

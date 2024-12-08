@@ -1,7 +1,7 @@
+#include <algorithm>
 #include <badiff/alg/inertial_graph.hpp>
 #include <badiff/q/op_queue.hpp>
-
-#include <algorithm>
+#include <badiff/q/vector_op_queue.hpp>
 #include <iostream>
 #include <numeric>
 
@@ -9,7 +9,7 @@ namespace badiff {
 
 namespace alg {
 
-std::size_t InertialGraph::TRANSITION_COSTS[4][4] = //
+std::size_t InertialGraph::TRANSITION_COSTS[4][4] =  //
     {
         //
         {
@@ -17,26 +17,26 @@ std::size_t InertialGraph::TRANSITION_COSTS[4][4] = //
             1,
             1,
             1,
-        }, // From STOP
+        },  // From STOP
         {
             3,
             1,
             3,
             4,
-        }, // From DELETE
+        },  // From DELETE
         {
             2,
             2,
             1,
             3,
-        }, // From INSERT
+        },  // From INSERT
         {
             1,
             2,
             3,
             1,
-        } // From NEXT
-}; // To S D I N
+        }  // From NEXT
+};  // To S D I N
 
 namespace {
 inline std::size_t CostOfOperation(Op::Type previous_op, Op::Type op) {
@@ -104,7 +104,7 @@ struct Node {
     }
   }
 };
-} // namespace
+}  // namespace
 
 void InertialGraph::Compute(const Byte *original, std::size_t original_length,
                             const Byte *target, std::size_t target_length) {
@@ -154,7 +154,7 @@ void InertialGraph::Compute(const Byte *original, std::size_t original_length,
       node.target_ = yval[y];
       node.Compute();
       //			printf( " costs delete=%i insert=%i next=%i\n",
-      //node.delete_cost_, node.insert_cost_, node.next_cost_);
+      // node.delete_cost_, node.insert_cost_, node.next_cost_);
     }
   }
 
@@ -198,10 +198,10 @@ void InertialGraph::Compute(const Byte *original, std::size_t original_length,
         op_queue_.push_back(Op(Op::INSERT, 1, std::move(data)));
       } else {
         ByteArray data(new Byte[op_queue_.back().GetLength() + 1]);
-        std::copy(op_queue_.back().GetValue().get(), //
-                  op_queue_.back().GetValue().get() +
-                      op_queue_.back().GetLength(),
-                  data.get());
+        std::copy(
+            op_queue_.back().GetValue().get(),  //
+            op_queue_.back().GetValue().get() + op_queue_.back().GetLength(),
+            data.get());
         data[op_queue_.back().GetLength()] = node.target_;
         op_queue_.back().MutableValue() = std::move(data);
         op_queue_.back().MutableLength()++;
@@ -229,10 +229,10 @@ std::unique_ptr<q::OpQueue> InertialGraph::MakeOpQueue() const {
                 value.get());
     }
     queue.push_back(Op(op.GetType(), op.GetLength(),
-                       std::move(value))); // @suppress("Ambiguous problem")
+                       std::move(value)));  // @suppress("Ambiguous problem")
   }
-  return std::unique_ptr<q::OpQueue>(new q::OpQueue(std::move(queue)));
+  return std::unique_ptr<q::OpQueue>(new q::VectorOpQueue(std::move(queue)));
 }
 
-} // namespace alg
-} // namespace badiff
+}  // namespace alg
+}  // namespace badiff

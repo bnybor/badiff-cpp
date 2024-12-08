@@ -3,62 +3,46 @@
 namespace badiff {
 namespace q {
 
-OpQueue::OpQueue(std::vector<Op> queue) : queue_(std::move(queue)) {}
+std::unique_ptr<Op> OpQueue::Pop() {
+  if (prepared_.empty()) Pull();
+  if (prepared_.empty()) return nullptr;
+  auto ret = std::move(prepared_.front());
+  prepared_.erase(prepared_.begin());
+  return std::unique_ptr<Op>(new Op(ret));
+}
 
 bool OpQueue::IsEmpty() {
-  if (queue_.empty())
-    Pull();
-  return queue_.empty();
+  if (prepared_.empty()) Pull();
+  return prepared_.empty();
 }
 
-Op OpQueue::PopFront() {
-  if (queue_.empty())
-    Pull();
-  if (queue_.empty())
-    return Op::STOP;
-  Op op = std::move(queue_.front());
-  queue_.erase(queue_.begin());
-  return op;
-}
+void OpQueue::Push(Op op) { prepared_.push_back(std::move(op)); }
 
-void OpQueue::PushBack(Op op) { queue_.push_back(std::move(op)); }
+bool OpQueue::Pull() { return false; }
 
-void OpQueue::PushBack(OpQueue &other) {
-  for (Op op = other.PopFront(); op.GetType() != Op::STOP;
-       op = other.PopFront()) {
-    PushBack(std::move(op));
-  }
-}
-
-void OpQueue::Pull() {}
+void OpQueue::Prepare(Op op) { Push(std::move(op)); }
 
 std::string OpQueue::SummarizeConsuming(OpQueue &op_queue) {
   std::ostringstream ss;
   while (!op_queue.IsEmpty()) {
-    Op op = op_queue.PopFront();
+    Op op = *op_queue.Pop();
     switch (op.GetType()) {
-    case Op::STOP:
-      ss << "!";
-      break;
-    case Op::DELETE:
-      ss << "-" << op.GetLength();
-      break;
-    case Op::INSERT:
-      ss << "+" << op.GetLength();
-      break;
-    case Op::NEXT:
-      ss << ">" << op.GetLength();
-      break;
+      case Op::STOP:
+        ss << "!";
+        break;
+      case Op::DELETE:
+        ss << "-" << op.GetLength();
+        break;
+      case Op::INSERT:
+        ss << "+" << op.GetLength();
+        break;
+      case Op::NEXT:
+        ss << ">" << op.GetLength();
+        break;
     }
   }
   return ss.str();
 }
 
-OpQueue::OpQueue(const OpQueue &other) {
-  for (auto &op : other.queue_) {
-    PushBack(Op(op));
-  }
-}
-
-} // namespace q
-} // namespace badiff
+}  // namespace q
+}  // namespace badiff
