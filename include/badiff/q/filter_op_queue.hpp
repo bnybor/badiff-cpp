@@ -9,7 +9,6 @@ namespace q {
 
 class FilterOpQueue : public OpQueue {
 public:
-  FilterOpQueue();
   FilterOpQueue(std::unique_ptr<OpQueue> source);
 
   virtual void Push(Op op) override;
