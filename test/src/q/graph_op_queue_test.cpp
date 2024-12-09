@@ -1,3 +1,4 @@
+#include <badiff/alg/edit_graph.hpp>
 #include <badiff/alg/inertial_graph.hpp>
 #include <badiff/q/graph_op_queue.hpp>
 #include <badiff/q/replace_op_queue.hpp>
@@ -35,7 +36,6 @@ TEST_F(GraphOpQueueTest, TestIdentity) {
 }
 
 TEST_F(GraphOpQueueTest, TestHelloWorld) {
-  auto graph = std::unique_ptr<alg::Graph>(new alg::InertialGraph);
   std::string hello = "hello";
   std::string world = "world";
 
@@ -45,16 +45,33 @@ TEST_F(GraphOpQueueTest, TestHelloWorld) {
   std::unique_ptr<char[]> target(new char[world.size()]);
   std::copy(world.begin(), world.end(), target.get());
 
-  auto op_queue = std::unique_ptr<q::OpQueue>(new q::ReplaceOpQueue(
-      original.get(), hello.size(), target.get(), hello.size()));
+  {
+    auto graph = std::unique_ptr<alg::Graph>(new alg::InertialGraph);
+    auto op_queue = std::unique_ptr<q::OpQueue>(new q::ReplaceOpQueue(
+        original.get(), hello.size(), target.get(), world.size()));
 
-  op_queue.reset(new q::GraphOpQueue(std::move(op_queue), std::move(graph)));
+    op_queue.reset(new q::GraphOpQueue(std::move(op_queue), std::move(graph)));
 
-  std::istringstream in(std::string(original.get(), hello.size()));
-  std::ostringstream out;
-  op_queue->Apply(in, out);
+    std::istringstream in(std::string(original.get(), hello.size()));
+    std::ostringstream out;
+    op_queue->Apply(in, out);
 
-  ASSERT_EQ(out.str(), world);
+    ASSERT_EQ(out.str(), world);
+  }
+
+  {
+    auto graph = std::unique_ptr<alg::Graph>(new alg::EditGraph);
+    auto op_queue = std::unique_ptr<q::OpQueue>(new q::ReplaceOpQueue(
+        original.get(), hello.size(), target.get(), world.size()));
+
+    op_queue.reset(new q::GraphOpQueue(std::move(op_queue), std::move(graph)));
+
+    std::istringstream in(std::string(original.get(), hello.size()));
+    std::ostringstream out;
+    op_queue->Apply(in, out);
+
+    ASSERT_EQ(out.str(), world);
+  }
 }
 
 TEST_F(GraphOpQueueTest, TestHelloAB) {
@@ -69,14 +86,19 @@ TEST_F(GraphOpQueueTest, TestHelloAB) {
   std::copy(world.begin(), world.end(), target.get());
 
   auto op_queue = std::unique_ptr<q::OpQueue>(new q::ReplaceOpQueue(
-      original.get(), hello.size(), target.get(), hello.size()));
+      original.get(), hello.size(), target.get(), world.size()));
 
   op_queue.reset(new q::GraphOpQueue(std::move(op_queue), std::move(graph)));
 
-  ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), std::string("+2-2"));
+  std::istringstream in(std::string(original.get(), hello.size()));
+  std::ostringstream out;
+  op_queue->Apply(in, out);
+
+  ASSERT_EQ(out.str(), world);
 }
+
 TEST_F(GraphOpQueueTest, TestHelloA8B8) {
-  alg::InertialGraph graph;
+  auto graph = std::unique_ptr<alg::Graph>(new alg::InertialGraph);
   std::string hello = "aaaaaaaabbbbbbbb";
   std::string world = "bbbbbbbbbbbbbbbb";
 
@@ -86,9 +108,14 @@ TEST_F(GraphOpQueueTest, TestHelloA8B8) {
   std::unique_ptr<char[]> target(new char[world.size()]);
   std::copy(world.begin(), world.end(), target.get());
 
-  graph.Compute(original.get(), hello.size(), target.get(), world.size());
+  auto op_queue = std::unique_ptr<q::OpQueue>(new q::ReplaceOpQueue(
+      original.get(), hello.size(), target.get(), world.size()));
 
-  auto op_queue = graph.MakeOpQueue();
+  op_queue.reset(new q::GraphOpQueue(std::move(op_queue), std::move(graph)));
 
-  ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), std::string("+10-10>6"));
+  std::istringstream in(std::string(original.get(), hello.size()));
+  std::ostringstream out;
+  op_queue->Apply(in, out);
+
+  ASSERT_EQ(out.str(), world);
 }
