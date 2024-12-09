@@ -40,7 +40,6 @@ bool GraphOpQueue::Pull() {
   auto diff = graph_->MakeOpQueue();
   while (!diff->IsEmpty()) {
     Op op = *diff->Pop();
-    std::cout << "popped " << op.GetType() << std::endl;
     Prepare(std::move(op));
   }
   return Flush();

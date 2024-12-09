@@ -185,8 +185,18 @@ void InertialGraph::Compute(const char *original, std::size_t original_length,
     } else if (x > 0 && node.delete_cost_ <= node.insert_cost_ &&
                node.delete_cost_ <= node.next_cost_) {
       if (op_queue_.back().GetType() != Op::DELETE) {
-        op_queue_.push_back(Op(Op::DELETE, 1));
+        std::unique_ptr<char[]> data(new char[1]);
+        data[0] = node.target_;
+        op_queue_.push_back(Op(Op::DELETE, 1, std::move(data)));
       } else {
+        std::unique_ptr<char[]> data(
+            new char[op_queue_.back().GetLength() + 1]);
+        std::copy(op_queue_.back().GetValue().get(), //
+                  op_queue_.back().GetValue().get() +
+                      op_queue_.back().GetLength(),
+                  data.get() + 1);
+        data[0] = node.target_;
+        op_queue_.back().MutableValue() = std::move(data);
         op_queue_.back().MutableLength()++;
       }
       x -= 1;
@@ -197,12 +207,13 @@ void InertialGraph::Compute(const char *original, std::size_t original_length,
         data[0] = node.target_;
         op_queue_.push_back(Op(Op::INSERT, 1, std::move(data)));
       } else {
-        std::unique_ptr<char[]> data(new char[op_queue_.back().GetLength() + 1]);
+        std::unique_ptr<char[]> data(
+            new char[op_queue_.back().GetLength() + 1]);
         std::copy(op_queue_.back().GetValue().get(), //
                   op_queue_.back().GetValue().get() +
                       op_queue_.back().GetLength(),
-                  data.get());
-        data[op_queue_.back().GetLength()] = node.target_;
+                  data.get() + 1);
+        data[0] = node.target_;
         op_queue_.back().MutableValue() = std::move(data);
         op_queue_.back().MutableLength()++;
       }

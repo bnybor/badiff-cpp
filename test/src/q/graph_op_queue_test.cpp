@@ -27,59 +27,68 @@ TEST_F(GraphOpQueueTest, TestIdentity) {
 
   op_queue.reset(new q::GraphOpQueue(std::move(op_queue), std::move(graph)));
 
-  ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), std::string(">5"));
+  std::istringstream in(std::string(original.get(), hello.size()));
+  std::ostringstream out;
+  op_queue->Apply(in, out);
+
+  ASSERT_EQ(out.str(), hello);
 }
-//
-// TEST_F(GraphOpQueueTest, TestHelloWorld) {
-//  alg::InertialGraph graph;
-//  std::string hello = "hello";
-//  std::string world = "world";
-//
-//  std::unique_ptr<char[]> original(new char[hello.size()]);
-//  std::copy(hello.begin(), hello.end(), original.get());
-//
-//  std::unique_ptr<char[]> target(new char[world.size()]);
-//  std::copy(world.begin(), world.end(), target.get());
-//
-//  graph.Compute(original.get(), hello.size(), target.get(), world.size());
-//
-//  auto op_queue = graph.MakeOpQueue();
-//
-//  ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), std::string("+5-5"));
-//}
-//
-// TEST_F(GraphOpQueueTest, TestHelloAB) {
-//  alg::InertialGraph graph;
-//  std::string hello = "ab";
-//  std::string world = "bb";
-//
-//  std::unique_ptr<char[]> original(new char[hello.size()]);
-//  std::copy(hello.begin(), hello.end(), original.get());
-//
-//  std::unique_ptr<char[]> target(new char[world.size()]);
-//  std::copy(world.begin(), world.end(), target.get());
-//
-//  graph.Compute(original.get(), hello.size(), target.get(), world.size());
-//
-//  auto op_queue = graph.MakeOpQueue();
-//
-//  ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), std::string("+2-2"));
-//}
-// TEST_F(GraphOpQueueTest, TestHelloA8B8) {
-//  alg::InertialGraph graph;
-//  std::string hello = "aaaaaaaabbbbbbbb";
-//  std::string world = "bbbbbbbbbbbbbbbb";
-//
-//  std::unique_ptr<char[]> original(new char[hello.size()]);
-//  std::copy(hello.begin(), hello.end(), original.get());
-//
-//  std::unique_ptr<char[]> target(new char[world.size()]);
-//  std::copy(world.begin(), world.end(), target.get());
-//
-//  graph.Compute(original.get(), hello.size(), target.get(), world.size());
-//
-//  auto op_queue = graph.MakeOpQueue();
-//
-//  ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue),
-//  std::string("+10-10>6"));
-//}
+
+TEST_F(GraphOpQueueTest, TestHelloWorld) {
+  auto graph = std::unique_ptr<alg::Graph>(new alg::InertialGraph);
+  std::string hello = "hello";
+  std::string world = "world";
+
+  std::unique_ptr<char[]> original(new char[hello.size()]);
+  std::copy(hello.begin(), hello.end(), original.get());
+
+  std::unique_ptr<char[]> target(new char[world.size()]);
+  std::copy(world.begin(), world.end(), target.get());
+
+  auto op_queue = std::unique_ptr<q::OpQueue>(new q::ReplaceOpQueue(
+      original.get(), hello.size(), target.get(), hello.size()));
+
+  op_queue.reset(new q::GraphOpQueue(std::move(op_queue), std::move(graph)));
+
+  std::istringstream in(std::string(original.get(), hello.size()));
+  std::ostringstream out;
+  op_queue->Apply(in, out);
+
+  ASSERT_EQ(out.str(), world);
+}
+
+TEST_F(GraphOpQueueTest, TestHelloAB) {
+  auto graph = std::unique_ptr<alg::Graph>(new alg::InertialGraph);
+  std::string hello = "ab";
+  std::string world = "bb";
+
+  std::unique_ptr<char[]> original(new char[hello.size()]);
+  std::copy(hello.begin(), hello.end(), original.get());
+
+  std::unique_ptr<char[]> target(new char[world.size()]);
+  std::copy(world.begin(), world.end(), target.get());
+
+  auto op_queue = std::unique_ptr<q::OpQueue>(new q::ReplaceOpQueue(
+      original.get(), hello.size(), target.get(), hello.size()));
+
+  op_queue.reset(new q::GraphOpQueue(std::move(op_queue), std::move(graph)));
+
+  ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), std::string("+2-2"));
+}
+TEST_F(GraphOpQueueTest, TestHelloA8B8) {
+  alg::InertialGraph graph;
+  std::string hello = "aaaaaaaabbbbbbbb";
+  std::string world = "bbbbbbbbbbbbbbbb";
+
+  std::unique_ptr<char[]> original(new char[hello.size()]);
+  std::copy(hello.begin(), hello.end(), original.get());
+
+  std::unique_ptr<char[]> target(new char[world.size()]);
+  std::copy(world.begin(), world.end(), target.get());
+
+  graph.Compute(original.get(), hello.size(), target.get(), world.size());
+
+  auto op_queue = graph.MakeOpQueue();
+
+  ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), std::string("+10-10>6"));
+}
