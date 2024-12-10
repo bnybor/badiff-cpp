@@ -30,7 +30,6 @@ public:
   Op();
   Op(Type, Length = 1, Value = nullptr);
   Op(Type, const std::string &);
-  Op(Type, Length, const char *);
 
   Op(const badiff::Op &other);
   Op(Op &&) = default;

@@ -7,13 +7,6 @@ Op::Op() : type_(STOP), length_(0), value_(nullptr) {}
 Op::Op(Type type, Length length, Value value)
     : type_(type), length_(length), value_(std::move(value)) {}
 
-Op::Op(Type type, Length length, const char *value)
-    : type_(type), length_(length) {
-  value_.reset(new char[length_]);
-  if (value)
-    std::copy(value, value + length, value_.get());
-}
-
 Op::Op(Type type, const std::string &value) : type_(type) {
   length_ = value.size();
   value_.reset(new char[length_]);
