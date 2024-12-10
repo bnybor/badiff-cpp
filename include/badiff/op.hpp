@@ -28,7 +28,8 @@ public:
   using Length = std::size_t;
 
   Op();
-  Op(Type, Length = 0, Value = nullptr);
+  Op(Type, Length = 1, Value = nullptr);
+  Op(Type, const std::string &);
 
   Op(const badiff::Op &other);
   Op(Op &&) = default;

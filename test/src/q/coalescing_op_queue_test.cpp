@@ -12,8 +12,8 @@ public:
 
 TEST_F(CoalescingOpQueueTest, DD) {
   std::unique_ptr<q::OpQueue> op_queue(new q::OpQueue);
-  op_queue->Push(Op(Op::DELETE, 1));
-  op_queue->Push(Op(Op::DELETE, 1));
+  op_queue->Push(Op::DELETE);
+  op_queue->Push(Op::DELETE);
   op_queue.reset(new q::CoalescingOpQueue(std::move(op_queue)));
   ASSERT_FALSE(op_queue->IsEmpty());
   Op op = *op_queue->Pop();
@@ -24,9 +24,9 @@ TEST_F(CoalescingOpQueueTest, DD) {
 
 TEST_F(CoalescingOpQueueTest, DDD) {
   std::unique_ptr<q::OpQueue> op_queue(new q::OpQueue);
-  op_queue->Push(Op(Op::DELETE, 1));
-  op_queue->Push(Op(Op::DELETE, 1));
-  op_queue->Push(Op(Op::DELETE, 1));
+  op_queue->Push(Op::DELETE);
+  op_queue->Push(Op::DELETE);
+  op_queue->Push(Op::DELETE);
   op_queue.reset(new q::CoalescingOpQueue(std::move(op_queue)));
   ASSERT_FALSE(op_queue->IsEmpty());
   Op op = *op_queue->Pop();
@@ -37,9 +37,9 @@ TEST_F(CoalescingOpQueueTest, DDD) {
 
 TEST_F(CoalescingOpQueueTest, DID) {
   std::unique_ptr<q::OpQueue> op_queue(new q::OpQueue);
-  op_queue->Push(Op(Op::DELETE, 1));
-  op_queue->Push(Op(Op::INSERT, 1));
-  op_queue->Push(Op(Op::DELETE, 1));
+  op_queue->Push(Op::DELETE);
+  op_queue->Push(Op::INSERT);
+  op_queue->Push(Op::DELETE);
   op_queue.reset(new q::CoalescingOpQueue(std::move(op_queue)));
   ASSERT_FALSE(op_queue->IsEmpty());
   Op op;
@@ -60,10 +60,10 @@ TEST_F(CoalescingOpQueueTest, DIID) {
    * D2 I2
    */
   std::unique_ptr<q::OpQueue> op_queue(new q::OpQueue);
-  op_queue->Push(Op(Op::DELETE, 1));
-  op_queue->Push(Op(Op::INSERT, 1));
-  op_queue->Push(Op(Op::INSERT, 1));
-  op_queue->Push(Op(Op::DELETE, 1));
+  op_queue->Push(Op::DELETE);
+  op_queue->Push(Op::INSERT);
+  op_queue->Push(Op::INSERT);
+  op_queue->Push(Op::DELETE);
   op_queue.reset(new q::CoalescingOpQueue(std::move(op_queue)));
   ASSERT_FALSE(op_queue->IsEmpty());
   Op op;
@@ -85,10 +85,10 @@ TEST_F(CoalescingOpQueueTest, IDDI) {
    * D2 I2
    */
   std::unique_ptr<q::OpQueue> op_queue(new q::OpQueue);
-  op_queue->Push(Op(Op::INSERT, 1));
-  op_queue->Push(Op(Op::DELETE, 1));
-  op_queue->Push(Op(Op::DELETE, 1));
-  op_queue->Push(Op(Op::INSERT, 1));
+  op_queue->Push(Op::INSERT);
+  op_queue->Push(Op::DELETE);
+  op_queue->Push(Op::DELETE);
+  op_queue->Push(Op::INSERT);
   op_queue.reset(new q::CoalescingOpQueue(std::move(op_queue)));
   ASSERT_FALSE(op_queue->IsEmpty());
   Op op;
