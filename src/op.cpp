@@ -10,7 +10,8 @@ Op::Op(Type type, Length length, Value value)
 Op::Op(Type type, Length length, const char *value)
     : type_(type), length_(length) {
   value_.reset(new char[length_]);
-  std::copy(value, value + length, value_.get());
+  if (value)
+    std::copy(value, value + length, value_.get());
 }
 
 Op::Op(Type type, const std::string &value) : type_(type) {
