@@ -12,8 +12,6 @@ public:
   GraphOpQueue(std::unique_ptr<OpQueue> source,
                std::unique_ptr<alg::Graph> graph);
 
-  virtual std::unique_ptr<Op> Pop() override;
-
 protected:
   std::unique_ptr<alg::Graph> graph_;
 

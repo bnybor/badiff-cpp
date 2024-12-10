@@ -23,7 +23,7 @@ void OpQueue::Push(Op op) { prepared_.push_back(std::move(op)); }
 
 bool OpQueue::Pull() { return false; }
 
-void OpQueue::Prepare(Op op) { Push(std::move(op)); }
+void OpQueue::Prepare(Op op) { prepared_.push_back(std::move(op)); }
 
 std::size_t OpQueue::PreparedSize() const { return prepared_.size(); }
 
