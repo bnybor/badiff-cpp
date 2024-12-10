@@ -44,11 +44,18 @@ bool GraphOpQueue::Pull() {
                   insert_op.GetValue().get(), insert_op.GetLength());
 
   auto diff = graph_->MakeOpQueue();
-  while (!diff->IsEmpty()) {
-    Op op = *diff->Pop();
-    Prepare(std::move(op));
+
+  if (diff->PreparedSize() == 2) {
+    Prepare(std::move(delete_op));
+    filtering_.insert(filtering_.begin(), std::move(insert_op));
+  } else {
+    while (!diff->IsEmpty()) {
+      Op op = *diff->Pop();
+      Prepare(std::move(op));
+    }
   }
-  return Flush();
+
+  return true;
 }
 
 } // namespace q

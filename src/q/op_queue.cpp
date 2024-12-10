@@ -25,6 +25,8 @@ bool OpQueue::Pull() { return false; }
 
 void OpQueue::Prepare(Op op) { Push(std::move(op)); }
 
+std::size_t OpQueue::PreparedSize() const { return prepared_.size(); }
+
 std::string OpQueue::SummarizeConsuming(OpQueue &op_queue) {
   std::ostringstream ss;
   while (!op_queue.IsEmpty()) {
