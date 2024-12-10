@@ -40,8 +40,14 @@ bool CoalescingOpQueue::Pull() {
     Op &op0 = filtering_[0];
     Op &op1 = filtering_[1];
 
-    if (op0.GetType() != op1.GetType())
+    if (op0.GetType() != op1.GetType()) {
+      if (op0.GetType() == Op::INSERT && op1.GetType() == Op::DELETE) {
+        Op tmp = std::move(op0);
+        op0 = std::move(op1);
+        op1 = std::move(tmp);
+      }
       return Flush(1);
+    }
 
     op0.MutableLength() += op1.GetLength();
     if (op0.GetValue() && op1.GetValue()) {
