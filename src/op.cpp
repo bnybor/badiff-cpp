@@ -7,6 +7,12 @@ Op::Op() : type_(STOP), length_(0), value_(nullptr) {}
 Op::Op(Type type, Length length, Value value)
     : type_(type), length_(length), value_(std::move(value)) {}
 
+Op::Op(Type type, Length length, const char *value)
+    : type_(type), length_(length) {
+  value_.reset(new char[length_]);
+  std::copy(value, value + length, value_.get());
+}
+
 Op::Op(Type type, const std::string &value) : type_(type) {
   length_ = value.size();
   value_.reset(new char[length_]);
@@ -76,6 +82,20 @@ void Op::Apply(std::istream &original, std::ostream &target) const {
     original.read(buf, length_);
     target.write(buf, length_);
     break;
+  }
+}
+
+bool Op::operator==(const Op &rhs) const {
+  if (type_ != rhs.type_)
+    return false;
+  if (length_ != rhs.length_)
+    return false;
+  if (value_) {
+    if (!rhs.value_)
+      return false;
+    return std::equal(value_.get(), value_.get() + length_, rhs.value_.get());
+  } else {
+    return rhs.value_ == nullptr;
   }
 }
 

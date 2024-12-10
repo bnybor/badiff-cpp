@@ -30,6 +30,7 @@ public:
   Op();
   Op(Type, Length = 1, Value = nullptr);
   Op(Type, const std::string &);
+  Op(Type, Length, const char *);
 
   Op(const badiff::Op &other);
   Op(Op &&) = default;
@@ -47,6 +48,8 @@ public:
   Type &MutableType();
   Length &MutableLength();
   Value &MutableValue();
+
+  bool operator==(const Op &) const;
 
 private:
   Type type_;
