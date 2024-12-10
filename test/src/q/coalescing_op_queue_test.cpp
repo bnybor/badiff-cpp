@@ -53,6 +53,12 @@ TEST_F(CoalescingOpQueueTest, DID) {
 }
 
 TEST_F(CoalescingOpQueueTest, DIID) {
+  /*
+   * Order of coalescing
+   * D1 I1 I1 D1
+   * I2 D1 D1
+   * D2 I2
+   */
   std::unique_ptr<q::OpQueue> op_queue(new q::OpQueue);
   op_queue->Push(Op(Op::DELETE, 1));
   op_queue->Push(Op(Op::INSERT, 1));
