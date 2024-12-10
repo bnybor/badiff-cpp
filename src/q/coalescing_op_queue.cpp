@@ -11,12 +11,11 @@ CoalescingOpQueue::CoalescingOpQueue(std::unique_ptr<OpQueue> source)
 bool CoalescingOpQueue::Pull() {
   while (Require(2)) {
 
-    Op &op0 = filtering_[0];
-    Op &op1 = filtering_[1];
-
     if (Require(3)) {
       // Might be able to reorder a triple that has only INSERT and DELETE for
       // coalescing.
+      Op &op0 = filtering_[0];
+      Op &op1 = filtering_[1];
       Op &op2 = filtering_[2];
       bool reorder = true;
       if (op0.GetType() == Op::NEXT || op1.GetType() == Op::NEXT ||
@@ -37,6 +36,9 @@ bool CoalescingOpQueue::Pull() {
         }
       }
     }
+
+    Op &op0 = filtering_[0];
+    Op &op1 = filtering_[1];
 
     if (op0.GetType() != op1.GetType())
       return Flush(1);

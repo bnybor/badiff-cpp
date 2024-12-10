@@ -8,10 +8,9 @@ FilterOpQueue::FilterOpQueue(std::unique_ptr<OpQueue> source)
 
 bool FilterOpQueue::Require(std::size_t count) {
   while (filtering_.size() < count) {
-    auto maybe_op = source_->Pop();
-    if (!maybe_op)
+    if (source_->IsEmpty())
       return false;
-    filtering_.push_back(std::move(*maybe_op));
+    filtering_.push_back(*source_->Pop());
   }
   return true;
 }
@@ -21,15 +20,14 @@ void FilterOpQueue::Drop(std::size_t count) {
 }
 
 bool FilterOpQueue::Flush(std::size_t n) {
-  bool flushed = false;
-  for (auto &e : filtering_) {
+  while (!filtering_.empty()) {
+    auto &e = filtering_.front();
     if (n-- == 0)
       return true;
-    flushed = true;
     Prepare(std::move(e));
+    filtering_.erase(filtering_.begin());
   }
-  filtering_.clear();
-  return flushed;
+  return true;
 }
 
 } // namespace q
