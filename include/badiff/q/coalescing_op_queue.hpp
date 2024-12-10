@@ -10,8 +10,6 @@ class CoalescingOpQueue : public FilterOpQueue {
 public:
   CoalescingOpQueue(std::unique_ptr<OpQueue> source);
 
-  virtual std::unique_ptr<Op> Pop() override;
-
 protected:
   virtual bool Pull() override;
 };

@@ -24,7 +24,7 @@ bool FilterOpQueue::Flush(std::size_t n) {
   bool flushed = false;
   for (auto &e : filtering_) {
     if (n-- == 0)
-      return flushed;
+      return true;
     flushed = true;
     Prepare(std::move(e));
   }
