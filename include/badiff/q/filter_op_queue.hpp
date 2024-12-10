@@ -17,7 +17,7 @@ protected:
 
   bool Require(std::size_t count);
   void Drop(std::size_t count);
-  bool Flush();
+  bool Flush(std::size_t count = -1);
 };
 
 } // namespace q

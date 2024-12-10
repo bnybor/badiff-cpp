@@ -32,15 +32,15 @@ public:
   OpQueue &operator=(const OpQueue &) = delete;
   OpQueue &operator=(OpQueue &&) = default;
 
-  std::unique_ptr<Op> Pop();
-  void Push(Op op);
-  bool IsEmpty();
+  virtual std::unique_ptr<Op> Pop();
+  virtual void Push(Op op);
+  virtual bool IsEmpty();
 
   void Apply(std::istream &original, std::ostream &target);
 
 protected:
   virtual bool Pull();
-  void Prepare(Op op);
+  virtual void Prepare(Op op);
 
 public:
   static std::string SummarizeConsuming(OpQueue &op_queue);

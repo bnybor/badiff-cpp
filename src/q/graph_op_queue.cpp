@@ -9,15 +9,21 @@ GraphOpQueue::GraphOpQueue(std::unique_ptr<OpQueue> source,
                            std::unique_ptr<alg::Graph> graph)
     : FilterOpQueue(std::move(source)), graph_(std::move(graph)) {}
 
+std::unique_ptr<Op> GraphOpQueue::Pop() {
+  if (filtering_.size() < 2)
+    Pull();
+  return FilterOpQueue::Pop();
+}
+
 bool GraphOpQueue::Pull() {
   if (!Require(2))
-    return Flush();
+    return Flush(1);
 
   Op &op0 = filtering_[0];
   Op &op1 = filtering_[1];
 
   if (!op0.GetValue() || !op1.GetValue())
-    return Flush();
+    return Flush(1);
 
   Op delete_op;
   Op insert_op;
@@ -29,7 +35,7 @@ bool GraphOpQueue::Pull() {
     delete_op = std::move(op1);
     insert_op = std::move(op0);
   } else
-    return Flush();
+    return Flush(1);
 
   filtering_.erase(filtering_.begin());
   filtering_.erase(filtering_.begin());

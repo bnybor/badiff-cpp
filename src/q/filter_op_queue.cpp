@@ -20,9 +20,11 @@ void FilterOpQueue::Drop(std::size_t count) {
   filtering_.erase(filtering_.begin(), filtering_.begin() + count);
 }
 
-bool FilterOpQueue::Flush() {
+bool FilterOpQueue::Flush(std::size_t n) {
   bool flushed = false;
   for (auto &e : filtering_) {
+    if (n-- == 0)
+      return flushed;
     flushed = true;
     Prepare(std::move(e));
   }
