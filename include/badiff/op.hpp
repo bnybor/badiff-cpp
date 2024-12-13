@@ -31,7 +31,7 @@ public:
   Op(Type, Length = 1, Value = nullptr);
   Op(Type, const std::string &);
 
-  Op(const badiff::Op &other);
+  Op(const &other);
   Op(Op &&) = default;
   Op &operator=(const Op &) = delete;
   Op &operator=(Op &&) = default;
