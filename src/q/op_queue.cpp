@@ -49,6 +49,23 @@ std::string OpQueue::SummarizeConsuming(OpQueue &op_queue) {
   return ss.str();
 }
 
+void OpQueue::Serialize(std::ostream &out) {
+  while (!IsEmpty()) {
+    Op op = *Pop();
+    op.Serialize(out);
+  }
+  Op(Op::STOP).Serialize(out);
+}
+void OpQueue::Deserialize(std::istream &in) {
+  while (true) {
+    Op op;
+    op.Deserialize(in);
+    if (op.GetType() == Op::STOP)
+      break;
+    Push(op);
+  }
+}
+
 void OpQueue::Apply(std::istream &original, std::ostream &target) {
   while (!IsEmpty()) {
     Op op = *Pop();
