@@ -1,3 +1,4 @@
+#include <fstream>
 #include <string>
 
 #include <stdio.h>
@@ -6,6 +7,8 @@
 #include <sys/file.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
+
+#include <badiff/badiff.hpp>
 
 static void help() {}
 
