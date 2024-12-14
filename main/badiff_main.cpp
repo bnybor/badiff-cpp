@@ -32,14 +32,14 @@ int main(int argc, const char **argv) {
     int original_fd = open(original.c_str(), O_RDONLY);
     struct stat original_stat;
     fstat(original_fd, &original_stat);
-    const char *original_mmap = mmap(NULL, original_stat.st_size, PROT_READ,
-                                     MAP_SHARED, original_fd, 0);
+    const char *original_mmap = (const char *)mmap(
+        NULL, original_stat.st_size, PROT_READ, MAP_SHARED, original_fd, 0);
 
     int target_fd = open(target.c_str(), O_RDONLY);
     struct stat target_stat;
     fstat(target_fd, &target_stat);
-    const char *target_mmap =
-        mmap(NULL, target_stat.st_size, PROT_READ, MAP_SHARED, target_fd, 0);
+    const char *target_mmap = (const char *)mmap(
+        NULL, target_stat.st_size, PROT_READ, MAP_SHARED, target_fd, 0);
 
   } else if (command == "patch") {
     if (argc != 5) {
