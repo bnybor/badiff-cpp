@@ -11,8 +11,8 @@
 #include <badiff/q/replace_op_queue.hpp>
 
 namespace badiff {
-std::unique_ptr<Diff> Diff::MakeDiff(const char *original, int original_size,
-                                     const char *target, int target_size) {
+std::unique_ptr<Diff> MakeDiff(const char *original, int original_size,
+                               const char *target, int target_size) {
   std::unique_ptr<q::OpQueue> op_queue(
       new q::ReplaceOpQueue(original, original_size, target, target_size));
 
@@ -38,9 +38,9 @@ std::unique_ptr<Diff> Diff::MakeDiff(const char *original, int original_size,
 
   std::unique_ptr<Diff> diff(new Diff);
   diff->len = str.size();
-  diff->op_queue.reset(new char[str.size()]);
+  diff->diff.reset(new char[str.size()]);
 
-  std::copy(str.c_str(), str.c_str() + str.size(), diff->op_queue.get());
+  std::copy(str.c_str(), str.c_str() + str.size(), diff->diff.get());
 
   return diff;
 }
