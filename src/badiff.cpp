@@ -25,11 +25,12 @@ std::unique_ptr<q::OpQueue> Wrap(std::unique_ptr<q::OpQueue> op_queue) {
       new q::GraphOpQueue(std::move(op_queue),
                           std::unique_ptr<alg::Graph>(new alg::InertialGraph)));
 
-  op_queue.reset(new q::ChunkingOpQueue(std::move(op_queue), 8192));
-
-  op_queue.reset(
-      new q::GraphOpQueue(std::move(op_queue),
-                          std::unique_ptr<alg::Graph>(new alg::InertialGraph)));
+  //  op_queue.reset(new q::ChunkingOpQueue(std::move(op_queue), 8192));
+  //
+  //  op_queue.reset(
+  //      new q::GraphOpQueue(std::move(op_queue),
+  //                          std::unique_ptr<alg::Graph>(new
+  //                          alg::InertialGraph)));
 
   op_queue.reset(new q::CoalescingOpQueue(std::move(op_queue)));
   op_queue.reset(new q::MinimizeOpQueue(std::move(op_queue)));

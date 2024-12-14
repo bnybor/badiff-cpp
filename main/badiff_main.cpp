@@ -28,21 +28,14 @@ int main(int argc, const char **argv) {
       help();
       return -1;
     }
-    std::string original(argv[2]);
-    std::string target(argv[3]);
-    std::string diff(argv[4]);
 
-    int original_fd = open(original.c_str(), O_RDONLY);
-    struct stat original_stat;
-    fstat(original_fd, &original_stat);
-    const char *original_mmap = (const char *)mmap(
-        NULL, original_stat.st_size, PROT_READ, MAP_SHARED, original_fd, 0);
+    std::ifstream original(argv[2]);
+    std::ifstream target(argv[3]);
+    std::ofstream delta(argv[4]);
 
-    int target_fd = open(target.c_str(), O_RDONLY);
-    struct stat target_stat;
-    fstat(target_fd, &target_stat);
-    const char *target_mmap = (const char *)mmap(
-        NULL, target_stat.st_size, PROT_READ, MAP_SHARED, target_fd, 0);
+    auto diff = badiff::Diff::Make(original, target);
+
+    delta.write(diff->diff.get(), diff->len);
 
   } else if (command == "patch") {
     if (argc != 5) {
