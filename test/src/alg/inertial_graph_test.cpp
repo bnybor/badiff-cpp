@@ -42,7 +42,25 @@ TEST_F(InertialGraphTest, TestHelloWorld) {
 
   auto op_queue = graph.MakeOpQueue();
 
-  ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), std::string("+5-5"));
+  ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), std::string("-5+5"));
+}
+
+TEST_F(InertialGraphTest, TestHelloCruelWorld) {
+  alg::InertialGraph graph;
+  std::string hello = "hello world";
+  std::string world = "hellish cruel world";
+
+  std::unique_ptr<char[]> original(new char[hello.size()]);
+  std::copy(hello.begin(), hello.end(), original.get());
+
+  std::unique_ptr<char[]> target(new char[world.size()]);
+  std::copy(world.begin(), world.end(), target.get());
+
+  graph.Compute(original.get(), hello.size(), target.get(), world.size());
+
+  auto op_queue = graph.MakeOpQueue();
+
+  ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), std::string("-7+15>4"));
 }
 
 TEST_F(InertialGraphTest, TestHelloAB) {
@@ -60,7 +78,7 @@ TEST_F(InertialGraphTest, TestHelloAB) {
 
   auto op_queue = graph.MakeOpQueue();
 
-  ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), std::string("+2-2"));
+  ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), std::string("-2+2"));
 }
 TEST_F(InertialGraphTest, TestHelloA8B8) {
   alg::InertialGraph graph;
@@ -77,5 +95,5 @@ TEST_F(InertialGraphTest, TestHelloA8B8) {
 
   auto op_queue = graph.MakeOpQueue();
 
-  ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), std::string("+10-10>6"));
+  ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), std::string("-10+10>6"));
 }

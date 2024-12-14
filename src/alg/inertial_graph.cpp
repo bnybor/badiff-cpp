@@ -182,8 +182,8 @@ void InertialGraph::Compute(const char *original, std::size_t original_length,
       }
       x -= 1;
       y -= 1;
-    } else if (x > 0 && node.delete_cost_ <= node.insert_cost_ &&
-               node.delete_cost_ <= node.next_cost_) {
+    } else if (x > 0 && node.delete_cost_ < node.insert_cost_ &&
+               node.delete_cost_ < node.next_cost_) {
       if (op_queue_.back().GetType() != Op::DELETE) {
         std::unique_ptr<char[]> data(new char[1]);
         data[0] = node.target_;

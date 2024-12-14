@@ -13,7 +13,7 @@ ReplaceOpQueue::ReplaceOpQueue(const char *original, std::size_t original_size,
   if (target_size) {
     std::unique_ptr<char[]> t(new char[target_size]);
     std::copy(target, target + target_size, t.get());
-    Prepare(Op(Op::INSERT, original_size, std::move(t)));
+    Prepare(Op(Op::INSERT, target_size, std::move(t)));
   }
 }
 

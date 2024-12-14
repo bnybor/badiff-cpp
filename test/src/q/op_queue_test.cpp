@@ -20,8 +20,6 @@ TEST_F(OpQueueTest, SerDe) {
   op_queue->Push(Op(Op::INSERT, "b"));
   op_queue->Push(Op(Op::DELETE, "b"));
 
-  op_queue.reset(new q::GraphOpQueue(std::move(op_queue), std::move(graph)));
-
   std::ostringstream os;
   op_queue->Serialize(os);
   std::istringstream is(os.str());
@@ -29,6 +27,7 @@ TEST_F(OpQueueTest, SerDe) {
   op_queue->Deserialize(is);
 
   ASSERT_EQ(*op_queue->Pop(), Op(Op::DELETE, "a"));
-  ASSERT_EQ(*op_queue->Pop(), Op::NEXT);
+  ASSERT_EQ(*op_queue->Pop(), Op(Op::INSERT, "b"));
+  ASSERT_EQ(*op_queue->Pop(), Op(Op::DELETE, "b"));
   ASSERT_TRUE(op_queue->IsEmpty());
 }
