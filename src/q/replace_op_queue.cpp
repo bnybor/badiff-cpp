@@ -3,8 +3,8 @@
 namespace badiff {
 namespace q {
 
-ReplaceOpQueue::ReplaceOpQueue(char *original, std::size_t original_size,
-                               char *target, std::size_t target_size) {
+ReplaceOpQueue::ReplaceOpQueue(const char *original, std::size_t original_size,
+                               const char *target, std::size_t target_size) {
   if (original_size) {
     std::unique_ptr<char[]> o(new char[original_size]);
     std::copy(original, original + original_size, o.get());
@@ -16,6 +16,8 @@ ReplaceOpQueue::ReplaceOpQueue(char *original, std::size_t original_size,
     Prepare(Op(Op::INSERT, original_size, std::move(t)));
   }
 }
+
+ReplaceOpQueue::~ReplaceOpQueue() {}
 
 } // namespace q
 } // namespace badiff

@@ -3,6 +3,8 @@
 namespace badiff {
 namespace q {
 
+OpQueue::~OpQueue() {}
+
 std::unique_ptr<Op> OpQueue::Pop() {
   if (prepared_.empty())
     Pull();

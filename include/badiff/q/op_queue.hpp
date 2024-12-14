@@ -24,7 +24,7 @@ protected:
   std::vector<Op> prepared_;
 
 public:
-  virtual ~OpQueue() = default;
+  virtual ~OpQueue();
 
   OpQueue() = default;
   explicit OpQueue(const OpQueue &);

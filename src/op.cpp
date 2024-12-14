@@ -4,7 +4,7 @@ namespace badiff {
 
 Op::Op() : type_(STOP), length_(0), value_(nullptr) {}
 
-Op::Op(Type type, Length length, Value value)
+Op::Op(Type type, Length length, std::unique_ptr<char[]> value)
     : type_(type), length_(length), value_(std::move(value)) {}
 
 Op::Op(Type type, const std::string &value) : type_(type) {
@@ -95,10 +95,10 @@ bool Op::operator==(const Op &rhs) const {
 
 const Op::Type &Op::GetType() const { return type_; }
 const Op::Length &Op::GetLength() const { return length_; }
-const Op::Value &Op::GetValue() const { return value_; }
+const std::unique_ptr<char[]> &Op::GetValue() const { return value_; }
 
 Op::Type &Op::MutableType() { return type_; }
 Op::Length &Op::MutableLength() { return length_; }
-Op::Value &Op::MutableValue() { return value_; }
+std::unique_ptr<char[]> &Op::MutableValue() { return value_; }
 
 } // namespace badiff

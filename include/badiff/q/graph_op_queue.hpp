@@ -11,6 +11,7 @@ class GraphOpQueue : public FilterOpQueue {
 public:
   GraphOpQueue(std::unique_ptr<OpQueue> source,
                std::unique_ptr<alg::Graph> graph);
+  virtual ~GraphOpQueue();
 
 protected:
   std::unique_ptr<alg::Graph> graph_;

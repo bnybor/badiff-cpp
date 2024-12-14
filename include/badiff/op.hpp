@@ -24,11 +24,10 @@ public:
     // Copy bytes from the original to the target.
     NEXT = 3,
   };
-  using Value = std::unique_ptr<char[]>;
-  using Length = std::size_t;
+  using Length = int;
 
   Op();
-  Op(Type, Length = 1, Value = nullptr);
+  Op(Type, Length = 1, std::unique_ptr<char[]> = nullptr);
   Op(Type, const std::string &);
 
   Op(const Op &other);
@@ -42,18 +41,18 @@ public:
 
   const Type &GetType() const;
   const Length &GetLength() const;
-  const Value &GetValue() const;
+  const std::unique_ptr<char[]> &GetValue() const;
 
   Type &MutableType();
   Length &MutableLength();
-  Value &MutableValue();
+  std::unique_ptr<char[]> &MutableValue();
 
   bool operator==(const Op &) const;
 
 private:
   Type type_;
   Length length_;
-  Value value_;
+  std::unique_ptr<char[]> value_;
 };
 
 } // namespace badiff

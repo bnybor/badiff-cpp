@@ -9,6 +9,8 @@ GraphOpQueue::GraphOpQueue(std::unique_ptr<OpQueue> source,
                            std::unique_ptr<alg::Graph> graph)
     : FilterOpQueue(std::move(source)), graph_(std::move(graph)) {}
 
+GraphOpQueue::~GraphOpQueue() {}
+
 bool GraphOpQueue::Pull() {
   if (!Require(2))
     return Flush(1);

@@ -7,12 +7,13 @@ namespace badiff {
 namespace q {
 
 class VectorOpQueue : public OpQueue {
- public:
+public:
   VectorOpQueue() = default;
   VectorOpQueue(std::vector<Op> vec);
+  virtual ~VectorOpQueue();
 };
 
-}  // namespace q
-}  // namespace badiff
+} // namespace q
+} // namespace badiff
 
 #endif /* Q_VECTOR_OP_QUEUE_HPP_ */

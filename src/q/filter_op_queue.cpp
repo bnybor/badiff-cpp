@@ -6,6 +6,8 @@ namespace q {
 FilterOpQueue::FilterOpQueue(std::unique_ptr<OpQueue> source)
     : source_(std::move(source)) {}
 
+FilterOpQueue::~FilterOpQueue() {}
+
 void FilterOpQueue::Push(Op op) { source_->Push(std::move(op)); }
 
 bool FilterOpQueue::Require(std::size_t count) {

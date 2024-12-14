@@ -9,6 +9,7 @@ namespace q {
 class CoalescingOpQueue : public FilterOpQueue {
 public:
   CoalescingOpQueue(std::unique_ptr<OpQueue> source);
+  virtual ~CoalescingOpQueue();
 
 protected:
   virtual bool Pull() override;

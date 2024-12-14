@@ -8,8 +8,9 @@ namespace q {
 
 class ReplaceOpQueue : public OpQueue {
 public:
-  ReplaceOpQueue(char *original, std::size_t original_size, char *target,
-                 std::size_t target_size);
+  ReplaceOpQueue(const char *original, std::size_t original_size,
+                 const char *target, std::size_t target_size);
+  virtual ~ReplaceOpQueue();
 };
 
 } // namespace q

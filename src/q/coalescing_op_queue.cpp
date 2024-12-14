@@ -8,6 +8,8 @@ namespace q {
 CoalescingOpQueue::CoalescingOpQueue(std::unique_ptr<OpQueue> source)
     : FilterOpQueue(std::move(source)) {}
 
+CoalescingOpQueue::~CoalescingOpQueue() {}
+
 bool CoalescingOpQueue::Pull() {
   while (Require(2)) {
 

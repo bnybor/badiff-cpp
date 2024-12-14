@@ -11,6 +11,8 @@ class FilterOpQueue : public OpQueue {
 public:
   FilterOpQueue(std::unique_ptr<OpQueue> source);
 
+  virtual ~FilterOpQueue();
+
   virtual void Push(Op op) override;
 
 protected:
