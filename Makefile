@@ -1,5 +1,11 @@
 .SECONDEXPANSION:
 
+all:
+
+SUFFIXES:
+
+
+
 CPP=g++
 CPPFLAGS=-g -std=gnu++11 -Iinclude -fPIC
 
@@ -14,12 +20,15 @@ TEST_OBJECTS+=build/test/contrib/gtest/gtest_main.o
 
 TEST_CPPFLAGS=-Itest/include -Itest/contrib/include
 
-all: build/libbadiff.so build/badiff.test
+all: build/libbadiff.so build/badiff.test build/badiff
 
 clean:
 	rm -rf build
 
 build/%.o: src/%.cpp | $$(@D)/.f
+	$(CPP) $(CPPFLAGS) -c -o $@ $^
+
+build/main/%.o: main/%.cpp | $$(@D)/.f
 	$(CPP) $(CPPFLAGS) -c -o $@ $^
 
 build/libbadiff.so: $(OBJECTS)
@@ -35,6 +44,9 @@ build/test/contrib/gmock/%.o: test/contrib/src/gmock/%.cc | $$(@D)/.f
 	$(CPP) $(CPPFLAGS) $(TEST_CPPFLAGS) -c -o $@ $^
 
 build/badiff.test: $(OBJECTS) $(TEST_OBJECTS)
+	$(CPP) $(CPPFLAGS) -o $@ $^ -lstdc++
+
+build/badiff: $(OBJECTS) build/main/badiff_main.o
 	$(CPP) $(CPPFLAGS) -o $@ $^ -lstdc++
 
 .PRECIOUS: %/.f

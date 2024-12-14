@@ -26,8 +26,6 @@ std::unique_ptr<Diff> Diff::Make(const char *original, int original_size,
       new q::GraphOpQueue(std::move(op_queue),
                           std::unique_ptr<alg::Graph>(new alg::InertialGraph)));
 
-  op_queue.reset(new q::CoalescingOpQueue(std::move(op_queue)));
-
   op_queue.reset(new q::ChunkingOpQueue(std::move(op_queue), 8192));
 
   op_queue.reset(
