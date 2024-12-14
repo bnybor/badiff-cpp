@@ -13,8 +13,8 @@ public:
 };
 
 TEST_F(BadiffTest, DiffHelloWorld) {
-  std::string hello("hello world");
-  std::string world("hellish cruel world");
+  std::string hello("hello worlddddddddddddddddddddddddddd");
+  std::string world("hellish cruel worlddddddddddddddddddddddddddd");
 
   auto diff =
       Diff::Make(hello.c_str(), hello.size(), world.c_str(), world.size());
