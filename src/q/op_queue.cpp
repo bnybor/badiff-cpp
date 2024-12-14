@@ -69,6 +69,8 @@ void OpQueue::Deserialize(std::istream &in) {
 void OpQueue::Apply(std::istream &original, std::ostream &target) {
   while (!IsEmpty()) {
     Op op = *Pop();
+    if (op.GetType() == Op::STOP)
+      break;
     op.Apply(original, target);
   }
 }
