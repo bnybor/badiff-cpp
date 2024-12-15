@@ -7,7 +7,11 @@ SUFFIXES:
 
 
 CPP=g++
-CPPFLAGS=-g -std=gnu++11 -Iinclude -fPIC
+ifdef FAST
+CPPFLAGS=-std=gnu++11 -Iinclude -fPIC -O3
+else
+CPPFLAGS=-g -std=gnu++11 -Iinclude -fPIC -O0
+endif
 SOURCES=$(shell find src -type f -name '*.cpp')
 OBJECTS=$(patsubst src/%.cpp,build/%.o,$(SOURCES))
 
