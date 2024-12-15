@@ -32,7 +32,7 @@ public:
 
   Op(const Op &other);
   Op(Op &&) = default;
-  Op &operator=(const Op &) = delete;
+  Op &operator=(const Op &);
   Op &operator=(Op &&) = default;
 
   void Serialize(std::ostream &out) const;

@@ -51,7 +51,6 @@ bool CoalescingOpQueue::Pull() {
       return Flush(1);
     }
 
-    op0.MutableLength() += op1.GetLength();
     if (op0.GetValue() && op1.GetValue()) {
       auto &v0 = op0.GetValue();
       auto &l0 = op0.GetLength();
@@ -61,10 +60,10 @@ bool CoalescingOpQueue::Pull() {
       std::copy(v0.get(), v0.get() + l0, value.get());
       std::copy(v1.get(), v1.get() + l1, value.get() + l0);
       op0.MutableValue() = std::move(value);
-      op0.MutableLength() += op1.GetLength();
     } else {
       op0.MutableValue() = nullptr;
     }
+    op0.MutableLength() += op1.GetLength();
 
     filtering_.erase(filtering_.begin() + 1);
   }

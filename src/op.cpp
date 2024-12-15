@@ -21,6 +21,8 @@ Op::Op(const Op &other) : type_(other.GetType()), length_(other.GetLength()) {
   }
 }
 
+Op &Op::operator=(const Op &op) { return *this = Op(op); }
+
 void Op::Serialize(std::ostream &out) const {
   std::size_t n = length_;
   n <<= 2;

@@ -130,7 +130,5 @@ TEST_F(GraphOpQueueTest, TestHelloABB) {
 
   op_queue.reset(new q::GraphOpQueue(std::move(op_queue), std::move(graph)));
 
-  ASSERT_EQ(*op_queue->Pop(), Op(Op::DELETE, "a"));
-  ASSERT_EQ(*op_queue->Pop(), Op::NEXT);
-  ASSERT_TRUE(op_queue->IsEmpty());
+  ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), "-1>1");
 }

@@ -20,6 +20,10 @@ public:
                const char *target, std::size_t target_length) override;
 
   virtual std::unique_ptr<q::OpQueue> MakeOpQueue() const override;
+
+  std::vector<int> cost_;
+  std::vector<char> xval;
+  std::vector<char> yval;
 };
 
 } // namespace alg
