@@ -13,7 +13,7 @@
 
 static void help() {
   printf(
-      "badiff delta <original> <target> <delta>         Create a delta file\n");
+      "badiff diff <original> <target> <delta>         Create a delta file\n");
   printf(
       "badiff patch <original> <delta> <target>        Apply a delta file\n");
 }
