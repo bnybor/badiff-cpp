@@ -11,7 +11,12 @@
 #include <badiff/badiff.hpp>
 #include <badiff/q/op_queue.hpp>
 
-static void help() {}
+static void help() {
+  printf(
+      "badiff delta <original> <target> <delta>         Create a delta file\n");
+  printf(
+      "badiff patch <original> <delta> <target>        Apply a delta file\n");
+}
 
 int main(int argc, const char **argv) {
   if (argc < 2) {
