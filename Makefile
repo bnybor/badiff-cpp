@@ -7,7 +7,7 @@ SUFFIXES:
 
 
 CPP=g++
-CPPFLAGS=-g -std=gnu++11 -Iinclude -fPIC
+CPPFLAGS=-std=gnu++11 -Iinclude -fPIC -Ofast -march=native -flto -funroll-loops
 
 SOURCES=$(shell find src -type f -name '*.cpp')
 OBJECTS=$(patsubst src/%.cpp,build/%.o,$(SOURCES))
@@ -44,10 +44,10 @@ build/test/contrib/gmock/%.o: test/contrib/src/gmock/%.cc | $$(@D)/.f
 	$(CPP) $(CPPFLAGS) $(TEST_CPPFLAGS) -c -o $@ $^
 
 build/badiff.test: $(OBJECTS) $(TEST_OBJECTS)
-	$(CPP) $(CPPFLAGS) -o $@ $^ -lstdc++
+	$(CPP) $(CPPFLAGS) -o $@ $^
 
 build/badiff: $(OBJECTS) build/main/badiff_main.o
-	$(CPP) $(CPPFLAGS) -o $@ $^ -lstdc++
+	$(CPP) $(CPPFLAGS) -o $@ $^
 
 .PRECIOUS: %/.f
 %/.f:

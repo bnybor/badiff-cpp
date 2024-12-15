@@ -4,7 +4,7 @@
 #include <type_traits>
 
 #include <badiff/alg/inertial_graph.hpp>
-#include <badiff/q/coalescing_op_queue.hpp>
+#include <badiff/q/compacting_op_queue.hpp>
 #include <badiff/q/op_queue.hpp>
 #include <badiff/q/vector_op_queue.hpp>
 #include <iostream>
@@ -401,14 +401,6 @@ public:
           Cost(Op::NEXT, prev);
     }
 
-    if (x > 0 && graph_->cost_[(pos - 1) * NUM_FIELDS + DELETE] +
-                         Cost(Op::DELETE, prev) <
-                     cost) {
-      op = Op::DELETE;
-      cost = graph_->cost_[(pos - 1) * NUM_FIELDS + DELETE] +
-             Cost(Op::DELETE, prev);
-    }
-
     if (y > 0 &&
         graph_->cost_[(pos - graph_->xval.size()) * NUM_FIELDS + INSERT] +
                 Cost(Op::INSERT, prev) <
@@ -416,6 +408,14 @@ public:
       op = Op::INSERT;
       cost = graph_->cost_[(pos - graph_->xval.size()) * NUM_FIELDS + INSERT] +
              Cost(Op::INSERT, prev);
+    }
+
+    if (x > 0 && graph_->cost_[(pos - 1) * NUM_FIELDS + DELETE] +
+                         Cost(Op::DELETE, prev) <
+                     cost) {
+      op = Op::DELETE;
+      cost = graph_->cost_[(pos - 1) * NUM_FIELDS + DELETE] +
+             Cost(Op::DELETE, prev);
     }
 
     Op e;
@@ -462,7 +462,7 @@ std::unique_ptr<q::OpQueue> InertialGraph::MakeOpQueue() const {
   }
 
   std::unique_ptr<q::OpQueue> q(new q::VectorOpQueue(ops));
-  q.reset(new q::CoalescingOpQueue(std::move(q)));
+  q.reset(new q::CompactingOpQueue(std::move(q)));
   return q;
 }
 

@@ -20,13 +20,18 @@ bool StreamReplaceOpQueue::Pull() {
     std::copy(buf, buf + n, value.get());
     Prepare(Op(Op::DELETE, n, std::move(value)));
     prepared = true;
+    printf("-");
+    fflush(stdout);
   }
   if (!target_.eof() && (n = target_.readsome(buf, chunk_size_)) > 0) {
     std::unique_ptr<char[]> value(new char[n]);
     std::copy(buf, buf + n, value.get());
     Prepare(Op(Op::INSERT, n, std::move(value)));
     prepared = true;
+    printf("+");
+    fflush(stdout);
   }
+
   return prepared;
 }
 
