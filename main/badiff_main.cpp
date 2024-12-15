@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 
 #include <badiff/badiff.hpp>
+#include <badiff/q/op_queue.hpp>
 
 static void help() {}
 
@@ -42,9 +43,14 @@ int main(int argc, const char **argv) {
       help();
       return -1;
     }
-    std::string original(argv[2]);
-    std::string diff(argv[3]);
-    std::string target(argv[4]);
+    std::ifstream original(argv[2]);
+    std::ifstream delta(argv[3]);
+    std::ofstream target(argv[4]);
+
+    badiff::q::OpQueue op_queue;
+    op_queue.Deserialize(delta);
+    op_queue.Apply(original, target);
+
   } else {
     help();
     return -1;
