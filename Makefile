@@ -7,8 +7,7 @@ SUFFIXES:
 
 
 CPP=g++
-CPPFLAGS=-std=gnu++11 -Iinclude -fPIC -Ofast -march=native -flto -funroll-loops
-
+CPPFLAGS=-g -std=gnu++11 -Iinclude -fPIC
 SOURCES=$(shell find src -type f -name '*.cpp')
 OBJECTS=$(patsubst src/%.cpp,build/%.o,$(SOURCES))
 
