@@ -15,6 +15,10 @@ protected:
   virtual bool Pull() override;
 
   int chunk_size_;
+  std::vector<Op> deletes_;
+  std::vector<Op> inserts_;
+
+  bool FlushInterleaved(unsigned int n);
 };
 
 } // namespace q
