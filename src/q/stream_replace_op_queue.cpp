@@ -1,6 +1,8 @@
 #include <badiff/q/stream_replace_op_queue.hpp>
 
 namespace badiff {
+extern bool CONSOLE_OUTPUT;
+
 namespace q {
 
 StreamReplaceOpQueue::StreamReplaceOpQueue(std::istream &original,
@@ -28,8 +30,10 @@ bool StreamReplaceOpQueue::Pull() {
     std::copy(original_buf.get(), original_buf.get() + n, value.get());
     Prepare(Op(Op::DELETE, n, std::move(value)));
     prepared = true;
-    printf("-");
-    fflush(stdout);
+    if (CONSOLE_OUTPUT) {
+      printf("-");
+      fflush(stdout);
+    }
   }
   if (!target_.eof() &&
       (n = target_.readsome(target_buf.get(), target_chunk_size_)) > 0) {
@@ -37,8 +41,10 @@ bool StreamReplaceOpQueue::Pull() {
     std::copy(target_buf.get(), target_buf.get() + n, value.get());
     Prepare(Op(Op::INSERT, n, std::move(value)));
     prepared = true;
-    printf("+");
-    fflush(stdout);
+    if (CONSOLE_OUTPUT) {
+      printf("+");
+      fflush(stdout);
+    }
   }
 
   return prepared;

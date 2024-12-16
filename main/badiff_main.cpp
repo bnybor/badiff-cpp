@@ -26,6 +26,8 @@ int main(int argc, const char **argv) {
     return -1;
   }
 
+  badiff::CONSOLE_OUTPUT = true;
+
   mallopt(M_MMAP_THRESHOLD, 128 * 1024 * 1024);
 
   std::string command(argv[1]);

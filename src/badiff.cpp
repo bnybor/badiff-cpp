@@ -17,6 +17,8 @@
 #include <sstream>
 
 namespace badiff {
+bool CONSOLE_OUTPUT = false;
+
 namespace {
 std::unique_ptr<q::OpQueue> Wrap(std::unique_ptr<q::OpQueue> op_queue) {
 

@@ -7,6 +7,8 @@
 
 namespace badiff {
 
+extern bool CONSOLE_OUTPUT;
+
 struct Diff {
   static std::unique_ptr<Diff> Make(const char *original, int original_size,
                                     const char *target, int target_size);
