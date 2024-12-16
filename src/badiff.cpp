@@ -27,7 +27,7 @@ std::unique_ptr<q::OpQueue> Wrap(std::unique_ptr<q::OpQueue> op_queue) {
   op_queue.reset(new q::CoalescingOpQueue(std::move(op_queue)));
   op_queue.reset(new q::CompactingOpQueue(std::move(op_queue)));
 
-  op_queue.reset(new q::ChunkingOpQueue(std::move(op_queue), 4096));
+  op_queue.reset(new q::ChunkingOpQueue(std::move(op_queue), 8192));
 
   op_queue.reset(
       new q::GraphOpQueue(std::move(op_queue),
@@ -62,7 +62,7 @@ std::unique_ptr<Diff> Diff::Make(const char *original, int original_size,
 std::unique_ptr<Diff> Diff::Make(std::istream &original, int original_len,
                                  std::istream &target, int target_len) {
   std::unique_ptr<q::OpQueue> op_queue(new q::StreamReplaceOpQueue(
-      original, original_len, target, target_len, 4096));
+      original, original_len, target, target_len, 8192));
 
   op_queue = Wrap(std::move(op_queue));
 
