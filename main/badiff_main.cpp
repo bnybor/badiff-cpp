@@ -1,8 +1,10 @@
 #include <fstream>
 #include <string>
 
+#include <malloc.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <sys/file.h>
 #include <sys/mman.h>
@@ -24,6 +26,8 @@ int main(int argc, const char **argv) {
     return -1;
   }
 
+  mallopt(M_MMAP_THRESHOLD, 128 * 1024 * 1024);
+
   std::string command(argv[1]);
 
   if (command == "help") {
@@ -39,7 +43,19 @@ int main(int argc, const char **argv) {
     std::ifstream target(argv[3]);
     std::ofstream delta(argv[4]);
 
-    auto diff = badiff::Diff::Make(original, target);
+    struct stat original_stat;
+    int fd;
+    fd = open(argv[2], O_RDONLY, 0);
+    fstat(fd, &original_stat);
+    close(fd);
+
+    struct stat target_stat;
+    fd = open(argv[3], O_RDONLY, 0);
+    fstat(fd, &target_stat);
+    close(fd);
+
+    auto diff = badiff::Diff::Make(original, original_stat.st_size, target,
+                                   target_stat.st_size);
 
     delta.write(diff->diff.get(), diff->len);
 

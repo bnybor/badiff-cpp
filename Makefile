@@ -8,9 +8,9 @@ SUFFIXES:
 
 CPP=g++
 ifdef FAST
-CPPFLAGS=-std=gnu++11 -Iinclude -fPIC -O3
+CPPFLAGS=-std=gnu++11 -Iinclude -fPIC -O3 -flto
 else
-CPPFLAGS=-g -std=gnu++11 -Iinclude -fPIC -O0
+CPPFLAGS=-g -std=gnu++11 -Iinclude -fPIC -O
 endif
 SOURCES=$(shell find src -type f -name '*.cpp')
 OBJECTS=$(patsubst src/%.cpp,build/%.o,$(SOURCES))

@@ -10,8 +10,8 @@ namespace badiff {
 struct Diff {
   static std::unique_ptr<Diff> Make(const char *original, int original_size,
                                     const char *target, int target_size);
-  static std::unique_ptr<Diff> Make(std::istream &original,
-                                    std::istream &target);
+  static std::unique_ptr<Diff> Make(std::istream &original, int original_len,
+                                    std::istream &target, int target_len);
 
   int len;
   std::unique_ptr<char[]> diff;

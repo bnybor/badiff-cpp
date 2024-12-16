@@ -19,8 +19,6 @@ namespace badiff {
 namespace {
 std::unique_ptr<q::OpQueue> Wrap(std::unique_ptr<q::OpQueue> op_queue) {
 
-  op_queue.reset(new q::ChunkingOpQueue(std::move(op_queue), 1024));
-
   op_queue.reset(
       new q::GraphOpQueue(std::move(op_queue),
                           std::unique_ptr<alg::Graph>(new alg::InertialGraph)));
@@ -53,9 +51,10 @@ std::unique_ptr<Diff> Diff::Make(const char *original, int original_size,
   return diff;
 }
 
-std::unique_ptr<Diff> Diff::Make(std::istream &original, std::istream &target) {
-  std::unique_ptr<q::OpQueue> op_queue(
-      new q::StreamReplaceOpQueue(original, target, 1024));
+std::unique_ptr<Diff> Diff::Make(std::istream &original, int original_len,
+                                 std::istream &target, int target_len) {
+  std::unique_ptr<q::OpQueue> op_queue(new q::StreamReplaceOpQueue(
+      original, original_len, target, target_len, 1024));
 
   op_queue = Wrap(std::move(op_queue));
 
