@@ -59,6 +59,8 @@ int main(int argc, const char **argv) {
 
     delta.write(diff->diff.get(), diff->len);
 
+    printf("\n");
+
   } else if (command == "patch") {
     if (argc != 5) {
       help();
