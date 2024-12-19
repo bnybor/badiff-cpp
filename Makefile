@@ -4,12 +4,12 @@ all:
 
 SUFFIXES:
 
-
+FAST?=true
 
 CPP=g++
 CPPFLAGS=-std=gnu++11 -Iinclude -fPIC
 
-ifdef FAST
+ifeq ($(FAST),true)
 CPPFLAGS+=-O3
 CPPFLAGS+=-flto
 CPPFLAGS+=-funroll-all-loops
