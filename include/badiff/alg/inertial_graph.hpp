@@ -22,8 +22,8 @@ public:
   virtual std::unique_ptr<q::OpQueue> MakeOpQueue() const override;
 
   std::vector<int> cost_;
-  std::vector<char> xval;
-  std::vector<char> yval;
+  std::vector<char> xval_;
+  std::vector<char> yval_;
 };
 
 } // namespace alg

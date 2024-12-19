@@ -301,11 +301,11 @@ void InertialGraph::Compute(const char *original, std::size_t original_length,
                            (target_length + 1));
 
   int capacity;
-  xval.resize(original_length + 1);
-  yval.resize(target_length + 1);
+  xval_.resize(original_length + 1);
+  yval_.resize(target_length + 1);
 
-  std::copy(original, original + original_length, xval.begin() + 1);
-  std::copy(target, target + target_length, yval.begin() + 1);
+  std::copy(original, original + original_length, xval_.begin() + 1);
+  std::copy(target, target + target_length, yval_.begin() + 1);
 
   cost_[DELETE] = 0;
   cost_[INSERT] = 0;
@@ -345,7 +345,7 @@ void InertialGraph::Compute(const char *original, std::size_t original_length,
     f = (pos - 1 - xvalLength) * NUM_FIELDS + NEXT;
     f = (f + costLength) % costLength;
     enc = cmp(x, 0, cmp(y, 0, 0, INT_MAX),
-              cmp(y, 0, INT_MAX, cmp(xval[x], yval[y], cost_[f], INT_MAX)));
+              cmp(y, 0, INT_MAX, cmp(xval_[x], yval_[y], cost_[f], INT_MAX)));
 
     int cost;
 
@@ -382,9 +382,9 @@ class InertialGraphOpQueue : public q::OpQueue {
 
 public:
   InertialGraphOpQueue(const InertialGraph *graph) : graph_(graph) {
-    pos = graph_->xval.size() * graph_->yval.size() - 1;
-    x = graph_->xval.size() - 1;
-    y = graph_->yval.size() - 1;
+    pos = graph_->xval_.size() * graph_->yval_.size() - 1;
+    x = graph_->xval_.size() - 1;
+    y = graph_->yval_.size() - 1;
     prev = Op::STOP;
   }
 
@@ -394,19 +394,19 @@ public:
 
     Op::Type op = Op::STOP;
     int cost = INT_MAX;
-    if (x > 0 && y > 0 && graph_->xval[x] == graph_->yval[y]) {
+    if (x > 0 && y > 0 && graph_->xval_[x] == graph_->yval_[y]) {
       op = Op::NEXT;
       cost =
-          graph_->cost_[(pos - 1 - graph_->xval.size()) * NUM_FIELDS + NEXT] +
+          graph_->cost_[(pos - 1 - graph_->xval_.size()) * NUM_FIELDS + NEXT] +
           Cost(Op::NEXT, prev);
     }
 
     if (y > 0 &&
-        graph_->cost_[(pos - graph_->xval.size()) * NUM_FIELDS + INSERT] +
+        graph_->cost_[(pos - graph_->xval_.size()) * NUM_FIELDS + INSERT] +
                 Cost(Op::INSERT, prev) <
             cost) {
       op = Op::INSERT;
-      cost = graph_->cost_[(pos - graph_->xval.size()) * NUM_FIELDS + INSERT] +
+      cost = graph_->cost_[(pos - graph_->xval_.size()) * NUM_FIELDS + INSERT] +
              Cost(Op::INSERT, prev);
     }
 
@@ -423,22 +423,22 @@ public:
     switch (op) {
     case Op::NEXT: {
       e = Op(Op::NEXT, 1);
-      pos = pos - 1 - graph_->xval.size();
+      pos = pos - 1 - graph_->xval_.size();
       x--;
       y--;
       break;
     }
     case Op::INSERT: {
       std::unique_ptr<char[]> value(new char[1]);
-      value[0] = graph_->yval[y];
+      value[0] = graph_->yval_[y];
       e = Op(Op::INSERT, 1, std::move(value));
-      pos = pos - graph_->xval.size();
+      pos = pos - graph_->xval_.size();
       y--;
       break;
     }
     case Op::DELETE: {
       std::unique_ptr<char[]> value(new char[1]);
-      value[0] = graph_->xval[x];
+      value[0] = graph_->xval_[x];
       e = Op(Op::DELETE, 1, std::move(value));
       pos = pos - 1;
       x--;
