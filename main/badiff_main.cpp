@@ -43,8 +43,6 @@ int main(int argc, const char **argv) {
     return EXIT_FAILURE;
   }
 
-  badiff::CONSOLE_OUTPUT = true;
-
   mallopt(M_MMAP_THRESHOLD, 128 * 1024 * 1024);
 
   const char **arg = argv;
@@ -105,8 +103,6 @@ int main(int argc, const char **argv) {
 
     std::ofstream delta_stream(delta);
     delta_stream.write(diff->diff.get(), diff->len);
-
-    printf("\n");
 
   } else if (command == "apply") {
     if (argc != 5) {
