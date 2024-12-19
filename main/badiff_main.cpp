@@ -20,7 +20,7 @@ static void help() {
          "            -O0           Very fast, very low "
          "optimization\n"
          "            -O1           Fast, low optimization\n"
-         "            -O2           Normal.\n"
+         "            -O2           Normal. (default)\n"
          "            -O3           Slow, high optimization\n"
          "            -O4           Very slow, very high "
          "optimization\n"
