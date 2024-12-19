@@ -48,6 +48,17 @@ bool CoalescingOpQueue::Pull() {
         op0 = std::move(op1);
         op1 = std::move(tmp);
       }
+      if (op0.GetType() == Op::DELETE && op1.GetType() == Op::INSERT &&
+          op0.GetLength() == op1.GetLength() && op0.GetValue() &&
+          op1.GetValue() &&
+          std::equal(op0.GetValue().get(),
+                     op0.GetValue().get() + op0.GetLength(),
+                     op1.GetValue().get())) {
+        // Replace identical DELETE,INSERT with NEXT
+        Prepare(Op(Op::NEXT, op0.GetLength()));
+        filtering_.erase(filtering_.begin(), filtering_.begin() + 2);
+        return true;
+      }
       return Flush(1);
     }
 

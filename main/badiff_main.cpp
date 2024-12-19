@@ -14,22 +14,15 @@
 #include <badiff/q/op_queue.hpp>
 
 static void help() {
-  printf("badiff diff [<optimization>] <original> <target> <delta>\n"
-         "      Create a delta from original to target.\n"
-         "      <optimization>      Level of delta-size optimization\n"
-         "            -O0           Very fast, very low "
-         "optimization\n"
-         "            -O1           Fast, low optimization\n"
-         "            -O2           Normal. (default)\n"
-         "            -O3           Slow, high optimization\n"
-         "            -O4           Very slow, very high "
-         "optimization\n"
+  printf("badiff diff [-v] <original> <target> <delta>\n"
+         "Create a delta from original to target.\n"
+         "      -v                  Verbose output\n"
          "      <original>          Original file\n"
          "      <target>            Target file\n"
          "      <delta>             Delta file\n"
          "\n"
          "badiff apply <original> <delta> <target>\n"
-         "      Apply a delta file from original to target.\n"
+         "Apply a delta file from original to target.\n"
          "      <original>          Original file\n"
          "      <target>            Target file\n"
          "      <delta>             Delta file\n");
@@ -52,31 +45,18 @@ int main(int argc, const char **argv) {
     help();
     return EXIT_SUCCESS;
   } else if (command == "diff") {
-    if (argc != 5 && argc != 6) {
+    if (argc < 5 && argc > 6) {
       help();
       return EXIT_FAILURE;
     }
 
-    int chunk_size = Diff::NORMAL_CHUNK;
-    std::string opt(*++arg);
-    if (opt.size() == 3 && std::string(opt.begin(), opt.begin() + 2) == "-O") {
-      if (opt.at(2) == '0')
-        chunk_size = Diff::VERY_FAST_CHUNK;
-      else if (opt.at(2) == '1')
-        chunk_size = Diff::FAST_CHUNK;
-      else if (opt.at(2) == '2')
-        chunk_size = Diff::NORMAL_CHUNK;
-      else if (opt.at(2) == '3')
-        chunk_size = Diff::EFFICIENT_CHUNK;
-      else if (opt.at(2) == '4')
-        chunk_size = Diff::VERY_EFFICIENT_CHUNK;
-      else {
-        help();
-        return EXIT_FAILURE;
-      }
+    if (std::string(*++arg) == "-v") {
+      badiff::CONSOLE_OUTPUT = true;
     } else {
       --arg;
     }
+
+    int chunk_size = Diff::NORMAL_CHUNK;
 
     std::string original(*++arg);
     std::string target(*++arg);
@@ -102,6 +82,9 @@ int main(int argc, const char **argv) {
 
     std::ofstream delta_stream(delta);
     delta_stream.write(diff->diff.get(), diff->len);
+
+    if (badiff::CONSOLE_OUTPUT)
+      printf("\n");
 
   } else if (command == "apply") {
     if (argc != 5) {

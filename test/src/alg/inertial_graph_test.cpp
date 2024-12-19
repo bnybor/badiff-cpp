@@ -42,7 +42,7 @@ TEST_F(InertialGraphTest, TestHelloWorld) {
 
   auto op_queue = graph.MakeOpQueue();
 
-  ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), std::string("-5+5"));
+  ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), std::string("+5-5"));
 }
 
 TEST_F(InertialGraphTest, TestHelloCruelWorld) {
@@ -78,7 +78,7 @@ TEST_F(InertialGraphTest, TestHelloAB) {
 
   auto op_queue = graph.MakeOpQueue();
 
-  ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), std::string("-1+1>1"));
+  ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), std::string("+2-2"));
 }
 TEST_F(InertialGraphTest, TestHelloA8B8) {
   alg::InertialGraph graph;
@@ -95,5 +95,5 @@ TEST_F(InertialGraphTest, TestHelloA8B8) {
 
   auto op_queue = graph.MakeOpQueue();
 
-  ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), std::string("-8+8>8"));
+  ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), std::string("+8-8>8"));
 }

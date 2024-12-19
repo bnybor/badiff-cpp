@@ -41,19 +41,18 @@ bool GraphOpQueue::Pull() {
 
   auto diff = graph_->MakeOpQueue();
 
-  if (diff->PreparedSize() == 2) {
-    Prepare(std::move(delete_op));
-    filtering_.insert(filtering_.begin(), std::move(insert_op));
-  } else {
-    Op op;
-    while (!diff->IsEmpty()) {
-      op = *diff->Pop();
-      if (diff->IsEmpty() && op.GetType() != Op::NEXT) {
-        filtering_.insert(filtering_.begin(), std::move(op));
-        break;
-      }
-      Prepare(std::move(op));
+  Op op;
+  while (!diff->IsEmpty()) {
+    op = *diff->Pop();
+    if (diff->IsEmpty() && op.GetType() != Op::NEXT) {
+      filtering_.insert(filtering_.begin(), std::move(op));
+      break;
     }
+    Prepare(std::move(op));
+  }
+
+  if (filtering_[0].GetType() == Op::NEXT) {
+    Flush(1);
   }
 
   return true;

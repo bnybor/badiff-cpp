@@ -9,20 +9,15 @@ tool.
 
 ```
 $ ./build/badiff
-badiff diff [<optimization>] <original> <target> <delta>
-      Create a delta from original to target.
-      <optimization>      Level of delta-size optimization
-            -O0           Very fast, very low optimization
-            -O1           Fast, low optimization
-            -O2           Normal. (default)
-            -O3           Slow, high optimization
-            -O4           Very slow, very high optimization
+badiff diff [-v] <original> <target> <delta>
+Create a delta from original to target.
+      -v                  Verbose output
       <original>          Original file
       <target>            Target file
       <delta>             Delta file
 
 badiff apply <original> <delta> <target>
-      Apply a delta file from original to target.
+Apply a delta file from original to target.
       <original>          Original file
       <target>            Target file
       <delta>             Delta file
