@@ -261,22 +261,12 @@ namespace badiff {
 
 namespace alg {
 
-/**
- * The incremental cost of beginning the next operation given the
- * current operation.  These costs are based on the hadoop-optimized
- * defaults from {@link AdjustableInertialGraph}.
- *
- * Each operation requires 1 char for the operation itself, plus 1 (or more)
- * chars for the run length.  Additionally, INSERT has 1 char for each char in
- * the run.
- *
- */
-
+namespace {
 static int DEFAULT_TRANSITION_COSTS[4][4] = {
-    {1, 1, 1, 1}, // From STOP to...
-    {3, 1, 3, 4}, // From DELETE to...
-    {2, 2, 1, 3}, // From INSERT to...
-    {1, 2, 3, 1}, // From NEXT to...
+    {0, 2, 3, 2}, // From STOP to...
+    {2, 0, 3, 2}, // From DELETE to...
+    {2, 2, 1, 2}, // From INSERT to...
+    {2, 2, 3, 0}, // From NEXT to...
                   //           S	D	I	N
 };
 
@@ -289,11 +279,7 @@ static char INSERT = 1;
 static char NEXT = 2;
 
 static int NUM_FIELDS = 3;
-
-/**
- * Create a new {@link InertialGraph} with the given buffer capacity
- * @param capacity
- */
+} // namespace
 
 void InertialGraph::Compute(const char *original, std::size_t original_length,
                             const char *target, std::size_t target_length) {
