@@ -74,7 +74,6 @@ int main(int argc, const char **argv) {
         help();
         return EXIT_FAILURE;
       }
-      ++argv;
     } else {
       --arg;
     }
