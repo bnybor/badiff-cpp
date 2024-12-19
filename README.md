@@ -28,15 +28,14 @@ This example:
 4.  Shows the sizes of the files involved.
 
 ```
-robyn@robinmix:~/src/badiff-cpp$ ./build/badiff diff README.md LICENSE.txt /tmp/readme_to_license.delta
-robyn@robinmix:~/src/badiff-cpp$ ./build/badiff apply README.md /tmp/readme_to_license.delta /tmp/LICENSE2.txt
-robyn@robinmix:~/src/badiff-cpp$ diff LICENSE.txt /tmp/LICENSE2.txt
-robyn@robinmix:~/src/badiff-cpp$ ls -l README.md LICENSE.txt /tmp/readme_to_license.delta /tmp/LICENSE2.txt
+$ ./build/badiff diff README.md LICENSE.txt /tmp/readme_to_license.delta
+$ ./build/badiff apply README.md /tmp/readme_to_license.delta /tmp/LICENSE2.txt
+$ diff LICENSE.txt /tmp/LICENSE2.txt
+$ ls -l README.md LICENSE.txt /tmp/readme_to_license.delta /tmp/LICENSE2.txt
 -rw-r--r-- 1 robyn robyn 1270 Dec 19 09:55 /tmp/LICENSE2.txt
 -rw-r--r-- 1 robyn robyn   16 Dec 19 09:54 /tmp/readme_to_license.delta
 -rw-r--r-- 1 robyn robyn 1270 Dec 19 09:27 LICENSE.txt
 -rw-r--r-- 1 robyn robyn 1723 Dec 19 09:46 README.md
-robyn@robinmix:~/src/badiff-cpp$
 ```
 
 The diff is 16 bytes.
