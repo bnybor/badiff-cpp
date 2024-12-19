@@ -42,7 +42,7 @@ make
 -   `build/libbadiff.so` Badiff as a shared library.
 -   `build/badiff.test` Unit tests.
 
-**Usage:**
+**Example:**
 
 This example:
 1.  Computes a delta from `README.md` to `LICENSE.txt`.
