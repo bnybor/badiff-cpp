@@ -14,8 +14,9 @@
 #include <badiff/q/op_queue.hpp>
 
 static void help() {
-  printf("badiff diff [<optimization>] <original> <target> <delta>\n"
+  printf("badiff diff [-v] [<optimization>] <original> <target> <delta>\n"
          "      Create a delta from original to target.\n"
+         "      -v                  Verbose output\n"
          "      <optimization>      Level of delta-size optimization\n"
          "            -O0           Very fast, very low "
          "optimization\n"
@@ -52,9 +53,15 @@ int main(int argc, const char **argv) {
     help();
     return EXIT_SUCCESS;
   } else if (command == "diff") {
-    if (argc != 5 && argc != 6) {
+    if (argc < 5 && argc > 7) {
       help();
       return EXIT_FAILURE;
+    }
+
+    if (std::string(*++arg) == "-v") {
+      badiff::CONSOLE_OUTPUT = true;
+    } else {
+      --arg;
     }
 
     int chunk_size = Diff::NORMAL_CHUNK;
@@ -102,6 +109,9 @@ int main(int argc, const char **argv) {
 
     std::ofstream delta_stream(delta);
     delta_stream.write(diff->diff.get(), diff->len);
+
+    if (badiff::CONSOLE_OUTPUT)
+      printf("\n");
 
   } else if (command == "apply") {
     if (argc != 5) {
