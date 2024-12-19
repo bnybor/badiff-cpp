@@ -16,8 +16,8 @@ TEST_F(BadiffTest, DiffHelloWorld) {
   std::string hello("hello worlddddddddddddddddddddddddddd");
   std::string world("hellish cruel worlddddddddddddddddddddddddddd");
 
-  auto diff =
-      Diff::Make(hello.c_str(), hello.size(), world.c_str(), world.size());
+  auto diff = Diff::Make(hello.c_str(), hello.size(), world.c_str(),
+                         world.size(), Diff::NORMAL_CHUNK);
 
   std::istringstream original(hello);
   std::ostringstream target;
