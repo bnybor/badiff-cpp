@@ -62,54 +62,60 @@ int main(int argc, const char **argv) {
     int chunk_size = Diff::NORMAL_CHUNK;
     std::string opt(*++arg);
     if (opt.size() == 3 && std::string(opt.begin(), opt.begin() + 2) == "-O") {
-      if (opt.at(3) == '0')
+      if (opt.at(2) == '0')
         chunk_size = Diff::VERY_FAST_CHUNK;
-      else if (opt.at(3) == '1')
+      else if (opt.at(2) == '1')
         chunk_size = Diff::FAST_CHUNK;
-      else if (opt.at(3) == '3')
+      else if (opt.at(2) == '2')
         chunk_size = Diff::NORMAL_CHUNK;
-      else if (opt.at(3) == '4')
+      else if (opt.at(2) == '3')
         chunk_size = Diff::EFFICIENT_CHUNK;
-      else if (opt.at(3) == '5')
+      else if (opt.at(2) == '4')
         chunk_size = Diff::VERY_EFFICIENT_CHUNK;
       else {
         help();
         return EXIT_FAILURE;
       }
+      ++argv;
     } else {
       --arg;
     }
 
-    std::ifstream original(*++arg);
-    std::ifstream target(*++arg);
-    std::ofstream delta(*++arg);
+    std::string original(*++arg);
+    std::string target(*++arg);
+    std::string delta(*++arg);
+
+    std::ifstream original_stream(original);
+    std::ifstream target_stream(target);
 
     struct stat original_stat;
     int fd;
-    fd = open(argv[2], O_RDONLY, 0);
+    fd = open(original.c_str(), O_RDONLY, 0);
     fstat(fd, &original_stat);
     close(fd);
 
     struct stat target_stat;
-    fd = open(argv[3], O_RDONLY, 0);
+    fd = open(target.c_str(), O_RDONLY, 0);
     fstat(fd, &target_stat);
     close(fd);
 
-    auto diff = badiff::Diff::Make(original, original_stat.st_size, target,
-                                   target_stat.st_size, chunk_size);
+    auto diff =
+        badiff::Diff::Make(original_stream, original_stat.st_size,
+                           target_stream, target_stat.st_size, chunk_size);
 
-    delta.write(diff->diff.get(), diff->len);
+    std::ofstream delta_stream(delta);
+    delta_stream.write(diff->diff.get(), diff->len);
 
     printf("\n");
 
   } else if (command == "apply") {
     if (argc != 5) {
       help();
-      return -1;
+      return EXIT_FAILURE;
     }
-    std::ifstream original(argv[2]);
-    std::ifstream delta(argv[3]);
-    std::ofstream target(argv[4]);
+    std::ifstream original(*++arg);
+    std::ifstream delta(*++arg);
+    std::ofstream target(*++arg);
 
     badiff::q::OpQueue op_queue;
     op_queue.Deserialize(delta);
@@ -117,8 +123,8 @@ int main(int argc, const char **argv) {
 
   } else {
     help();
-    return -1;
+    return EXIT_FAILURE;
   }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
