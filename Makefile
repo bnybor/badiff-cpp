@@ -13,6 +13,7 @@ ifdef FAST
 CPPFLAGS+=-O3
 CPPFLAGS+=-flto
 CPPFLAGS+=-funroll-all-loops
+CPPFLAGS+=-fopenmp
 CPPFLAGS+=-march=native
 else
 CPPFLAGS+=-g
