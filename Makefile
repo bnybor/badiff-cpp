@@ -8,7 +8,7 @@ SUFFIXES:
 
 CPP=g++
 ifdef FAST
-CPPFLAGS=-std=gnu++11 -Iinclude -fPIC -Ofast -flto
+CPPFLAGS=-std=gnu++11 -Iinclude -fPIC -O3 -flto
 else
 CPPFLAGS=-g -std=gnu++11 -Iinclude -fPIC
 endif
