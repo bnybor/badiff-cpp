@@ -3,6 +3,8 @@
 
 #include <badiff/q/op_queue.hpp>
 
+#include <badiff/defaults.hpp>
+
 namespace badiff {
 namespace q {
 
@@ -10,9 +12,9 @@ class StreamReplaceOpQueue : public OpQueue {
 public:
   StreamReplaceOpQueue(std::istream &original, int original_len,
                        std::istream &target, int target_len,
-                       int max_chunk_size);
+                       int max_chunk_size = DEFAULT_CHUNK);
   StreamReplaceOpQueue(std::istream &original, std::istream &target,
-                       int max_chunk_size);
+                       int max_chunk_size = DEFAULT_CHUNK);
   virtual ~StreamReplaceOpQueue();
 
 protected:

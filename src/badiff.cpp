@@ -1,6 +1,8 @@
 #include <badiff/badiff.hpp>
 #include <badiff/op.hpp>
 
+#include <badiff/defaults.hpp>
+
 #include <badiff/alg/edit_graph.hpp>
 #include <badiff/alg/graph.hpp>
 #include <badiff/alg/inertial_graph.hpp>
@@ -20,10 +22,7 @@ namespace badiff {
 bool CONSOLE_OUTPUT = false;
 
 namespace {
-static constexpr int DEFAULT_CHUNK = 2048;
-
-std::unique_ptr<q::OpQueue> Wrap(std::unique_ptr<q::OpQueue> op_queue,
-                                 int chunk_size) {
+std::unique_ptr<q::OpQueue> Wrap(std::unique_ptr<q::OpQueue> op_queue) {
 
   op_queue.reset(
       new q::GraphOpQueue(std::move(op_queue),
@@ -32,7 +31,7 @@ std::unique_ptr<q::OpQueue> Wrap(std::unique_ptr<q::OpQueue> op_queue,
   op_queue.reset(new q::CoalescingOpQueue(std::move(op_queue)));
   op_queue.reset(new q::CompactingOpQueue(std::move(op_queue)));
 
-  op_queue.reset(new q::ChunkingOpQueue(std::move(op_queue), chunk_size));
+  op_queue.reset(new q::ChunkingOpQueue(std::move(op_queue)));
 
   op_queue.reset(
       new q::GraphOpQueue(std::move(op_queue),
@@ -49,13 +48,12 @@ std::unique_ptr<q::OpQueue> Wrap(std::unique_ptr<q::OpQueue> op_queue,
 
 std::unique_ptr<Diff> Diff::Make(const char *original, int original_size,
                                  const char *target, int target_size) {
-  int chunk_size = DEFAULT_CHUNK;
   std::unique_ptr<q::OpQueue> op_queue(
       new q::ReplaceOpQueue(original, original_size, target, target_size));
 
-  op_queue.reset(new q::ChunkingOpQueue(std::move(op_queue), chunk_size));
+  op_queue.reset(new q::ChunkingOpQueue(std::move(op_queue)));
 
-  op_queue = Wrap(std::move(op_queue), chunk_size);
+  op_queue = Wrap(std::move(op_queue));
 
   std::ostringstream ss;
   op_queue->Serialize(ss);
@@ -72,11 +70,10 @@ std::unique_ptr<Diff> Diff::Make(const char *original, int original_size,
 
 std::unique_ptr<Diff> Diff::Make(std::istream &original, int original_len,
                                  std::istream &target, int target_len) {
-  int chunk_size = DEFAULT_CHUNK;
-  std::unique_ptr<q::OpQueue> op_queue(new q::StreamReplaceOpQueue(
-      original, original_len, target, target_len, chunk_size));
+  std::unique_ptr<q::OpQueue> op_queue(
+      new q::StreamReplaceOpQueue(original, original_len, target, target_len));
 
-  op_queue = Wrap(std::move(op_queue), chunk_size);
+  op_queue = Wrap(std::move(op_queue));
 
   std::ostringstream ss;
   op_queue->Serialize(ss);
@@ -92,11 +89,10 @@ std::unique_ptr<Diff> Diff::Make(std::istream &original, int original_len,
 }
 
 std::unique_ptr<Diff> Diff::Make(std::istream &original, std::istream &target) {
-  int chunk_size = DEFAULT_CHUNK;
   std::unique_ptr<q::OpQueue> op_queue(
-      new q::StreamReplaceOpQueue(original, target, chunk_size));
+      new q::StreamReplaceOpQueue(original, target));
 
-  op_queue = Wrap(std::move(op_queue), chunk_size);
+  op_queue = Wrap(std::move(op_queue));
 
   std::ostringstream ss;
   op_queue->Serialize(ss);
