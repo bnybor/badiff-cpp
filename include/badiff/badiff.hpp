@@ -7,20 +7,15 @@
 
 namespace badiff {
 
-extern bool CONSOLE_OUTPUT;
-
 struct Diff {
-  static constexpr int DEFAULT_CHUNK = 2048;
-
   static std::unique_ptr<Diff> Make(const char *original, int original_size,
-                                    const char *target, int target_size,
-                                    int chunk_size = DEFAULT_CHUNK);
+                                    const char *target, int target_size);
+
   static std::unique_ptr<Diff> Make(std::istream &original, int original_len,
-                                    std::istream &target, int target_len,
-                                    int chunk_size = DEFAULT_CHUNK);
+                                    std::istream &target, int target_len);
+
   static std::unique_ptr<Diff> Make(std::istream &original,
-                                    std::istream &target,
-                                    int chunk_size = DEFAULT_CHUNK);
+                                    std::istream &target);
 
   int len;
   std::unique_ptr<char[]> diff;

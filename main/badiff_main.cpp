@@ -13,6 +13,10 @@
 #include <badiff/badiff.hpp>
 #include <badiff/q/op_queue.hpp>
 
+namespace badiff {
+extern bool CONSOLE_OUTPUT;
+}
+
 static void help() {
   printf("badiff diff [-v] <original> <target> <delta>\n"
          "Create a delta from original to target.\n"
@@ -56,8 +60,6 @@ int main(int argc, const char **argv) {
       --arg;
     }
 
-    int chunk_size = Diff::DEFAULT_CHUNK;
-
     std::string original(*++arg);
     std::string target(*++arg);
     std::string delta(*++arg);
@@ -76,9 +78,8 @@ int main(int argc, const char **argv) {
     fstat(fd, &target_stat);
     close(fd);
 
-    auto diff =
-        badiff::Diff::Make(original_stream, original_stat.st_size,
-                           target_stream, target_stat.st_size, chunk_size);
+    auto diff = badiff::Diff::Make(original_stream, original_stat.st_size,
+                                   target_stream, target_stat.st_size);
 
     std::ofstream delta_stream(delta);
     delta_stream.write(diff->diff.get(), diff->len);
