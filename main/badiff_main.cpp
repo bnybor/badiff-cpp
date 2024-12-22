@@ -56,7 +56,7 @@ int main(int argc, const char **argv) {
       --arg;
     }
 
-    int chunk_size = Diff::NORMAL_CHUNK;
+    int chunk_size = Diff::DEFAULT_CHUNK;
 
     std::string original(*++arg);
     std::string target(*++arg);

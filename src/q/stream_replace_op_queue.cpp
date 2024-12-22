@@ -15,6 +15,14 @@ StreamReplaceOpQueue::StreamReplaceOpQueue(std::istream &original,
   target_chunk_size_ = target_len / chunks;
 }
 
+StreamReplaceOpQueue::StreamReplaceOpQueue(std::istream &original,
+                                           std::istream &target,
+                                           int max_chunk_size)
+    : original_(original), target_(target) {
+  original_chunk_size_ = max_chunk_size;
+  target_chunk_size_ = max_chunk_size;
+}
+
 StreamReplaceOpQueue::~StreamReplaceOpQueue() {}
 
 bool StreamReplaceOpQueue::Pull() {
