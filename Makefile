@@ -17,6 +17,7 @@ CPPFLAGS+=-fopenmp
 CPPFLAGS+=-march=native
 else
 CPPFLAGS+=-g
+CPPFLAGS+=-O0
 endif
 
 SOURCES=$(shell find src -type f -name '*.cpp')
