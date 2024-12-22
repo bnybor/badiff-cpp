@@ -3,12 +3,15 @@
 
 #include <badiff/q/filter_op_queue.hpp>
 
+#include <badiff/defaults.hpp>
+
 namespace badiff {
 namespace q {
 
 class ChunkingOpQueue : public FilterOpQueue {
 public:
-  ChunkingOpQueue(std::unique_ptr<OpQueue> source, int chunk_size);
+  ChunkingOpQueue(std::unique_ptr<OpQueue> source,
+                  int chunk_size = DEFAULT_CHUNK);
   virtual ~ChunkingOpQueue();
 
 protected:
