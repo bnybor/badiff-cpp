@@ -4,7 +4,7 @@ all:
 
 SUFFIXES:
 
-FAST?=true
+FAST?=false
 
 CPP=g++
 CPPFLAGS=-std=gnu++11 -Iinclude -fPIC
