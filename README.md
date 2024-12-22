@@ -23,19 +23,34 @@ Apply a delta file from original to target.
       <delta>             Delta file
 ```
 
-**Compile the code:**
+**Compile the code**
+
+```
+mkdir build
+cd build
+cmake ..
+make
+```
+
+**Install**
+
+```
+sudo make install
+```
+
+**Debug builds**
 
 ```
 make clean
 make
-./build/badiff.test
+make test
 ```
 
 **Output files:**
 
 -   `build/badiff` Badiff as a runnable tool.
 -   `build/libbadiff.so` Badiff as a shared library.
--   `build/badiff.test` Unit tests.
+-   `build/test/badiff_test` Unit tests.
 
 **Example:**
 

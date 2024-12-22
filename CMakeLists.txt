@@ -52,3 +52,7 @@ target_link_libraries( badiff_cli
 
 set_target_properties(badiff_cli PROPERTIES OUTPUT_NAME "badiff")
 
+install (TARGETS badiff_cli
+    DESTINATION bin)
+
+
