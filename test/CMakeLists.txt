@@ -13,7 +13,7 @@ add_executable(${PROJECT_NAME}
     contrib/src/gtest/gtest_main.cc
 )
 
-target_include_directories(badiff_test
+target_include_directories(${PROJECT_NAME}
     PUBLIC 
         ${PROJECT_SOURCE_DIR}/include
     PRIVATE
