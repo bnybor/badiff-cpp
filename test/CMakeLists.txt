@@ -1,0 +1,28 @@
+project(badiff_test)
+
+add_executable(${PROJECT_NAME}
+    src/badiff_test.cpp
+    src/q/coalescing_op_queue_test.cpp
+    src/q/op_queue_test.cpp
+    src/q/graph_op_queue_test.cpp
+    src/alg/edit_graph_test.cpp
+    src/alg/inertial_graph_test.cpp
+    src/op_test.cpp
+    contrib/src/gmock/gmock-all.cc
+    contrib/src/gtest/gtest-all.cc
+    contrib/src/gtest/gtest_main.cc
+)
+
+target_include_directories(badiff_test
+    PUBLIC 
+        ${PROJECT_SOURCE_DIR}/include
+    PRIVATE
+        ${PROJECT_SOURCE_DIR}/contrib/include
+)
+
+
+target_link_libraries(${PROJECT_NAME}
+    badiff_library
+)
+
+add_test(badiff_test badiff_test)

@@ -20,6 +20,8 @@ namespace badiff {
 bool CONSOLE_OUTPUT = false;
 
 namespace {
+static constexpr int DEFAULT_CHUNK = 2048;
+
 std::unique_ptr<q::OpQueue> Wrap(std::unique_ptr<q::OpQueue> op_queue,
                                  int chunk_size) {
 
@@ -46,8 +48,8 @@ std::unique_ptr<q::OpQueue> Wrap(std::unique_ptr<q::OpQueue> op_queue,
 } // namespace
 
 std::unique_ptr<Diff> Diff::Make(const char *original, int original_size,
-                                 const char *target, int target_size,
-                                 int chunk_size) {
+                                 const char *target, int target_size) {
+  int chunk_size = DEFAULT_CHUNK;
   std::unique_ptr<q::OpQueue> op_queue(
       new q::ReplaceOpQueue(original, original_size, target, target_size));
 
@@ -69,10 +71,30 @@ std::unique_ptr<Diff> Diff::Make(const char *original, int original_size,
 }
 
 std::unique_ptr<Diff> Diff::Make(std::istream &original, int original_len,
-                                 std::istream &target, int target_len,
-                                 int chunk_size) {
+                                 std::istream &target, int target_len) {
+  int chunk_size = DEFAULT_CHUNK;
   std::unique_ptr<q::OpQueue> op_queue(new q::StreamReplaceOpQueue(
       original, original_len, target, target_len, chunk_size));
+
+  op_queue = Wrap(std::move(op_queue), chunk_size);
+
+  std::ostringstream ss;
+  op_queue->Serialize(ss);
+  auto str = ss.str();
+
+  std::unique_ptr<Diff> diff(new Diff);
+  diff->len = str.size();
+  diff->diff.reset(new char[str.size()]);
+
+  std::copy(str.c_str(), str.c_str() + str.size(), diff->diff.get());
+
+  return diff;
+}
+
+std::unique_ptr<Diff> Diff::Make(std::istream &original, std::istream &target) {
+  int chunk_size = DEFAULT_CHUNK;
+  std::unique_ptr<q::OpQueue> op_queue(
+      new q::StreamReplaceOpQueue(original, target, chunk_size));
 
   op_queue = Wrap(std::move(op_queue), chunk_size);
 
