@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.5)
 
 project(badiff_library VERSION 1.0.0)
 
+enable_testing()
+
 set(CMAKE_CXX_STANDARD 11)
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11" CACHE STRING "Set C++ Compiler Flags" FORCE)
 
@@ -43,3 +45,5 @@ target_link_libraries( badiff_cli
 )
 
 set_target_properties(badiff_cli PROPERTIES OUTPUT_NAME "badiff")
+
+
