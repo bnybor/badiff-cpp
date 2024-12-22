@@ -40,8 +40,6 @@ public:
   void Deserialize(std::istream &in);
   void Apply(std::istream &original, std::ostream &target);
 
-  virtual std::size_t PreparedSize() const;
-
 protected:
   virtual bool Pull();
   virtual void Prepare(Op op);
