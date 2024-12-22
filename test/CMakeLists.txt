@@ -22,7 +22,7 @@ target_include_directories(badiff_test
 
 
 target_link_libraries(${PROJECT_NAME}
-    badiff::library
+    badiff_library
 )
 
 add_test(badiff_test badiff_test)

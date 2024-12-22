@@ -26,13 +26,19 @@ add_library(badiff_library SHARED
     src/alg/inertial_graph.cpp
     src/alg/edit_graph.cpp
 )
-add_library(badiff::library ALIAS badiff_library)
 set_target_properties(badiff_library PROPERTIES OUTPUT_NAME "badiff")
 
 target_include_directories(badiff_library
     PUBLIC 
         ${PROJECT_SOURCE_DIR}/include
 )
+
+install (TARGETS badiff_library
+    LIBRARY DESTINATION lib)
+
+# Header files
+install(FILES ${PROJECT_SOURCE_DIR}/include/badiff/badiff.hpp 
+    DESTINATION include/badiff)
 
 add_executable(badiff_cli
     main/badiff_main.cpp
@@ -41,9 +47,8 @@ add_executable(badiff_cli
 # link the new hello_library target with the hello_binary target
 target_link_libraries( badiff_cli
     PRIVATE 
-        badiff::library
+        badiff_library
 )
 
 set_target_properties(badiff_cli PROPERTIES OUTPUT_NAME "badiff")
-
 
