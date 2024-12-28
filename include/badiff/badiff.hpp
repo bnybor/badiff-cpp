@@ -14,8 +14,8 @@ struct Diff {
   /**
    * \brief Compute a diff using two arrays of bytes.
    */
-  static std::unique_ptr<Diff> Make(const char *original, int original_size,
-                                    const char *target, int target_size);
+  static std::unique_ptr<Diff> Make(const char *original, int original_len,
+                                    const char *target, int target_len);
 
   /**
    * \brief Compute a diff using two streams and their lengths.
@@ -35,11 +35,11 @@ struct Diff {
   /**
    * \brief The length of the diff.
    */
-  int len;
+  int len_;
   /**
    * \brief The diff itself.
    */
-  std::unique_ptr<char[]> diff;
+  std::unique_ptr<char[]> diff_;
 
   /**
    * \brief Apply a diff.
