@@ -14,8 +14,8 @@ struct Diff {
   /**
    * \brief Compute a diff using two arrays of bytes.
    */
-  static std::unique_ptr<Diff> Make(const char *original, int original_size,
-                                    const char *target, int target_size);
+  static std::unique_ptr<Diff> Make(const char *original, int original_len,
+                                    const char *target, int target_len);
 
   /**
    * \brief Compute a diff using two streams and their lengths.
@@ -33,18 +33,33 @@ struct Diff {
                                     std::istream &target);
 
   /**
+   * \brief The length of the original.
+   */
+  int original_len_;
+
+  /**
+   * \brief The length of the target.
+   */
+  int target_len_;
+
+  /**
    * \brief The length of the diff.
    */
-  int len;
+  int diff_len_;
+
   /**
    * \brief The diff itself.
    */
-  std::unique_ptr<char[]> diff;
+  std::unique_ptr<char[]> diff_;
 
   /**
    * \brief Apply a diff.
    */
   void Apply(std::istream &original, std::ostream &target);
+  /**
+   * \brief Apply a diff.
+   */
+  void Apply(const char *original, char *target);
 };
 
 } // namespace badiff
