@@ -33,9 +33,20 @@ struct Diff {
                                     std::istream &target);
 
   /**
+   * \brief The length of the original.
+   */
+  int original_len_;
+
+  /**
+   * \brief The length of the target.
+   */
+  int target_len_;
+
+  /**
    * \brief The length of the diff.
    */
-  int len_;
+  int diff_len_;
+
   /**
    * \brief The diff itself.
    */
@@ -45,6 +56,10 @@ struct Diff {
    * \brief Apply a diff.
    */
   void Apply(std::istream &original, std::ostream &target);
+  /**
+   * \brief Apply a diff.
+   */
+  void Apply(const char *original, char *target);
 };
 
 } // namespace badiff

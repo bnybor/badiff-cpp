@@ -24,4 +24,10 @@ TEST_F(BadiffTest, DiffHelloWorld) {
 
   diff->Apply(original, target);
   ASSERT_EQ(target.str(), world);
+
+  original.clear();
+  std::unique_ptr<char[]> target_buf(new char[diff->target_len_]);
+
+  diff->Apply(hello.c_str(), target_buf.get());
+  ASSERT_EQ(std::string(target_buf.get(), diff->target_len_), world);
 }

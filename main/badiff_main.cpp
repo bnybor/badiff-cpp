@@ -82,7 +82,7 @@ int main(int argc, const char **argv) {
                                    target_stream, target_stat.st_size);
 
     std::ofstream delta_stream(delta);
-    delta_stream.write(diff->diff_.get(), diff->len_);
+    delta_stream.write(diff->diff_.get(), diff->diff_len_);
 
     if (badiff::CONSOLE_OUTPUT)
       printf("\n");
