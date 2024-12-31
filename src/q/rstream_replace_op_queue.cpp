@@ -20,20 +20,16 @@ RStreamReplaceOpQueue::RStreamReplaceOpQueue(std::istream &original,
 RStreamReplaceOpQueue::~RStreamReplaceOpQueue() {}
 
 bool RStreamReplaceOpQueue::Pull() {
-  std::unique_ptr<char[]> original_buf(new char[original_chunk_size_]);
-  std::unique_ptr<char[]> target_buf(new char[target_chunk_size_]);
-
   bool prepared = false;
 
   int n;
-  if (!original_pos_) {
+  if (original_pos_) {
     std::unique_ptr<char[]> value(new char[original_chunk_size_]);
     n = 0;
     do {
       original_.seekg(--original_pos_);
       value[n++] = original_.get();
     } while (n < original_chunk_size_ && original_pos_);
-    std::copy(original_buf.get(), original_buf.get() + n, value.get());
     Prepare(Op(Op::DELETE, n, std::move(value)));
     prepared = true;
     if (CONSOLE_OUTPUT) {
@@ -47,8 +43,7 @@ bool RStreamReplaceOpQueue::Pull() {
     do {
       target_.seekg(--target_pos_);
       value[n++] = target_.get();
-    } while (n < original_chunk_size_ && original_pos_);
-    std::copy(target_buf.get(), target_buf.get() + n, value.get());
+    } while (n < target_chunk_size_ && target_pos_);
     Prepare(Op(Op::INSERT, n, std::move(value)));
     prepared = true;
     if (CONSOLE_OUTPUT) {
