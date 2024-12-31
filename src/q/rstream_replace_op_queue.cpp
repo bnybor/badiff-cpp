@@ -22,10 +22,9 @@ RStreamReplaceOpQueue::~RStreamReplaceOpQueue() {}
 bool RStreamReplaceOpQueue::Pull() {
   bool prepared = false;
 
-  int n;
   if (original_pos_) {
     std::unique_ptr<char[]> value(new char[original_chunk_size_]);
-    n = 0;
+    int n = 0;
     do {
       original_.seekg(--original_pos_);
       value[n++] = original_.get();
@@ -38,8 +37,8 @@ bool RStreamReplaceOpQueue::Pull() {
     }
   }
   if (target_pos_) {
-    std::unique_ptr<char[]> value(new char[n]);
-    n = 0;
+    std::unique_ptr<char[]> value(new char[target_chunk_size_]);
+    int n = 0;
     do {
       target_.seekg(--target_pos_);
       value[n++] = target_.get();
