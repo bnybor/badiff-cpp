@@ -60,7 +60,6 @@ std::unique_ptr<Diff> Diff::Make(const char *original, int original_len,
 
   op_queue = ComputeDiff(std::move(op_queue));
   rop_queue = ComputeDiff(std::move(rop_queue));
-  rop_queue.reset(new q::ROpQueue(std::move(rop_queue)));
 
   // Merge the original and reverse diffs
   int original_pos = 0, target_pos = 0;
