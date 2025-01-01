@@ -10,9 +10,9 @@ StreamReplaceOpQueue::StreamReplaceOpQueue(std::istream &original,
                                            std::istream &target, int target_len,
                                            int max_chunk_size)
     : original_(original), target_(target) {
-  int chunks = 1 + std::max(original_len, target_len) / max_chunk_size;
-  original_chunk_size_ = original_len / chunks;
-  target_chunk_size_ = target_len / chunks;
+  int chunks = std::max(1, std::max(original_len, target_len) / max_chunk_size);
+  original_chunk_size_ = std::max(1, original_len / chunks);
+  target_chunk_size_ = std::max(1, target_len / chunks);
 }
 
 StreamReplaceOpQueue::StreamReplaceOpQueue(std::istream &original,
