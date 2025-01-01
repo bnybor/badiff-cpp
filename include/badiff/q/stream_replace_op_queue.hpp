@@ -12,7 +12,7 @@ class StreamReplaceOpQueue : public OpQueue {
 public:
   StreamReplaceOpQueue(std::istream &original, int original_len,
                        std::istream &target, int target_len,
-                       int max_chunk_size = DEFAULT_CHUNK);
+                       int max_chunk_len = DEFAULT_CHUNK);
   virtual ~StreamReplaceOpQueue();
 
 protected:
@@ -20,8 +20,8 @@ protected:
 
   std::istream &original_;
   std::istream &target_;
-  int original_chunk_size_;
-  int target_chunk_size_;
+  int original_chunk_len_;
+  int target_chunk_len_;
   int original_pos_;
   int target_pos_;
   int original_len_;

@@ -11,13 +11,13 @@ namespace q {
 class ChunkingOpQueue : public FilterOpQueue {
 public:
   ChunkingOpQueue(std::unique_ptr<OpQueue> source,
-                  int chunk_size = DEFAULT_CHUNK);
+                  int chunk_len = DEFAULT_CHUNK);
   virtual ~ChunkingOpQueue();
 
 protected:
   virtual bool Pull() override;
 
-  int chunk_size_;
+  int chunk_len_;
   std::vector<Op> deletes_;
   std::vector<Op> inserts_;
 

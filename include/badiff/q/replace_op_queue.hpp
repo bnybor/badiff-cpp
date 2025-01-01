@@ -10,8 +10,8 @@ namespace q {
 
 class ReplaceOpQueue : public OpQueue {
 public:
-  ReplaceOpQueue(const char *original, int original_size, const char *target,
-                 int target_size, int max_chunk_size = DEFAULT_CHUNK);
+  ReplaceOpQueue(const char *original, int original_len, const char *target,
+                 int target_len, int max_chunk_len = DEFAULT_CHUNK);
   virtual ~ReplaceOpQueue();
 
 protected:
@@ -20,11 +20,11 @@ protected:
   const char *original_;
   const char *target_;
 
-  int original_pos_, original_size_;
-  int target_pos_, target_size_;
+  int original_pos_, original_len_;
+  int target_pos_, target_len_;
 
-  int original_chunk_size_;
-  int target_chunk_size_;
+  int original_chunk_len_;
+  int target_chunk_len_;
 };
 
 } // namespace q
