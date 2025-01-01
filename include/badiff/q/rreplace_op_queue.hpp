@@ -1,5 +1,5 @@
-#ifndef BADIFF_Q_REPLACE_OP_QUEUE_HPP_
-#define BADIFF_Q_REPLACE_OP_QUEUE_HPP_
+#ifndef BADIFF_Q_RREPLACE_OP_QUEUE_HPP_
+#define BADIFF_Q_RREPLACE_OP_QUEUE_HPP_
 
 #include <badiff/q/op_queue.hpp>
 
