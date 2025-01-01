@@ -8,9 +8,10 @@ ReplaceOpQueue::ReplaceOpQueue(const char *original, int original_size,
                                int max_chunk_size)
     : original_(original), target_(target), original_pos_(0),
       original_len_(original_size), target_pos_(0), target_len_(target_size) {
-  int chunks = 1 + std::max(original_size, target_size) / max_chunk_size;
-  original_chunk_len_ = original_size / chunks;
-  target_chunk_len_ = target_size / chunks;
+  int chunks =
+      std::max(1, std::max(original_size, target_size) / max_chunk_size);
+  original_chunk_len_ = std::max(1, original_size / chunks);
+  target_chunk_len_ = std::max(1, target_size / chunks);
 }
 
 ReplaceOpQueue::~ReplaceOpQueue() {}

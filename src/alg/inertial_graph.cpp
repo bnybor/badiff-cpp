@@ -388,17 +388,18 @@ public:
     }
 
     if (y > 0 &&
-        graph_->cost_[(pos - graph_->xval_.size()) * NUM_FIELDS + INSERT] +
-                Cost(Op::INSERT, prev) <
-            cost) {
+        (x == 0 ||
+         graph_->cost_[(pos - graph_->xval_.size()) * NUM_FIELDS + INSERT] +
+                 Cost(Op::INSERT, prev) <
+             cost)) {
       op = Op::INSERT;
       cost = graph_->cost_[(pos - graph_->xval_.size()) * NUM_FIELDS + INSERT] +
              Cost(Op::INSERT, prev);
     }
 
-    if (x > 0 && graph_->cost_[(pos - 1) * NUM_FIELDS + DELETE] +
-                         Cost(Op::DELETE, prev) <
-                     cost) {
+    if (x > 0 && (y == 0 || graph_->cost_[(pos - 1) * NUM_FIELDS + DELETE] +
+                                    Cost(Op::DELETE, prev) <
+                                cost)) {
       op = Op::DELETE;
       cost = graph_->cost_[(pos - 1) * NUM_FIELDS + DELETE] +
              Cost(Op::DELETE, prev);
