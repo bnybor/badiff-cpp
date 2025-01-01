@@ -8,12 +8,12 @@
 namespace badiff {
 namespace q {
 
-class StreamReplaceOpQueue : public OpQueue {
+class RStreamReplaceOpQueue : public OpQueue {
 public:
-  StreamReplaceOpQueue(std::istream &original, int original_len,
-                       std::istream &target, int target_len,
-                       int max_chunk_size = DEFAULT_CHUNK);
-  virtual ~StreamReplaceOpQueue();
+  RStreamReplaceOpQueue(std::istream &original, int original_len,
+                        std::istream &target, int target_len,
+                        int max_chunk_size = DEFAULT_CHUNK);
+  virtual ~RStreamReplaceOpQueue();
 
 protected:
   virtual bool Pull() override;
@@ -24,8 +24,6 @@ protected:
   int target_chunk_size_;
   int original_pos_;
   int target_pos_;
-  int original_len_;
-  int target_len_;
 };
 
 } // namespace q

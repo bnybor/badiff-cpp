@@ -27,12 +27,6 @@ struct Diff {
                                     std::istream &target, int target_len);
 
   /**
-   * \brief Compute a diff using two arbitrary streams.
-   */
-  static std::unique_ptr<Diff> Make(std::istream &original,
-                                    std::istream &target);
-
-  /**
    * \brief The length of the original.
    */
   int original_len_;
