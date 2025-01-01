@@ -11,6 +11,7 @@
 #include <sys/stat.h>
 
 #include <badiff/badiff.hpp>
+#include <badiff/q/deserialize_op_queue.hpp>
 #include <badiff/q/op_queue.hpp>
 
 namespace badiff {
@@ -64,22 +65,26 @@ int main(int argc, const char **argv) {
     std::string target(*++arg);
     std::string delta(*++arg);
 
-    std::ifstream original_stream(original);
-    std::ifstream target_stream(target);
-
     struct stat original_stat;
-    int fd;
-    fd = open(original.c_str(), O_RDONLY, 0);
-    fstat(fd, &original_stat);
-    close(fd);
+    int original_fd;
+    original_fd = open(original.c_str(), O_RDONLY, 0);
+    fstat(original_fd, &original_stat);
 
     struct stat target_stat;
-    fd = open(target.c_str(), O_RDONLY, 0);
-    fstat(fd, &target_stat);
-    close(fd);
+    int target_fd;
+    target_fd = open(target.c_str(), O_RDONLY, 0);
+    fstat(target_fd, &target_stat);
 
-    auto diff = badiff::Diff::Make(original_stream, original_stat.st_size,
-                                   target_stream, target_stat.st_size);
+    int original_size = original_stat.st_size;
+    int target_size = target_stat.st_size;
+
+    const char *original_mmap = (const char *)mmap(
+        NULL, original_size, PROT_READ, MAP_PRIVATE, original_fd, 0);
+    const char *target_mmap = (const char *)mmap(NULL, target_size, PROT_READ,
+                                                 MAP_PRIVATE, target_fd, 0);
+
+    auto diff = badiff::Diff::Make(original_mmap, original_stat.st_size,
+                                   target_mmap, target_stat.st_size);
 
     std::ofstream delta_stream(delta);
     delta_stream.write(diff->diff_.get(), diff->diff_len_);
@@ -96,9 +101,9 @@ int main(int argc, const char **argv) {
     std::ifstream delta(*++arg);
     std::ofstream target(*++arg);
 
-    badiff::q::OpQueue op_queue;
-    op_queue.Deserialize(delta);
+    badiff::q::DeserializeOpQueue op_queue(delta);
     op_queue.Apply(original, target);
+    target.close();
 
   } else {
     help();
