@@ -53,8 +53,6 @@ std::unique_ptr<Diff> Diff::Make(const char *original, int original_len,
   std::unique_ptr<q::OpQueue> op_queue(
       new q::ReplaceOpQueue(original, original_len, target, target_len));
 
-  op_queue.reset(new q::ChunkingOpQueue(std::move(op_queue)));
-
   op_queue = Wrap(std::move(op_queue));
 
   std::ostringstream ss;
