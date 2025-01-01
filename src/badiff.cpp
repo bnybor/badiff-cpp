@@ -94,30 +94,6 @@ std::unique_ptr<Diff> Diff::Make(std::istream &original, int original_len,
   return diff;
 }
 
-std::unique_ptr<Diff> Diff::Make(std::istream &original, std::istream &target) {
-  std::unique_ptr<q::OpQueue> op_queue(
-      new q::StreamReplaceOpQueue(original, target));
-
-  op_queue = Wrap(std::move(op_queue));
-
-  auto original_pos = original.tellg();
-  auto target_pos = target.tellg();
-
-  std::ostringstream ss;
-  op_queue->Serialize(ss);
-  auto str = ss.str();
-
-  std::unique_ptr<Diff> diff(new Diff);
-  diff->original_len_ = original.tellg() - original_pos;
-  diff->target_len_ = target.tellg() - target_pos;
-  diff->diff_len_ = str.size();
-  diff->diff_.reset(new char[str.size()]);
-
-  std::copy(str.c_str(), str.c_str() + str.size(), diff->diff_.get());
-
-  return diff;
-}
-
 void Diff::Apply(std::istream &original, std::ostream &target) {
   std::istringstream in(std::string(diff_.get(), diff_len_));
   std::unique_ptr<q::OpQueue> op_queue(new q::OpQueue);
