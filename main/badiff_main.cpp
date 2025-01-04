@@ -23,13 +23,13 @@ static void help() {
          "      -v                  Verbose output\n"
          "      <original>          Original file\n"
          "      <target>            Target file\n"
-         "      <delta>             Delta file\n"
+         "      <delta>             Delta file, '-' for stdout\n"
          "\n"
          "badiff apply <original> <delta> <target>\n"
          "Apply a delta file from original to target.\n"
          "      <original>          Original file\n"
          "      <target>            Target file\n"
-         "      <delta>             Delta file\n");
+         "      <delta>             Delta file, '-' for stdin\n");
 }
 
 int main(int argc, const char **argv) {
