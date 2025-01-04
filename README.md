@@ -71,7 +71,7 @@ BSD-style two-clause license.
 
 See [LICENSE.txt](LICENSE.txt)
 
-Copyright 2024 Robyn Kirkman
+Copyright 2025 Robyn Kirkman
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
