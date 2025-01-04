@@ -18,6 +18,8 @@ extern bool CONSOLE_OUTPUT;
 }
 
 static void help() {
+  printf("badiff: Binary diffing and patching tool tool.\n");
+  printf("\n");
   printf("badiff diff [-v] <original> <target> <delta>\n"
          "Create a delta from original to target.\n"
          "      -v                  Verbose output\n"
@@ -25,7 +27,7 @@ static void help() {
          "      <target>            Target file\n"
          "      <delta>             Delta file, '-' for stdout\n"
          "\n"
-         "badiff apply <original> <delta> <target>\n"
+         "badiff patch <original> <target> <delta>\n"
          "Apply a delta file from original to target.\n"
          "      <original>          Original file\n"
          "      <target>            Target file\n"
@@ -95,15 +97,15 @@ int main(int argc, const char **argv) {
     if (badiff::CONSOLE_OUTPUT)
       printf("\n");
 
-  } else if (command == "apply") {
+  } else if (command == "patch") {
     if (argc != 5) {
       help();
       return EXIT_FAILURE;
     }
 
     std::string original(*++arg);
-    std::string delta(*++arg);
     std::string target(*++arg);
+    std::string delta(*++arg);
 
     std::unique_ptr<badiff::Delta> diff(new badiff::Delta);
 
