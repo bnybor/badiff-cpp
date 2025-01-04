@@ -54,6 +54,18 @@ struct Diff {
    * \brief Apply a diff.
    */
   void Apply(const char *original, char *target);
+
+  /**
+   * \brief Serialize the diff to a stream, with versioning.
+   */
+  void Serialize(std::ostream &out) const;
+
+  /**
+   * \brief Deserialize the diff from a stream, with versioning.
+   *
+   * Returns false on failure.
+   */
+  bool Deserialize(std::istream &in);
 };
 
 } // namespace badiff

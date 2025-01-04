@@ -11,8 +11,6 @@
 #include <sys/stat.h>
 
 #include <badiff/badiff.hpp>
-#include <badiff/q/deserialize_op_queue.hpp>
-#include <badiff/q/op_queue.hpp>
 
 namespace badiff {
 extern bool CONSOLE_OUTPUT;
@@ -87,7 +85,7 @@ int main(int argc, const char **argv) {
                                    target_mmap, target_stat.st_size);
 
     std::ofstream delta_stream(delta);
-    delta_stream.write(diff->diff_.get(), diff->diff_len_);
+    diff->Serialize(delta_stream);
 
     if (badiff::CONSOLE_OUTPUT)
       printf("\n");
@@ -99,11 +97,15 @@ int main(int argc, const char **argv) {
     }
     std::ifstream original(*++arg);
     std::ifstream delta(*++arg);
-    std::ofstream target(*++arg);
 
-    badiff::q::DeserializeOpQueue op_queue(delta);
-    op_queue.Apply(original, target);
-    target.close();
+    std::unique_ptr<badiff::Diff> diff(new badiff::Diff);
+    if (!diff->Deserialize(delta)) {
+      fprintf(stderr, "Bad diff.\n");
+      return EXIT_FAILURE;
+    }
+
+    std::ofstream target(*++arg);
+    diff->Apply(original, target);
 
   } else {
     help();
