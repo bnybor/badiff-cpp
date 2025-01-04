@@ -57,18 +57,10 @@ make test
 This example:
 1.  Computes a delta from `README.md` to `LICENSE.txt`.
 2.  Recomputes `LICENSE.txt` from `README.md` and the delta.
-3.  Compares the two `LICENSE.txt` files, finding no differences.
-4.  Shows the sizes of the files involved.
 
 ```
 $ ./build/badiff diff README.md LICENSE.txt /tmp/readme_to_license.delta
 $ ./build/badiff apply README.md /tmp/readme_to_license.delta /tmp/LICENSE2.txt
-$ diff LICENSE.txt /tmp/LICENSE2.txt
-$ ls -l README.md LICENSE.txt /tmp/readme_to_license.delta /tmp/LICENSE2.txt
--rw-r--r-- 1 robyn robyn 1270 Dec 19 09:55 /tmp/LICENSE2.txt
--rw-r--r-- 1 robyn robyn   16 Dec 19 09:54 /tmp/readme_to_license.delta
--rw-r--r-- 1 robyn robyn 1270 Dec 19 09:27 LICENSE.txt
--rw-r--r-- 1 robyn robyn 1723 Dec 19 09:46 README.md
 ```
 
 The diff is 16 bytes.
