@@ -99,7 +99,10 @@ int main(int argc, const char **argv) {
     std::ifstream delta(*++arg);
 
     std::unique_ptr<badiff::Diff> diff(new badiff::Diff);
-    diff->Deserialize(delta);
+    if (!diff->Deserialize(delta)) {
+      fprintf(stderr, "Bad diff.\n");
+      return EXIT_FAILURE;
+    }
 
     std::ofstream target(*++arg);
     diff->Apply(original, target);
