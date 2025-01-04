@@ -86,7 +86,7 @@ add_executable(badiff_cli
 
 target_link_libraries( badiff_cli
     PRIVATE 
-        badiff_library
+        badiff_archive
 )
 
 set_target_properties(badiff_cli PROPERTIES OUTPUT_NAME "badiff")
