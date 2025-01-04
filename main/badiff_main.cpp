@@ -32,7 +32,7 @@ static void help() {
 }
 
 int main(int argc, const char **argv) {
-  using badiff::Diff;
+  using badiff::Delta;
 
   if (argc < 2) {
     help();
@@ -81,7 +81,7 @@ int main(int argc, const char **argv) {
     const char *target_mmap = (const char *)mmap(NULL, target_size, PROT_READ,
                                                  MAP_PRIVATE, target_fd, 0);
 
-    auto diff = badiff::Diff::Make(original_mmap, original_stat.st_size,
+    auto diff = badiff::Delta::Make(original_mmap, original_stat.st_size,
                                    target_mmap, target_stat.st_size);
 
     std::ofstream delta_stream(delta);
@@ -98,7 +98,7 @@ int main(int argc, const char **argv) {
     std::ifstream original(*++arg);
     std::ifstream delta(*++arg);
 
-    std::unique_ptr<badiff::Diff> diff(new badiff::Diff);
+    std::unique_ptr<badiff::Delta> diff(new badiff::Delta);
     if (!diff->Deserialize(delta)) {
       fprintf(stderr, "Bad diff.\n");
       return EXIT_FAILURE;
