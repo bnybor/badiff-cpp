@@ -69,4 +69,7 @@ build/badiff: $(OBJECTS) build/main/badiff_main.o
 test: build/test/badiff_test
 	LD_LIBRARY_PATH=build build/test/badiff_test
 
-	
+.PHONY: release
+release: clean
+	mkdir build
+	cd build && cmake .. && make && ./test/badiff_test
