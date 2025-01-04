@@ -39,7 +39,6 @@ target_include_directories(badiff_library
 install (TARGETS badiff_library
     LIBRARY DESTINATION lib)
 
-# Header files
 install(FILES ${PROJECT_SOURCE_DIR}/include/badiff/badiff.hpp 
     DESTINATION include/badiff)
 
@@ -47,7 +46,6 @@ add_executable(badiff_cli
     main/badiff_main.cpp
 )
 
-# link the new hello_library target with the hello_binary target
 target_link_libraries( badiff_cli
     PRIVATE 
         badiff_library
