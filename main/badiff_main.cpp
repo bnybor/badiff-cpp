@@ -1,4 +1,5 @@
 #include <fstream>
+#include <iostream>
 #include <string>
 
 #include <malloc.h>
@@ -82,10 +83,14 @@ int main(int argc, const char **argv) {
                                                  MAP_PRIVATE, target_fd, 0);
 
     auto diff = badiff::Delta::Make(original_mmap, original_stat.st_size,
-                                   target_mmap, target_stat.st_size);
+                                    target_mmap, target_stat.st_size);
 
-    std::ofstream delta_stream(delta);
-    diff->Serialize(delta_stream);
+    if (delta == "-") {
+      diff->Serialize(std::cout);
+    } else {
+      std::ofstream delta_stream(delta);
+      diff->Serialize(delta_stream);
+    }
 
     if (badiff::CONSOLE_OUTPUT)
       printf("\n");
@@ -95,17 +100,29 @@ int main(int argc, const char **argv) {
       help();
       return EXIT_FAILURE;
     }
-    std::ifstream original(*++arg);
-    std::ifstream delta(*++arg);
+
+    std::string original(*++arg);
+    std::string delta(*++arg);
+    std::string target(*++arg);
 
     std::unique_ptr<badiff::Delta> diff(new badiff::Delta);
-    if (!diff->Deserialize(delta)) {
-      fprintf(stderr, "Bad diff.\n");
-      return EXIT_FAILURE;
+
+    std::ifstream original_stream(original);
+    if (delta == "-") {
+      if (!diff->Deserialize(std::cin)) {
+        fprintf(stderr, "Bad diff.\n");
+        return EXIT_FAILURE;
+      }
+    } else {
+      std::ifstream delta_stream(delta);
+      if (!diff->Deserialize(delta_stream)) {
+        fprintf(stderr, "Bad diff.\n");
+        return EXIT_FAILURE;
+      }
     }
 
-    std::ofstream target(*++arg);
-    diff->Apply(original, target);
+    std::ofstream target_stream(target);
+    diff->Apply(original_stream, target_stream);
 
   } else {
     help();
