@@ -127,20 +127,31 @@ std::unique_ptr<Delta> Delta::Make(const char *original, int original_len,
     }
   }
 
+  std::unique_ptr<q::OpQueue> middle(new q::OpQueue);
+
   if (original_pos < original_rpos) {
-    diff_ops.emplace_back(new Op(Op::DELETE, original_rpos - original_pos));
+    middle->Push(Op(Op::DELETE, original_rpos - original_pos));
   }
   if (target_pos < target_rpos) {
     int len = target_rpos - target_pos;
     std::unique_ptr<char[]> value(new char[len]);
     std::copy(target + target_pos, target + target_rpos, value.get());
-    diff_ops.emplace_back(new Op(Op::INSERT, len, std::move(value)));
+    middle->Push(Op(Op::INSERT, len, std::move(value)));
   }
+
+  middle.reset(new q::GraphOpQueue(
+      std::move(middle), std::unique_ptr<alg::Graph>(new alg::InertialGraph)));
+  middle.reset(new q::MinimizeOpQueue(std::move(middle)));
 
   op_queue.reset(new q::OpQueue);
   for (auto &op : diff_ops) {
     op_queue->Push(*std::move(op));
   }
+
+  while (!middle->IsEmpty()) {
+    op_queue->Push(*middle->Pop());
+  }
+
   for (auto &op : rdiff_ops) {
     op_queue->Push(*std::move(op));
   }
@@ -235,8 +246,10 @@ std::unique_ptr<Delta> Delta::Make(std::istream &original, int original_len,
     }
   }
 
+  std::unique_ptr<q::OpQueue> middle(new q::OpQueue);
+
   if (original_pos < original_rpos) {
-    diff_ops.emplace_back(new Op(Op::DELETE, original_rpos - original_pos));
+    middle->Push(Op(Op::DELETE, original_rpos - original_pos));
   }
   if (target_pos < target_rpos) {
     int len = target_rpos - target_pos;
@@ -245,13 +258,22 @@ std::unique_ptr<Delta> Delta::Make(std::istream &original, int original_len,
     for (int i = 0; i < len; ++i) {
       value[i] = target.get();
     }
-    diff_ops.emplace_back(new Op(Op::INSERT, len, std::move(value)));
+    middle->Push(Op(Op::INSERT, len, std::move(value)));
   }
+
+  middle.reset(new q::GraphOpQueue(
+      std::move(middle), std::unique_ptr<alg::Graph>(new alg::InertialGraph)));
+  middle.reset(new q::MinimizeOpQueue(std::move(middle)));
 
   op_queue.reset(new q::OpQueue);
   for (auto &op : diff_ops) {
     op_queue->Push(*std::move(op));
   }
+
+  while (!middle->IsEmpty()) {
+    op_queue->Push(*middle->Pop());
+  }
+
   for (auto &op : rdiff_ops) {
     op_queue->Push(*std::move(op));
   }

@@ -8,19 +8,20 @@ tool.
 **Usage**
 
 ```
-$ ./build/badiff
+badiff: Binary diffing and patching tool tool.
+
 badiff diff [-v] <original> <target> <delta>
 Create a delta from original to target.
       -v                  Verbose output
       <original>          Original file
       <target>            Target file
-      <delta>             Delta file
+      <delta>             Delta file, '-' for stdout
 
-badiff apply <original> <delta> <target>
+badiff patch <original> <target> <delta>
 Apply a delta file from original to target.
       <original>          Original file
       <target>            Target file
-      <delta>             Delta file
+      <delta>             Delta file, '-' for stdin
 ```
 
 **Compile the code**
