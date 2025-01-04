@@ -52,8 +52,8 @@ std::unique_ptr<q::OpQueue> ComputeDiff(std::unique_ptr<q::OpQueue> op_queue) {
 }
 } // namespace
 
-std::unique_ptr<Diff> Diff::Make(const char *original, int original_len,
-                                 const char *target, int target_len) {
+std::unique_ptr<Delta> Delta::Make(const char *original, int original_len,
+                                   const char *target, int target_len) {
   std::unique_ptr<q::OpQueue> op_queue(
       new q::ReplaceOpQueue(original, original_len, target, target_len));
   std::unique_ptr<q::OpQueue> rop_queue(
@@ -149,19 +149,19 @@ std::unique_ptr<Diff> Diff::Make(const char *original, int original_len,
   op_queue->Serialize(ss);
   auto str = ss.str();
 
-  std::unique_ptr<Diff> diff(new Diff);
+  std::unique_ptr<Delta> diff(new Delta);
   diff->original_len_ = original_len;
   diff->target_len_ = target_len;
-  diff->diff_len_ = str.size();
-  diff->diff_.reset(new char[str.size()]);
+  diff->delta_len_ = str.size();
+  diff->delta_.reset(new char[str.size()]);
 
-  std::copy(str.c_str(), str.c_str() + str.size(), diff->diff_.get());
+  std::copy(str.c_str(), str.c_str() + str.size(), diff->delta_.get());
 
   return diff;
 }
 
-std::unique_ptr<Diff> Diff::Make(std::istream &original, int original_len,
-                                 std::istream &target, int target_len) {
+std::unique_ptr<Delta> Delta::Make(std::istream &original, int original_len,
+                                   std::istream &target, int target_len) {
   std::unique_ptr<q::OpQueue> op_queue(
       new q::StreamReplaceOpQueue(original, original_len, target, target_len));
   std::unique_ptr<q::OpQueue> rop_queue(
@@ -260,32 +260,32 @@ std::unique_ptr<Diff> Diff::Make(std::istream &original, int original_len,
   op_queue->Serialize(ss);
   auto str = ss.str();
 
-  std::unique_ptr<Diff> diff(new Diff);
+  std::unique_ptr<Delta> diff(new Delta);
   diff->original_len_ = original_len;
   diff->target_len_ = target_len;
-  diff->diff_len_ = str.size();
-  diff->diff_.reset(new char[str.size()]);
+  diff->delta_len_ = str.size();
+  diff->delta_.reset(new char[str.size()]);
 
-  std::copy(str.c_str(), str.c_str() + str.size(), diff->diff_.get());
+  std::copy(str.c_str(), str.c_str() + str.size(), diff->delta_.get());
 
   return diff;
 }
 
-void Diff::Apply(std::istream &original, std::ostream &target) {
-  std::istringstream in(std::string(diff_.get(), diff_len_));
+void Delta::Apply(std::istream &original, std::ostream &target) {
+  std::istringstream in(std::string(delta_.get(), delta_len_));
   std::unique_ptr<q::OpQueue> op_queue(new q::OpQueue);
 
   op_queue->Deserialize(in);
   op_queue->Apply(original, target);
 }
 
-void Diff::Apply(const char *original, char *target) {
+void Delta::Apply(const char *original, char *target) {
   std::basic_stringbuf<char> target_buf;
   target_buf.pubsetbuf(target, target_len_);
 
   std::unique_ptr<q::OpQueue> op_queue(new q::OpQueue);
 
-  std::istringstream diff_stream(std::string(diff_.get(), diff_len_));
+  std::istringstream diff_stream(std::string(delta_.get(), delta_len_));
   std::istringstream original_stream(std::string(original, original_len_));
   std::ostream target_stream(&target_buf);
 
@@ -296,6 +296,10 @@ void Diff::Apply(const char *original, char *target) {
 static const char *MAGIC = "\xBA\xD1\xFF";
 static const char FORMAT_VERSION_MAJOR = 0;
 static const char FORMAT_VERSION_MINOR = 0;
+
+static const char *ORIGINAL_LEN_FIELD = "original_len";
+static const char *TARGET_LEN_FIELD = "target_len";
+static const char *DELTA_LEN_FIELD = "delta_len";
 
 static void WriteFieldLength(std::ostream &out, int len) {
   out.put(len >> 8);
@@ -320,15 +324,15 @@ static void ReadFieldString(std::istream &in, std::string *string) {
   *string = std::string(buf, buf + size);
 }
 
-void Diff::Serialize(std::ostream &out) const {
+void Delta::Serialize(std::ostream &out) const {
   out.write(MAGIC, sizeof(MAGIC));
   out.put(FORMAT_VERSION_MAJOR);
   out.put(FORMAT_VERSION_MINOR);
 
   std::map<std::string, std::string> fields;
-  fields["original_len"] = std::to_string(original_len_);
-  fields["target_len"] = std::to_string(target_len_);
-  fields["diff_len"] = std::to_string(diff_len_);
+  fields[ORIGINAL_LEN_FIELD] = std::to_string(original_len_);
+  fields[TARGET_LEN_FIELD] = std::to_string(target_len_);
+  fields[DELTA_LEN_FIELD] = std::to_string(delta_len_);
 
   WriteFieldLength(out, fields.size());
   for (auto &field : fields) {
@@ -336,10 +340,10 @@ void Diff::Serialize(std::ostream &out) const {
     WriteFieldString(out, field.second);
   }
 
-  out.write(diff_.get(), diff_len_);
+  out.write(delta_.get(), delta_len_);
 }
 
-bool Diff::Deserialize(std::istream &in) {
+bool Delta::Deserialize(std::istream &in) {
   char magic[sizeof(MAGIC)];
   in.read(magic, sizeof(MAGIC));
   if (!std::equal(magic, magic + sizeof(MAGIC), MAGIC))
@@ -362,12 +366,12 @@ bool Diff::Deserialize(std::istream &in) {
     fields[key] = value;
   }
 
-  original_len_ = atoi(fields["original_len"].c_str());
-  target_len_ = atoi(fields["target_len"].c_str());
-  diff_len_ = atoi(fields["diff_len"].c_str());
+  original_len_ = atoi(fields[ORIGINAL_LEN_FIELD].c_str());
+  target_len_ = atoi(fields[TARGET_LEN_FIELD].c_str());
+  delta_len_ = atoi(fields[DELTA_LEN_FIELD].c_str());
 
-  diff_.reset(new char[diff_len_]);
-  in.read(diff_.get(), diff_len_);
+  delta_.reset(new char[delta_len_]);
+  in.read(delta_.get(), delta_len_);
   return true;
 }
 

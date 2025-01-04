@@ -17,7 +17,7 @@ TEST_F(BadiffTest, DiffHelloWorld) {
   std::string world("hellish cruel worlddddddddddddddddddddddddddd");
 
   auto diff =
-      Diff::Make(hello.c_str(), hello.size(), world.c_str(), world.size());
+      Delta::Make(hello.c_str(), hello.size(), world.c_str(), world.size());
 
   std::istringstream original(hello);
   std::ostringstream target;
@@ -37,7 +37,7 @@ TEST_F(BadiffTest, aba) {
   std::string world("xyzdefxyz");
 
   auto diff =
-      Diff::Make(hello.c_str(), hello.size(), world.c_str(), world.size());
+      Delta::Make(hello.c_str(), hello.size(), world.c_str(), world.size());
 
   std::istringstream original(hello);
   std::ostringstream target;
