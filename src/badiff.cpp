@@ -20,6 +20,7 @@
 #include <badiff/q/stream_replace_op_queue.hpp>
 
 #include <istream>
+#include <map>
 #include <ostream>
 #include <sstream>
 
@@ -290,6 +291,84 @@ void Diff::Apply(const char *original, char *target) {
 
   op_queue->Deserialize(diff_stream);
   op_queue->Apply(original_stream, target_stream);
+}
+
+static const char *MAGIC = "\xBA\xD1\xFF";
+static const char FORMAT_VERSION_MAJOR = 0;
+static const char FORMAT_VERSION_MINOR = 0;
+
+static void WriteFieldLength(std::ostream &out, int len) {
+  out.put(len >> 8);
+  out.put(len);
+}
+
+static void ReadFieldLength(std::istream &in, int *len) {
+  *len = in.get() << 8;
+  *len += in.get();
+}
+
+static void WriteFieldString(std::ostream &out, const std::string &string) {
+  WriteFieldLength(out, string.size());
+  out.write(string.c_str(), string.size());
+}
+
+static void ReadFieldString(std::istream &in, std::string *string) {
+  int size;
+  ReadFieldLength(in, &size);
+  char buf[size];
+  in.read(buf, size);
+  *string = std::string(buf, buf + size);
+}
+
+void Diff::Serialize(std::ostream &out) const {
+  out.write(MAGIC, sizeof(MAGIC));
+  out.put(FORMAT_VERSION_MAJOR);
+  out.put(FORMAT_VERSION_MINOR);
+
+  std::map<std::string, std::string> fields;
+  fields["original_len"] = std::to_string(original_len_);
+  fields["target_len"] = std::to_string(target_len_);
+  fields["diff_len"] = std::to_string(diff_len_);
+
+  WriteFieldLength(out, fields.size());
+  for (auto &field : fields) {
+    WriteFieldString(out, field.first);
+    WriteFieldString(out, field.second);
+  }
+
+  out.write(diff_.get(), diff_len_);
+}
+
+bool Diff::Deserialize(std::istream &in) {
+  char magic[sizeof(MAGIC)];
+  in.read(magic, sizeof(MAGIC));
+  if (!std::equal(magic, magic + sizeof(MAGIC), MAGIC))
+    return false;
+  char major = in.get();
+  if (major != FORMAT_VERSION_MAJOR)
+    return false;
+  char minor = in.get();
+  if (minor > FORMAT_VERSION_MINOR)
+    return false;
+
+  int num_fields;
+  ReadFieldLength(in, &num_fields);
+  std::map<std::string, std::string> fields;
+  for (int i = 0; i < num_fields; ++i) {
+    std::string key;
+    ReadFieldString(in, &key);
+    std::string value;
+    ReadFieldString(in, &value);
+    fields[key] = value;
+  }
+
+  original_len_ = atoi(fields["original_len"].c_str());
+  target_len_ = atoi(fields["target_len"].c_str());
+  diff_len_ = atoi(fields["diff_len"].c_str());
+
+  diff_.reset(new char[diff_len_]);
+  in.read(diff_.get(), diff_len_);
+  return true;
 }
 
 } // namespace badiff

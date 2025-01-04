@@ -54,6 +54,9 @@ struct Diff {
    * \brief Apply a diff.
    */
   void Apply(const char *original, char *target);
+
+  void Serialize(std::ostream &out) const;
+  bool Deserialize(std::istream &in);
 };
 
 } // namespace badiff
