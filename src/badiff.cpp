@@ -112,9 +112,13 @@ std::unique_ptr<Delta> Delta::Make(const char *original, int original_len,
       int next_len = 0;
       if (next_op->GetType() == Op::INSERT)
         next_len = next_op->GetLength();
+      if (next_op->GetType() == Op::NEXT)
+        next_len = -next_op->GetLength();
       int rnext_len = 0;
       if (rnext_op->GetType() == Op::INSERT)
         rnext_len = rnext_op->GetLength();
+      if (rnext_op->GetType() == Op::NEXT)
+        rnext_len = -rnext_op->GetLength();
       if (next_len <= rnext_len) {
         diff_ops.insert(diff_ops.end(), std::move(next_op));
         original_pos = next_original_pos;
@@ -232,9 +236,13 @@ std::unique_ptr<Delta> Delta::Make(std::istream &original, int original_len,
       int next_len = 0;
       if (next_op->GetType() == Op::INSERT)
         next_len = next_op->GetLength();
+      if (next_op->GetType() == Op::NEXT)
+        next_len = -next_op->GetLength();
       int rnext_len = 0;
       if (rnext_op->GetType() == Op::INSERT)
         rnext_len = rnext_op->GetLength();
+      if (rnext_op->GetType() == Op::NEXT)
+        rnext_len = -rnext_op->GetLength();
       if (next_len <= rnext_len) {
         diff_ops.insert(diff_ops.end(), std::move(next_op));
         original_pos = next_original_pos;
