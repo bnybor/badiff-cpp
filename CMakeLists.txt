@@ -94,4 +94,9 @@ set_target_properties(badiff_cli PROPERTIES OUTPUT_NAME "badiff")
 install (TARGETS badiff_cli
     DESTINATION bin)
 
+## man page
+
+install(FILES ${PROJECT_SOURCE_DIR}/man/badiff.1 
+    DESTINATION share/man/man1)
+
 

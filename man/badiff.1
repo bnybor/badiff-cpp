@@ -1,0 +1,77 @@
+.ss 12 0
+.\" Manpage for badiff.
+.\" Contact robyn@robynkirkman.us.in to correct errors or typos.
+.TH man 1 "05 January 2025" "1.0.2" "badiff man page"
+.SH NAME
+badiff \- Binary diffing and patching tool. 
+.SH SYNOPSIS
+badiff diff [-v] ORIGINAL TARGET DELTA
+
+badiff patch ORIGINAL TARGET DELTA
+
+.SH DESCRIPTION
+.B badiff
+is a diffing and patching tool for binary files.
+
+.SH COMMANDS
+
+.B diff
+.RS
+Create a patch from ORIGINAL to TARGET and write it to DELTA.
+.RE
+
+.B patch
+.RS
+Apply the patch DELTA to ORIGINAL and write it to TARGET.
+.RE
+
+.SH OPTIONS
+
+.B -v 
+.RS
+Verbose output
+.RE
+
+.B ORIGINAL
+.RS
+Original file
+.RE
+
+.B TARGET
+.RS
+Target file
+.RE
+
+.B DELTA
+.RS
+Delta file
+.P
+If '-' is supplied when diffing then the diff is written to standard output.
+.P
+If '-' is supplied when patching then the diff is read from standard input.
+.RE
+
+.SH EXAMPLES
+.TP
+.BI "badiff diff README.md LICENSE.txt DELTA.bdf"
+.TP
+.PP
+Diff README.md and LICENSE.txt to produce the delta file DELTA.bdf.
+
+.TP
+.BI "badiff patch README.md LICENSE.txt delta.bdf"
+.TP
+.PP
+Patch README.md using DELTA.bdf to produce LICENSE2.txt.
+
+.TP
+.BI "badiff diff README.md LICENSE.txt - | badiff patch README.md LICENSE2.txt -"
+.TP
+.PP
+Diff README.md and LICENSE.txt, then produce LICENSE2.txt.
+
+.SH COPYRIGHT
+Copyright 2025 Robyn Kirkman.  BSD 2-clause license.
+
+.SH AUTHOR
+Robyn Kirkman (robyn@robynkirkman.us)
