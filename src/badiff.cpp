@@ -146,6 +146,7 @@ std::unique_ptr<Delta> Delta::Make(const char *original, int original_len,
     middle->Push(Op(Op::INSERT, len, std::move(value)));
   }
 
+  middle.reset(new q::ChunkingOpQueue(std::move(middle)));
   middle.reset(new q::GraphOpQueue(
       std::move(middle), std::unique_ptr<alg::Graph>(new alg::InertialGraph),
       q::GraphOpQueue::ANY));
@@ -279,6 +280,7 @@ std::unique_ptr<Delta> Delta::Make(std::istream &original, int original_len,
     middle->Push(Op(Op::INSERT, len, std::move(value)));
   }
 
+  middle.reset(new q::ChunkingOpQueue(std::move(middle)));
   middle.reset(new q::GraphOpQueue(
       std::move(middle), std::unique_ptr<alg::Graph>(new alg::InertialGraph),
       q::GraphOpQueue::ANY));
