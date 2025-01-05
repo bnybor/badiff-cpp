@@ -30,18 +30,18 @@ bool CONSOLE_OUTPUT = false;
 namespace {
 std::unique_ptr<q::OpQueue> ComputeDiff(std::unique_ptr<q::OpQueue> op_queue) {
 
-  op_queue.reset(
-      new q::GraphOpQueue(std::move(op_queue),
-                          std::unique_ptr<alg::Graph>(new alg::InertialGraph)));
+  op_queue.reset(new q::GraphOpQueue(
+      std::move(op_queue), std::unique_ptr<alg::Graph>(new alg::InertialGraph),
+      q::GraphOpQueue::DELETE_THEN_INSERT));
 
   op_queue.reset(new q::CoalescingOpQueue(std::move(op_queue)));
   op_queue.reset(new q::CompactingOpQueue(std::move(op_queue)));
 
   op_queue.reset(new q::ChunkingOpQueue(std::move(op_queue)));
 
-  op_queue.reset(
-      new q::GraphOpQueue(std::move(op_queue),
-                          std::unique_ptr<alg::Graph>(new alg::InertialGraph)));
+  op_queue.reset(new q::GraphOpQueue(
+      std::move(op_queue), std::unique_ptr<alg::Graph>(new alg::InertialGraph),
+      q::GraphOpQueue::INSERT_THEN_DELETE));
 
   op_queue.reset(new q::CoalescingOpQueue(std::move(op_queue)));
   op_queue.reset(new q::CompactingOpQueue(std::move(op_queue)));
@@ -140,7 +140,8 @@ std::unique_ptr<Delta> Delta::Make(const char *original, int original_len,
   }
 
   middle.reset(new q::GraphOpQueue(
-      std::move(middle), std::unique_ptr<alg::Graph>(new alg::InertialGraph)));
+      std::move(middle), std::unique_ptr<alg::Graph>(new alg::InertialGraph),
+      q::GraphOpQueue::ANY));
   middle.reset(new q::MinimizeOpQueue(std::move(middle)));
 
   op_queue.reset(new q::OpQueue);
@@ -262,7 +263,8 @@ std::unique_ptr<Delta> Delta::Make(std::istream &original, int original_len,
   }
 
   middle.reset(new q::GraphOpQueue(
-      std::move(middle), std::unique_ptr<alg::Graph>(new alg::InertialGraph)));
+      std::move(middle), std::unique_ptr<alg::Graph>(new alg::InertialGraph),
+      q::GraphOpQueue::ANY));
   middle.reset(new q::MinimizeOpQueue(std::move(middle)));
 
   op_queue.reset(new q::OpQueue);

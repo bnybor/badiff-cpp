@@ -9,12 +9,19 @@ namespace q {
 
 class GraphOpQueue : public FilterOpQueue {
 public:
+  enum Pairing {
+    INSERT_THEN_DELETE,
+    DELETE_THEN_INSERT,
+    ANY,
+  };
+
   GraphOpQueue(std::unique_ptr<OpQueue> source,
-               std::unique_ptr<alg::Graph> graph);
+               std::unique_ptr<alg::Graph> graph, Pairing pairing = ANY);
   virtual ~GraphOpQueue();
 
 protected:
   std::unique_ptr<alg::Graph> graph_;
+  Pairing pairing_;
 
   virtual bool Pull() override;
 };
