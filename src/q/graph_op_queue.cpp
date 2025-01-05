@@ -6,8 +6,9 @@ namespace badiff {
 namespace q {
 
 GraphOpQueue::GraphOpQueue(std::unique_ptr<OpQueue> source,
-                           std::unique_ptr<alg::Graph> graph)
-    : FilterOpQueue(std::move(source)), graph_(std::move(graph)) {}
+                           std::unique_ptr<alg::Graph> graph, Pairing pairing)
+    : FilterOpQueue(std::move(source)), graph_(std::move(graph)),
+      pairing_(pairing) {}
 
 GraphOpQueue::~GraphOpQueue() {}
 
@@ -24,10 +25,12 @@ bool GraphOpQueue::Pull() {
   Op delete_op;
   Op insert_op;
 
-  if (op0.GetType() == Op::DELETE && op1.GetType() == Op::INSERT) {
+  if (op0.GetType() == Op::DELETE && op1.GetType() == Op::INSERT &&
+      pairing_ != INSERT_THEN_DELETE) {
     delete_op = std::move(op0);
     insert_op = std::move(op1);
-  } else if (op1.GetType() == Op::DELETE && op0.GetType() == Op::INSERT) {
+  } else if (op1.GetType() == Op::DELETE && op0.GetType() == Op::INSERT &&
+             pairing_ != DELETE_THEN_INSERT) {
     delete_op = std::move(op1);
     insert_op = std::move(op0);
   } else
