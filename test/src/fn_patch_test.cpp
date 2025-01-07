@@ -45,6 +45,10 @@ TEST_F(FnPatchTest, PatchNonOriginalStruct) {
   // Treating structs as char* means the atomic unit of diffing
   // is a byte, not an integer, so diffs may be on an intra-integer level.
 
+  // It is also worth pointing out that badiff is optimized for the size of the
+  // serialized delta, which will always be correct but may not be what you
+  // expect.
+
   struct Data {
     int a;
     int b;
