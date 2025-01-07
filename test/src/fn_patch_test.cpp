@@ -11,6 +11,10 @@ public:
 };
 
 TEST_F(FnPatchTest, PatchStruct) {
+  // This test is someone misleading, operating on integers.
+  // It should be rewritten to operate on character arrays or something.
+  // Treating structs as char* means the atomic unit of diffing
+  // is a byte, not an integer, so diffs may be on an intra-integer level.
 
   struct Data {
     int a;
