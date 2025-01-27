@@ -25,6 +25,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <istream>
 #include <memory>
 #include <ostream>
+#include <string>
 
 namespace badiff {
 
@@ -46,6 +47,9 @@ struct Delta {
    */
   static std::unique_ptr<Delta> Make(std::istream &original, int original_len,
                                      std::istream &target, int target_len);
+
+  static std::unique_ptr<Delta> Make(std::string original_file,
+                                     std::string target_file);
 
   /**
    * \brief The length of the original.
@@ -76,10 +80,14 @@ struct Delta {
    */
   void Apply(const char *original, char *target);
 
+  void Apply(std::string original_file, std::string target_file);
+
   /**
    * \brief Serialize the delta to a stream, with versioning.
    */
   void Serialize(std::ostream &out) const;
+
+  void Serialize(std::string delta_file) const;
 
   /**
    * \brief Deserialize the delta from a stream, with versioning.
@@ -87,6 +95,8 @@ struct Delta {
    * Returns false on failure.
    */
   bool Deserialize(std::istream &in);
+
+  bool Deserialize(std::string delta_file);
 };
 
 } // namespace badiff

@@ -40,10 +40,20 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <badiff/q/rstream_replace_op_queue.hpp>
 #include <badiff/q/stream_replace_op_queue.hpp>
 
+#include <fstream>
 #include <istream>
 #include <map>
 #include <ostream>
 #include <sstream>
+
+#include <malloc.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#include <sys/file.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
 
 namespace badiff {
 bool CONSOLE_OUTPUT = false;
@@ -335,6 +345,46 @@ std::unique_ptr<Delta> Delta::Make(std::istream &original, int original_len,
   return diff;
 }
 
+std::unique_ptr<Delta> Delta::Make(std::string original_file,
+                                   std::string target_file) {
+  struct stat original_stat;
+  int original_fd;
+  original_fd = open(original_file.c_str(), O_RDONLY, 0);
+  if (original_fd == -1)
+    return nullptr;
+  if (fstat(original_fd, &original_stat) == -1) {
+    close(original_fd);
+    return nullptr;
+  }
+
+  struct stat target_stat;
+  int target_fd;
+  target_fd = open(target_file.c_str(), O_RDONLY, 0);
+  if (target_fd == -1) {
+    close(original_fd);
+    return nullptr;
+  }
+  if (fstat(target_fd, &target_stat) == -1) {
+    close(original_fd);
+    close(target_fd);
+    return nullptr;
+  }
+
+  int original_size = original_stat.st_size;
+  int target_size = target_stat.st_size;
+
+  const char *original_mmap = (const char *)mmap(NULL, original_size, PROT_READ,
+                                                 MAP_PRIVATE, original_fd, 0);
+  const char *target_mmap = (const char *)mmap(NULL, target_size, PROT_READ,
+                                               MAP_PRIVATE, target_fd, 0);
+
+  auto diff = badiff::Delta::Make(original_mmap, original_stat.st_size,
+                                  target_mmap, target_stat.st_size);
+  close(original_fd);
+  close(target_fd);
+  return std::move(diff);
+}
+
 void Delta::Apply(std::istream &original, std::ostream &target) {
   std::istringstream in(std::string(delta_.get(), delta_len_));
   std::unique_ptr<q::OpQueue> op_queue(new q::OpQueue);
@@ -355,6 +405,12 @@ void Delta::Apply(const char *original, char *target) {
 
   op_queue->Deserialize(diff_stream);
   op_queue->Apply(original_stream, target_stream);
+}
+
+void Delta::Apply(std::string original_file, std::string target_file) {
+  std::ifstream original_stream(original_file);
+  std::ofstream target_stream(target_file);
+  Apply(original_stream, target_stream);
 }
 
 static const char *MAGIC = "\xBA\xD1\xFF";
@@ -407,6 +463,11 @@ void Delta::Serialize(std::ostream &out) const {
   out.write(delta_.get(), delta_len_);
 }
 
+void Delta::Serialize(std::string delta_file) const {
+  std::ofstream delta_stream(delta_file);
+  Serialize(delta_stream);
+}
+
 bool Delta::Deserialize(std::istream &in) {
   char magic[sizeof(MAGIC)];
   in.read(magic, sizeof(MAGIC));
@@ -437,6 +498,11 @@ bool Delta::Deserialize(std::istream &in) {
   delta_.reset(new char[delta_len_]);
   in.read(delta_.get(), delta_len_);
   return true;
+}
+
+bool Delta::Deserialize(std::string delta_file) {
+  std::ifstream delta_stream(delta_file);
+  return Deserialize(delta_stream);
 }
 
 } // namespace badiff
