@@ -38,7 +38,7 @@ namespace badiff {
 extern bool CONSOLE_OUTPUT;
 }
 
-static void help() {
+static int help(int status) {
   printf("badiff: Binary diffing and patching tool tool.\n");
   printf("\n");
   printf("badiff diff [-v] <original> <target> <delta>\n"
@@ -53,45 +53,49 @@ static void help() {
          "      <original>          Original file\n"
          "      <target>            Target file\n"
          "      <delta>             Delta file, '-' for stdin\n");
+  return status;
 }
 
 int main(int argc, const char **argv) {
   using badiff::Delta;
 
-  if (argc < 2) {
-    help();
-    return EXIT_FAILURE;
-  }
-
   mallopt(M_MMAP_THRESHOLD, 128 * 1024 * 1024);
 
-  const char **arg = argv;
-  std::string command(*++arg);
+  int arg = 0;
 
-  if (command == "help") {
-    help();
-    return EXIT_SUCCESS;
-  } else if (command == "diff") {
-    if (argc < 5 && argc > 6) {
-      help();
-      return EXIT_FAILURE;
-    }
+  if (++arg == argc)
+    return help(EXIT_FAILURE);
 
-    if (std::string(*++arg) == "-v") {
-      badiff::CONSOLE_OUTPUT = true;
-      --argv;
-    } else {
-      --arg;
-    }
+  std::string command(argv[arg++]);
 
-    if (argc != 5) {
-      help();
-      return EXIT_FAILURE;
-    }
+  if (command == "help" && !*argv) {
+    return help(EXIT_SUCCESS);
+  } else if (command != "diff" && command != "patch") {
+    return help(EXIT_FAILURE);
+  }
+  if (arg == argc)
+    return help(EXIT_FAILURE);
 
-    std::string original(*++arg);
-    std::string target(*++arg);
-    std::string delta(*++arg);
+  std::string original(argv[arg++]);
+  if (original == "-v") {
+    badiff::CONSOLE_OUTPUT = true;
+    if (arg == argc)
+      return help(EXIT_FAILURE);
+    original = std::string(argv[arg++]);
+  }
+
+  if (arg == argc)
+    return help(EXIT_FAILURE);
+  std::string target(argv[arg++]);
+
+  if (arg == argc)
+    return help(EXIT_FAILURE);
+  std::string delta(argv[arg++]);
+
+  if (arg != argc)
+    return help(EXIT_FAILURE);
+
+  if (command == "diff") {
 
     auto diff = badiff::Delta::Make(original, target);
 
@@ -100,19 +104,10 @@ int main(int argc, const char **argv) {
     } else {
       diff->Serialize(delta);
     }
+  } else if (command == "patch") {
 
     if (badiff::CONSOLE_OUTPUT)
       printf("\n");
-
-  } else if (command == "patch") {
-    if (argc != 5) {
-      help();
-      return EXIT_FAILURE;
-    }
-
-    std::string original(*++arg);
-    std::string target(*++arg);
-    std::string delta(*++arg);
 
     std::unique_ptr<badiff::Delta> diff(new badiff::Delta);
 
@@ -129,10 +124,8 @@ int main(int argc, const char **argv) {
     }
 
     diff->Apply(original, target);
-
   } else {
-    help();
-    return EXIT_FAILURE;
+    return help(EXIT_FAILURE);
   }
 
   return EXIT_SUCCESS;
