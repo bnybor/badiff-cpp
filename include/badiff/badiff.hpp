@@ -42,12 +42,16 @@ struct Delta {
   /**
    * \brief Compute a delta using two streams and their lengths.
    *
-   * Adding the lengths helps badiff split the inputs into chunks more
-   * effectively.
+   * The streams must support istream::seekg.
    */
   static std::unique_ptr<Delta> Make(std::istream &original, int original_len,
                                      std::istream &target, int target_len);
 
+  /**
+   * \brief Memory-maps files and computes the diff.
+   *
+   * Computes the diff using Delta::Make(const char*, int, const char*, int).
+   */
   static std::unique_ptr<Delta> Make(std::string original_file,
                                      std::string target_file);
 
@@ -80,6 +84,11 @@ struct Delta {
    */
   void Apply(const char *original, char *target);
 
+  /**
+   * \brief Apply a delta to files.
+   *
+   * Opens files as std::ifstream and std::ofstream.
+   */
   void Apply(std::string original_file, std::string target_file);
 
   /**
@@ -87,6 +96,11 @@ struct Delta {
    */
   void Serialize(std::ostream &out) const;
 
+  /**
+   * \brief Serialize a diff to a file.
+   *
+   * Opens the file as std::ofstream.
+   */
   void Serialize(std::string delta_file) const;
 
   /**
@@ -96,6 +110,11 @@ struct Delta {
    */
   bool Deserialize(std::istream &in);
 
+  /**
+   * \brief Deserializes a diff from a file.
+   *
+   * Opens the file as std::ifstream.
+   */
   bool Deserialize(std::string delta_file);
 };
 
