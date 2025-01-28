@@ -22,6 +22,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include <malloc.h>
 #include <stdio.h>
@@ -61,41 +62,43 @@ int main(int argc, const char **argv) {
 
   mallopt(M_MMAP_THRESHOLD, 128 * 1024 * 1024);
 
-  int arg = 0;
+  struct {
+    bool verbose_ = false;
+    bool positional_only_ = false;
+  } flags;
+  std::vector<std::string> positional_args;
 
-  if (++arg == argc)
-    return help(EXIT_FAILURE);
-
-  std::string command(argv[arg++]);
-
-  if (command == "help" && !*argv) {
-    return help(EXIT_SUCCESS);
-  } else if (command != "diff" && command != "patch") {
-    return help(EXIT_FAILURE);
+  for (int i = 1; i < argc; ++i) {
+    std::string arg(argv[i]);
+    if (flags.positional_only_)
+      positional_args.push_back(arg);
+    else if (arg == "-v" || arg == "--verbose")
+      flags.verbose_ = true;
+    else if (arg == "--")
+      flags.positional_only_ = true;
+    else
+      positional_args.push_back(arg);
   }
-  if (arg == argc)
-    return help(EXIT_FAILURE);
 
-  std::string original(argv[arg++]);
-  if (original == "-v") {
+  if (flags.verbose_)
     badiff::CONSOLE_OUTPUT = true;
-    if (arg == argc)
-      return help(EXIT_FAILURE);
-    original = std::string(argv[arg++]);
+
+  if (positional_args.empty()) {
+    return help(EXIT_FAILURE);
   }
 
-  if (arg == argc)
-    return help(EXIT_FAILURE);
-  std::string target(argv[arg++]);
+  std::string command = positional_args[0];
+  if (command == "help") {
+    if (positional_args.size() != 1)
+      return help(EXIT_FAILURE);
+    return help(EXIT_SUCCESS);
+  } else if (command == "diff") {
+    if (positional_args.size() != 4)
+      return help(EXIT_FAILURE);
 
-  if (arg == argc)
-    return help(EXIT_FAILURE);
-  std::string delta(argv[arg++]);
-
-  if (arg != argc)
-    return help(EXIT_FAILURE);
-
-  if (command == "diff") {
+    std::string original = positional_args[1];
+    std::string target = positional_args[2];
+    std::string delta = positional_args[3];
 
     auto diff = badiff::Delta::Make(original, target);
 
@@ -104,10 +107,18 @@ int main(int argc, const char **argv) {
     } else {
       diff->Serialize(delta);
     }
-  } else if (command == "patch") {
 
     if (badiff::CONSOLE_OUTPUT)
       printf("\n");
+
+    return EXIT_SUCCESS;
+  } else if (command == "patch" && positional_args.size() == 4) {
+    if (positional_args.size() != 4)
+      return help(EXIT_FAILURE);
+
+    std::string original = positional_args[1];
+    std::string target = positional_args[2];
+    std::string delta = positional_args[3];
 
     std::unique_ptr<badiff::Delta> diff(new badiff::Delta);
 
@@ -124,9 +135,9 @@ int main(int argc, const char **argv) {
     }
 
     diff->Apply(original, target);
+
+    return EXIT_SUCCESS;
   } else {
     return help(EXIT_FAILURE);
   }
-
-  return EXIT_SUCCESS;
 }
