@@ -229,12 +229,7 @@ std::unique_ptr<Delta> MakeParameterized(MakeParameters parameters) {
     middle->Push(Op(Op::INSERT, len, std::move(value)));
   }
 
-  // Chunk the middle queue and graph it.
-  middle.reset(new q::ChunkingOpQueue(std::move(middle)));
-  middle.reset(new q::GraphOpQueue(
-      std::move(middle), std::unique_ptr<alg::Graph>(new alg::InertialGraph),
-      q::GraphOpQueue::ANY));
-  middle.reset(new q::MinimizeOpQueue(std::move(middle)));
+  middle = ComputeDiff(std::move(middle));
 
   // Combine the selected forward ops, middle ops, and backwards ops.
 
