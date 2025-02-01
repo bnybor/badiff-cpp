@@ -22,6 +22,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include <malloc.h>
 #include <stdio.h>
@@ -38,7 +39,7 @@ namespace badiff {
 extern bool CONSOLE_OUTPUT;
 }
 
-static void help() {
+static int help(int status) {
   printf("badiff: Binary diffing and patching tool tool.\n");
   printf("\n");
   printf("badiff diff [-v] <original> <target> <delta>\n"
@@ -53,104 +54,90 @@ static void help() {
          "      <original>          Original file\n"
          "      <target>            Target file\n"
          "      <delta>             Delta file, '-' for stdin\n");
+  return status;
 }
 
 int main(int argc, const char **argv) {
   using badiff::Delta;
 
-  if (argc < 2) {
-    help();
-    return EXIT_FAILURE;
-  }
-
   mallopt(M_MMAP_THRESHOLD, 128 * 1024 * 1024);
 
-  const char **arg = argv;
-  std::string command(*++arg);
+  struct {
+    bool verbose_ = false;
+    bool positional_only_ = false;
+  } flags;
+  std::vector<std::string> positional_args;
 
+  for (int i = 1; i < argc; ++i) {
+    std::string arg(argv[i]);
+    if (flags.positional_only_)
+      positional_args.push_back(arg);
+    else if (arg == "-v" || arg == "--verbose")
+      flags.verbose_ = true;
+    else if (arg == "--")
+      flags.positional_only_ = true;
+    else
+      positional_args.push_back(arg);
+  }
+
+  if (flags.verbose_)
+    badiff::CONSOLE_OUTPUT = true;
+
+  if (positional_args.empty()) {
+    return help(EXIT_FAILURE);
+  }
+
+  std::string command = positional_args[0];
   if (command == "help") {
-    help();
-    return EXIT_SUCCESS;
+    if (positional_args.size() != 1)
+      return help(EXIT_FAILURE);
+    return help(EXIT_SUCCESS);
   } else if (command == "diff") {
-    if (argc < 5 && argc > 6) {
-      help();
-      return EXIT_FAILURE;
-    }
+    if (positional_args.size() != 4)
+      return help(EXIT_FAILURE);
 
-    if (std::string(*++arg) == "-v") {
-      badiff::CONSOLE_OUTPUT = true;
-    } else {
-      --arg;
-    }
+    std::string original = positional_args[1];
+    std::string target = positional_args[2];
+    std::string delta = positional_args[3];
 
-    std::string original(*++arg);
-    std::string target(*++arg);
-    std::string delta(*++arg);
-
-    struct stat original_stat;
-    int original_fd;
-    original_fd = open(original.c_str(), O_RDONLY, 0);
-    fstat(original_fd, &original_stat);
-
-    struct stat target_stat;
-    int target_fd;
-    target_fd = open(target.c_str(), O_RDONLY, 0);
-    fstat(target_fd, &target_stat);
-
-    int original_size = original_stat.st_size;
-    int target_size = target_stat.st_size;
-
-    const char *original_mmap = (const char *)mmap(
-        NULL, original_size, PROT_READ, MAP_PRIVATE, original_fd, 0);
-    const char *target_mmap = (const char *)mmap(NULL, target_size, PROT_READ,
-                                                 MAP_PRIVATE, target_fd, 0);
-
-    auto diff = badiff::Delta::Make(original_mmap, original_stat.st_size,
-                                    target_mmap, target_stat.st_size);
+    auto diff = badiff::Delta::Make(original, target);
 
     if (delta == "-") {
       diff->Serialize(std::cout);
     } else {
-      std::ofstream delta_stream(delta);
-      diff->Serialize(delta_stream);
+      diff->Serialize(delta);
     }
 
     if (badiff::CONSOLE_OUTPUT)
       printf("\n");
 
-  } else if (command == "patch") {
-    if (argc != 5) {
-      help();
-      return EXIT_FAILURE;
-    }
+    return EXIT_SUCCESS;
+  } else if (command == "patch" && positional_args.size() == 4) {
+    if (positional_args.size() != 4)
+      return help(EXIT_FAILURE);
 
-    std::string original(*++arg);
-    std::string target(*++arg);
-    std::string delta(*++arg);
+    std::string original = positional_args[1];
+    std::string target = positional_args[2];
+    std::string delta = positional_args[3];
 
     std::unique_ptr<badiff::Delta> diff(new badiff::Delta);
 
-    std::ifstream original_stream(original);
     if (delta == "-") {
       if (!diff->Deserialize(std::cin)) {
         fprintf(stderr, "Bad diff.\n");
         return EXIT_FAILURE;
       }
     } else {
-      std::ifstream delta_stream(delta);
-      if (!diff->Deserialize(delta_stream)) {
+      if (!diff->Deserialize(delta)) {
         fprintf(stderr, "Bad diff.\n");
         return EXIT_FAILURE;
       }
     }
 
-    std::ofstream target_stream(target);
-    diff->Apply(original_stream, target_stream);
+    diff->Apply(original, target);
 
+    return EXIT_SUCCESS;
   } else {
-    help();
-    return EXIT_FAILURE;
+    return help(EXIT_FAILURE);
   }
-
-  return EXIT_SUCCESS;
 }

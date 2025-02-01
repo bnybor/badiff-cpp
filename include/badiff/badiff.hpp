@@ -25,6 +25,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <istream>
 #include <memory>
 #include <ostream>
+#include <string>
 
 namespace badiff {
 
@@ -41,11 +42,18 @@ struct Delta {
   /**
    * \brief Compute a delta using two streams and their lengths.
    *
-   * Adding the lengths helps badiff split the inputs into chunks more
-   * effectively.
+   * The streams must support istream::seekg.
    */
   static std::unique_ptr<Delta> Make(std::istream &original, int original_len,
                                      std::istream &target, int target_len);
+
+  /**
+   * \brief Memory-maps files and computes the diff.
+   *
+   * Computes the diff using Delta::Make(const char*, int, const char*, int).
+   */
+  static std::unique_ptr<Delta> Make(std::string original_file,
+                                     std::string target_file);
 
   /**
    * \brief The length of the original.
@@ -77,9 +85,23 @@ struct Delta {
   void Apply(const char *original, char *target);
 
   /**
+   * \brief Apply a delta to files.
+   *
+   * Opens files as std::ifstream and std::ofstream.
+   */
+  void Apply(std::string original_file, std::string target_file);
+
+  /**
    * \brief Serialize the delta to a stream, with versioning.
    */
   void Serialize(std::ostream &out) const;
+
+  /**
+   * \brief Serialize a diff to a file.
+   *
+   * Opens the file as std::ofstream.
+   */
+  void Serialize(std::string delta_file) const;
 
   /**
    * \brief Deserialize the delta from a stream, with versioning.
@@ -87,6 +109,13 @@ struct Delta {
    * Returns false on failure.
    */
   bool Deserialize(std::istream &in);
+
+  /**
+   * \brief Deserializes a diff from a file.
+   *
+   * Opens the file as std::ifstream.
+   */
+  bool Deserialize(std::string delta_file);
 };
 
 } // namespace badiff
