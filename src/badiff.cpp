@@ -229,6 +229,7 @@ std::unique_ptr<Delta> MakeParameterized(MakeParameters parameters) {
     middle->Push(Op(Op::INSERT, len, std::move(value)));
   }
 
+  middle.reset(new q::ChunkingOpQueue(std::move(middle)));
   middle = ComputeDiff(std::move(middle));
 
   // Combine the selected forward ops, middle ops, and backwards ops.
