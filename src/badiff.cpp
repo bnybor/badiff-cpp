@@ -75,10 +75,6 @@ std::unique_ptr<q::OpQueue> ComputeDiff(std::unique_ptr<q::OpQueue> op_queue) {
 
   // Post-process the raw diff.
   op_queue.reset(new q::CoalescingOpQueue(std::move(op_queue)));
-  op_queue.reset(new q::CompactingOpQueue(std::move(op_queue)));
-
-  // Chunk the processed diff in preparation for a second round of diffing.
-  op_queue.reset(new q::ChunkingOpQueue(std::move(op_queue)));
 
   // Diff again, but swap the chunk ordering.
   op_queue.reset(new q::GraphOpQueue(
