@@ -27,6 +27,7 @@ add_library(badiff_library SHARED
     src/q/minimize_op_queue.cpp
     src/q/op_queue.cpp
     src/q/replace_op_queue.cpp
+    src/q/rewinding_op_queue.cpp
     src/q/rop_queue.cpp
     src/q/rreplace_op_queue.cpp
     src/q/rstream_replace_op_queue.cpp
@@ -59,6 +60,7 @@ add_library(badiff_archive STATIC
     src/q/minimize_op_queue.cpp
     src/q/op_queue.cpp
     src/q/replace_op_queue.cpp
+    src/q/rewinding_op_queue.cpp
     src/q/rop_queue.cpp
     src/q/rreplace_op_queue.cpp
     src/q/rstream_replace_op_queue.cpp
