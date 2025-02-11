@@ -22,6 +22,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <badiff/q/replace_op_queue.hpp>
 
 namespace badiff {
+extern bool CONSOLE_OUTPUT;
+
 namespace q {
 
 ReplaceOpQueue::ReplaceOpQueue(const char *original, int original_size,
@@ -47,6 +49,10 @@ bool ReplaceOpQueue::Pull() {
     Prepare(Op(Op::DELETE, size, std::move(value)));
     original_pos_ += size;
     prepared = true;
+    if (CONSOLE_OUTPUT) {
+      printf("-");
+      fflush(stdout);
+    }
   }
   if (target_pos_ < target_len_) {
     int size = std::min(target_chunk_len_, target_len_ - target_pos_);
@@ -55,6 +61,10 @@ bool ReplaceOpQueue::Pull() {
     Prepare(Op(Op::INSERT, size, std::move(value)));
     target_pos_ += size;
     prepared = true;
+    if (CONSOLE_OUTPUT) {
+      printf("+");
+      fflush(stdout);
+    }
   }
   return prepared;
 }
