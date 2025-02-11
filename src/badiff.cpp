@@ -118,7 +118,8 @@ std::unique_ptr<Delta> MakeParameterized(MakeParameters parameters) {
 std::unique_ptr<Delta>
 Delta::Make(const char *original, int original_len, const char *target,
             int target_len,
-            std::function<void(int original_pos, int target_pos)> *reporter) {
+            std::function<void(int original_pos, int target_pos,
+                               int original_len, int target_len)> *reporter) {
   // OpQueues for the byte arrays, in order and in reverse order.
   std::unique_ptr<q::OpQueue> op_queue(new q::ReplaceOpQueue(
       original, original_len, target, target_len, DEFAULT_CHUNK, reporter));
@@ -134,7 +135,8 @@ Delta::Make(const char *original, int original_len, const char *target,
 std::unique_ptr<Delta>
 Delta::Make(std::istream &original, int original_len, std::istream &target,
             int target_len,
-            std::function<void(int original_pos, int target_pos)> *reporter) {
+            std::function<void(int original_pos, int target_pos,
+                               int original_len, int target_len)> *reporter) {
   std::unique_ptr<q::OpQueue> op_queue(new q::StreamReplaceOpQueue(
       original, original_len, target, target_len, DEFAULT_CHUNK, reporter));
 
@@ -148,7 +150,8 @@ Delta::Make(std::istream &original, int original_len, std::istream &target,
 
 std::unique_ptr<Delta>
 Delta::Make(std::string original_file, std::string target_file,
-            std::function<void(int original_pos, int target_pos)> *reporter) {
+            std::function<void(int original_pos, int target_pos,
+                               int original_len, int target_len)> *reporter) {
   // Memory-map the files and diff them.
 
   struct stat original_stat;

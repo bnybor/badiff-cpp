@@ -33,16 +33,18 @@ namespace q {
 
 class ReplaceOpQueue : public OpQueue {
 public:
-  ReplaceOpQueue(const char *original, int original_len, const char *target,
-                 int target_len, int max_chunk_len = DEFAULT_CHUNK,
-                 std::function<void(int original_pos, int target_pos)>
-                     *reporter = nullptr);
+  ReplaceOpQueue(
+      const char *original, int original_len, const char *target,
+      int target_len, int max_chunk_len = DEFAULT_CHUNK,
+      std::function<void(int original_pos, int target_pos, int original_len,
+                         int target_len)> *reporter = nullptr);
   virtual ~ReplaceOpQueue();
 
 protected:
   bool Pull() override;
 
-  std::function<void(int original_pos, int target_pos)> *reporter_;
+  std::function<void(int original_pos, int target_pos, int original_len,
+                     int target_len)> *reporter_;
 
   const char *original_;
   const char *target_;

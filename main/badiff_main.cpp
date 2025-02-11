@@ -76,11 +76,15 @@ int main(int argc, const char **argv) {
       positional_args.push_back(arg);
   }
 
-  std::function<void(int original_pos, int target_pos)> *reporter = nullptr;
+  std::function<void(int original_pos, int target_pos, int original_len,
+                     int target_len)> *reporter = nullptr;
 
-  std::function<void(int original_pos, int target_pos)> verbose_reporter(
-      [](int original_pos, int target_pos) {
-        printf("%i %i\n", original_pos, target_pos);
+  std::function<void(int original_pos, int target_pos, int original_len,
+                     int target_len)>
+      verbose_reporter([](int original_pos, int target_pos, int original_len,
+                          int target_len) {
+        printf("%i%% %i%%\n", (int)(100 * original_pos / (double)original_len),
+               (int)(100 * target_pos / (double)target_len));
       });
 
   if (flags.verbose_) {

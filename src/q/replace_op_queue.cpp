@@ -27,7 +27,8 @@ namespace q {
 ReplaceOpQueue::ReplaceOpQueue(
     const char *original, int original_size, const char *target,
     int target_size, int max_chunk_size,
-    std::function<void(int original_pos, int target_pos)> *reporter)
+    std::function<void(int original_pos, int target_pos, int original_len,
+                       int target_len)> *reporter)
     : original_(original), target_(target), original_pos_(0),
       original_len_(original_size), target_pos_(0), target_len_(target_size) {
   reporter_ = reporter;
@@ -59,7 +60,7 @@ bool ReplaceOpQueue::Pull() {
     prepared = true;
   }
   if (prepared && reporter_) {
-    (*reporter_)(original_pos_, target_pos_);
+    (*reporter_)(original_pos_, target_pos_, original_len_, target_len_);
   }
   return prepared;
 }

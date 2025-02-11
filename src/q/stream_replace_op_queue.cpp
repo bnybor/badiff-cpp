@@ -27,7 +27,8 @@ namespace q {
 StreamReplaceOpQueue::StreamReplaceOpQueue(
     std::istream &original, int original_len, std::istream &target,
     int target_len, int max_chunk_len,
-    std::function<void(int original_pos, int target_pos)> *reporter)
+    std::function<void(int original_pos, int target_pos, int original_len,
+                       int target_len)> *reporter)
     : original_(original), target_(target), original_len_(original_len),
       target_len_(target_len) {
   reporter_ = reporter;
@@ -64,7 +65,7 @@ bool StreamReplaceOpQueue::Pull() {
     prepared = true;
   }
   if (prepared && reporter_) {
-    (*reporter_)(original_pos_, target_pos_);
+    (*reporter_)(original_pos_, target_pos_, original_len_, target_len_);
   }
   return prepared;
 }
