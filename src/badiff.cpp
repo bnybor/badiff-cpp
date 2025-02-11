@@ -35,6 +35,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <badiff/q/minimize_op_queue.hpp>
 #include <badiff/q/op_queue.hpp>
 #include <badiff/q/replace_op_queue.hpp>
+#include <badiff/q/rewinding_op_queue.hpp>
 #include <badiff/q/rop_queue.hpp>
 #include <badiff/q/rreplace_op_queue.hpp>
 #include <badiff/q/rstream_replace_op_queue.hpp>
@@ -72,6 +73,7 @@ std::unique_ptr<q::OpQueue> ComputeDiff(std::unique_ptr<q::OpQueue> op_queue) {
   op_queue.reset(new q::GraphOpQueue(
       std::move(op_queue), std::unique_ptr<alg::Graph>(new alg::InertialGraph),
       q::GraphOpQueue::DELETE_THEN_INSERT));
+  op_queue.reset(new q::RewindingOpQueue(std::move(op_queue)));
 
   // Post-process the raw diff.
   op_queue.reset(new q::CoalescingOpQueue(std::move(op_queue)));
@@ -80,6 +82,7 @@ std::unique_ptr<q::OpQueue> ComputeDiff(std::unique_ptr<q::OpQueue> op_queue) {
   op_queue.reset(new q::GraphOpQueue(
       std::move(op_queue), std::unique_ptr<alg::Graph>(new alg::InertialGraph),
       q::GraphOpQueue::INSERT_THEN_DELETE));
+  op_queue.reset(new q::RewindingOpQueue(std::move(op_queue)));
 
   // Post-process the secondary diff.
   op_queue.reset(new q::CoalescingOpQueue(std::move(op_queue)));
