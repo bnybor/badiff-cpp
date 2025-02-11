@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(badiff_library VERSION 1.1.2)
+project(badiff_library VERSION 1.1.3)
 
 enable_testing()
 
