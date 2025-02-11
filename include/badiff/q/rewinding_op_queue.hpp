@@ -19,37 +19,28 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include <badiff/q/rop_queue.hpp>
+#ifndef BADIFF_Q_REWINDING_OP_QUEUE_HPP_
+#define BADIFF_Q_REWINDING_OP_QUEUE_HPP_
 
-#include <algorithm>
+#include <badiff/q/filter_op_queue.hpp>
+
+#include <map>
 
 namespace badiff {
 namespace q {
 
-ROpQueue::ROpQueue(std::unique_ptr<OpQueue> source)
-    : FilterOpQueue(std::move(source)) {}
+class RewindingOpQueue : public FilterOpQueue {
+public:
+  RewindingOpQueue(std::unique_ptr<OpQueue> op_queue);
 
-ROpQueue::~ROpQueue() {}
+protected:
+  std::vector<Op> history_;
 
-bool ROpQueue::Pull() {
-  if (!Require(1))
-    return false;
-
-  auto op(std::move(filtering_.front()));
-  filtering_.erase(filtering_.begin());
-
-  if (op.GetValue()) {
-    std::unique_ptr<char[]> reverse(new char[op.GetLength()]);
-    for (int i = 0; i < op.GetLength(); i++) {
-      reverse[op.GetLength() - 1 - i] = op.GetValue()[i];
-    }
-    op.MutableValue() = std::move(reverse);
-  }
-
-  Prepare(std::move(op));
-
-  return true;
-}
+  bool FlushHistory();
+  virtual bool Pull() override;
+};
 
 } // namespace q
 } // namespace badiff
+
+#endif /* BADIFF_Q_REWINDING_OP_QUEUE_HPP_ */

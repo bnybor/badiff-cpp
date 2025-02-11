@@ -35,10 +35,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <badiff/badiff.hpp>
 
-namespace badiff {
-extern bool CONSOLE_OUTPUT;
-}
-
 static int help(int status) {
   printf("badiff: Binary diffing and patching tool tool.\n");
   printf("\n");
@@ -80,8 +76,20 @@ int main(int argc, const char **argv) {
       positional_args.push_back(arg);
   }
 
-  if (flags.verbose_)
-    badiff::CONSOLE_OUTPUT = true;
+  std::function<void(int original_pos, int target_pos, int original_len,
+                     int target_len)> *reporter = nullptr;
+
+  std::function<void(int original_pos, int target_pos, int original_len,
+                     int target_len)>
+      verbose_reporter([](int original_pos, int target_pos, int original_len,
+                          int target_len) {
+        printf("%i%% %i%%\n", (int)(100 * original_pos / (double)original_len),
+               (int)(100 * target_pos / (double)target_len));
+      });
+
+  if (flags.verbose_) {
+    reporter = &verbose_reporter;
+  }
 
   if (positional_args.empty()) {
     return help(EXIT_FAILURE);
@@ -100,7 +108,7 @@ int main(int argc, const char **argv) {
     std::string target = positional_args[2];
     std::string delta = positional_args[3];
 
-    auto diff = badiff::Delta::Make(original, target);
+    auto diff = badiff::Delta::Make(original, target, reporter);
 
     if (delta == "-") {
       diff->Serialize(std::cout);
@@ -108,8 +116,8 @@ int main(int argc, const char **argv) {
       diff->Serialize(delta);
     }
 
-    if (badiff::CONSOLE_OUTPUT)
-      printf("\n");
+    if (flags.verbose_)
+      printf("Done.\n");
 
     return EXIT_SUCCESS;
   } else if (command == "patch" && positional_args.size() == 4) {

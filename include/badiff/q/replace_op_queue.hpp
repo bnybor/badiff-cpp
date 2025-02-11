@@ -22,6 +22,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef BADIFF_Q_REPLACE_OP_QUEUE_HPP_
 #define BADIFF_Q_REPLACE_OP_QUEUE_HPP_
 
+#include <functional>
+
 #include <badiff/q/op_queue.hpp>
 
 #include <badiff/defaults.hpp>
@@ -31,12 +33,18 @@ namespace q {
 
 class ReplaceOpQueue : public OpQueue {
 public:
-  ReplaceOpQueue(const char *original, int original_len, const char *target,
-                 int target_len, int max_chunk_len = DEFAULT_CHUNK);
+  ReplaceOpQueue(
+      const char *original, int original_len, const char *target,
+      int target_len, int max_chunk_len = DEFAULT_CHUNK,
+      std::function<void(int original_pos, int target_pos, int original_len,
+                         int target_len)> *reporter = nullptr);
   virtual ~ReplaceOpQueue();
 
 protected:
   bool Pull() override;
+
+  std::function<void(int original_pos, int target_pos, int original_len,
+                     int target_len)> *reporter_;
 
   const char *original_;
   const char *target_;

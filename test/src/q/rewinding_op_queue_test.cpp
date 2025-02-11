@@ -19,24 +19,34 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef BADIFF_Q_ROP_QUEUE_HPP_
-#define BADIFF_Q_ROP_QUEUE_HPP_
+#include <badiff/q/rewinding_op_queue.hpp>
 
-#include <badiff/q/filter_op_queue.hpp>
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
-namespace badiff {
-namespace q {
+using namespace badiff;
 
-class ROpQueue : public FilterOpQueue {
+class RewindingOpQueueTest : public testing::Test {
 public:
-  ROpQueue(std::unique_ptr<OpQueue> source);
-  virtual ~ROpQueue();
-
-protected:
-  virtual bool Pull() override;
+  virtual ~RewindingOpQueueTest() = default;
 };
 
-} // namespace q
-} // namespace badiff
+TEST_F(RewindingOpQueueTest, RewindDeleteTest) {
+  std::unique_ptr<q::OpQueue> op_queue(new q::OpQueue);
+  op_queue->Push(Op(Op::INSERT, "a"));
+  op_queue->Push(Op(Op::INSERT, "b"));
+  op_queue->Push(Op(Op::DELETE, "a"));
 
-#endif /* BADIFF_Q_ROP_QUEUE_HPP_ */
+  op_queue.reset(new q::RewindingOpQueue(std::move(op_queue)));
+  ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), ">1+1");
+}
+
+TEST_F(RewindingOpQueueTest, RewindInsertTest) {
+  std::unique_ptr<q::OpQueue> op_queue(new q::OpQueue);
+  op_queue->Push(Op(Op::DELETE, "a"));
+  op_queue->Push(Op(Op::DELETE, "b"));
+  op_queue->Push(Op(Op::INSERT, "a"));
+
+  op_queue.reset(new q::RewindingOpQueue(std::move(op_queue)));
+  ASSERT_EQ(q::OpQueue::SummarizeConsuming(*op_queue), ">1-1");
+}
