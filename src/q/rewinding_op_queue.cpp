@@ -40,6 +40,7 @@ bool RewindingOpQueue::Pull() {
 
     for (auto op2 = history_.begin(); op2 != history_.end(); ++op2) {
       if (op.GetType() == op2->GetType() ||
+          op.GetLength() != op2->GetLength() ||
           !std::equal(op.GetValue().get(), op.GetValue().get() + op.GetLength(),
                       op2->GetValue().get()))
         continue;
