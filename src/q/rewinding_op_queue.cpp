@@ -40,15 +40,27 @@ bool RewindingOpQueue::Pull() {
 
     for (auto op2 = history_.begin(); op2 != history_.end(); ++op2) {
       if (op.GetType() == op2->GetType() ||
-          op.GetLength() != op2->GetLength() ||
-          !std::equal(op.GetValue().get(), op.GetValue().get() + op.GetLength(),
+          !std::equal(op.GetValue().get(),
+                      op.GetValue().get() +
+                          std::min(op.GetLength(), op2->GetLength()),
                       op2->GetValue().get()))
         continue;
       for (auto dump = history_.begin(); dump < op2; ++dump) {
         Prepare(std::move(*dump));
       }
       history_.erase(history_.begin(), op2 + 1);
-      Prepare(Op(Op::NEXT, op.GetLength()));
+      Prepare(Op(Op::NEXT, std::min(op.GetLength(), op2->GetLength())));
+      if (op.GetLength() != op2->GetLength()) {
+        Op &longer = op.GetLength() > op2->GetLength() ? op : *op2;
+        Op &shorter = op.GetLength() < op2->GetLength() ? op : *op2;
+        std::unique_ptr<char[]> value(
+            new char[longer.GetLength() - shorter.GetLength()]);
+        std::copy(longer.GetValue().get() + shorter.GetLength(),
+                  longer.GetValue().get() + longer.GetLength(), value.get());
+        Op tail(longer.GetType(), longer.GetLength() - shorter.GetLength(),
+                std::move(value));
+        Prepare(tail);
+      }
       return true;
     }
     history_.push_back(std::move(op));
