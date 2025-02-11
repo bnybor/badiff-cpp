@@ -25,7 +25,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace badiff {
 namespace {
-constexpr int DEFAULT_CHUNK = 512;
+constexpr int DEFAULT_CHUNK = 2048;
 }
 } // namespace badiff
 
