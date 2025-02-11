@@ -36,9 +36,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <badiff/q/op_queue.hpp>
 #include <badiff/q/replace_op_queue.hpp>
 #include <badiff/q/rewinding_op_queue.hpp>
-#include <badiff/q/rop_queue.hpp>
-#include <badiff/q/rreplace_op_queue.hpp>
-#include <badiff/q/rstream_replace_op_queue.hpp>
 #include <badiff/q/stream_replace_op_queue.hpp>
 
 #include <fstream>
@@ -58,8 +55,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <sys/stat.h>
 
 namespace badiff {
-bool CONSOLE_OUTPUT = false;
-
 namespace {
 /**
  * \brief Diifs and optimizes an OpQueue..
@@ -92,9 +87,6 @@ std::unique_ptr<q::OpQueue> ComputeDiff(std::unique_ptr<q::OpQueue> op_queue) {
 
 struct MakeParameters {
   std::unique_ptr<q::OpQueue> forward_op_queue_;
-  std::unique_ptr<q::OpQueue> reverse_op_queue_;
-  std::function<char(int)> get_original_;
-  std::function<char(int)> get_target_;
   int original_len_;
   int target_len_;
 };
@@ -123,51 +115,40 @@ std::unique_ptr<Delta> MakeParameterized(MakeParameters parameters) {
 
 } // namespace
 
-std::unique_ptr<Delta> Delta::Make(const char *original, int original_len,
-                                   const char *target, int target_len) {
+std::unique_ptr<Delta>
+Delta::Make(const char *original, int original_len, const char *target,
+            int target_len,
+            std::function<void(int original_pos, int target_pos)> *reporter) {
   // OpQueues for the byte arrays, in order and in reverse order.
-  std::unique_ptr<q::OpQueue> op_queue(
-      new q::ReplaceOpQueue(original, original_len, target, target_len));
-  std::unique_ptr<q::OpQueue> rop_queue(
-      new q::RReplaceOpQueue(original, original_len, target, target_len));
+  std::unique_ptr<q::OpQueue> op_queue(new q::ReplaceOpQueue(
+      original, original_len, target, target_len, DEFAULT_CHUNK, reporter));
 
   MakeParameters parameters;
   parameters.forward_op_queue_ = std::move(op_queue);
-  parameters.reverse_op_queue_ = std::move(rop_queue);
   parameters.original_len_ = original_len;
   parameters.target_len_ = target_len;
-  parameters.get_original_ = [&original](int pos) { return original[pos]; };
-  parameters.get_target_ = [&target](int pos) { return target[pos]; };
 
   return MakeParameterized(std::move(parameters));
 }
 
-std::unique_ptr<Delta> Delta::Make(std::istream &original, int original_len,
-                                   std::istream &target, int target_len) {
-  std::unique_ptr<q::OpQueue> op_queue(
-      new q::StreamReplaceOpQueue(original, original_len, target, target_len));
-  std::unique_ptr<q::OpQueue> rop_queue(
-      new q::RStreamReplaceOpQueue(original, original_len, target, target_len));
+std::unique_ptr<Delta>
+Delta::Make(std::istream &original, int original_len, std::istream &target,
+            int target_len,
+            std::function<void(int original_pos, int target_pos)> *reporter) {
+  std::unique_ptr<q::OpQueue> op_queue(new q::StreamReplaceOpQueue(
+      original, original_len, target, target_len, DEFAULT_CHUNK, reporter));
 
   MakeParameters parameters;
   parameters.forward_op_queue_ = std::move(op_queue);
-  parameters.reverse_op_queue_ = std::move(rop_queue);
   parameters.original_len_ = original_len;
   parameters.target_len_ = target_len;
-  parameters.get_original_ = [&original](int pos) {
-    original.seekg(pos);
-    return original.get();
-  };
-  parameters.get_target_ = [&target](int pos) {
-    target.seekg(pos);
-    return target.get();
-  };
 
   return MakeParameterized(std::move(parameters));
 }
 
-std::unique_ptr<Delta> Delta::Make(std::string original_file,
-                                   std::string target_file) {
+std::unique_ptr<Delta>
+Delta::Make(std::string original_file, std::string target_file,
+            std::function<void(int original_pos, int target_pos)> *reporter) {
   // Memory-map the files and diff them.
 
   struct stat original_stat;
@@ -202,7 +183,7 @@ std::unique_ptr<Delta> Delta::Make(std::string original_file,
                                                MAP_PRIVATE, target_fd, 0);
 
   auto diff = badiff::Delta::Make(original_mmap, original_stat.st_size,
-                                  target_mmap, target_stat.st_size);
+                                  target_mmap, target_stat.st_size, reporter);
   close(original_fd);
   close(target_fd);
   return std::move(diff);

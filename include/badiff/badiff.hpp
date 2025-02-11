@@ -22,6 +22,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef BADIFF_BADIFF_HPP_
 #define BADIFF_BADIFF_HPP_
 
+#include <functional>
 #include <istream>
 #include <memory>
 #include <ostream>
@@ -36,24 +37,32 @@ struct Delta {
   /**
    * \brief Compute a delta using two arrays of bytes.
    */
-  static std::unique_ptr<Delta> Make(const char *original, int original_len,
-                                     const char *target, int target_len);
+  static std::unique_ptr<Delta>
+  Make(const char *original, int original_len, const char *target,
+       int target_len,
+       std::function<void(int original_pos, int target_pos)> *reporter =
+           nullptr);
 
   /**
    * \brief Compute a delta using two streams and their lengths.
    *
    * The streams must support istream::seekg.
    */
-  static std::unique_ptr<Delta> Make(std::istream &original, int original_len,
-                                     std::istream &target, int target_len);
+  static std::unique_ptr<Delta>
+  Make(std::istream &original, int original_len, std::istream &target,
+       int target_len,
+       std::function<void(int original_pos, int target_pos)> *reporter =
+           nullptr);
 
   /**
    * \brief Memory-maps files and computes the diff.
    *
    * Computes the diff using Delta::Make(const char*, int, const char*, int).
    */
-  static std::unique_ptr<Delta> Make(std::string original_file,
-                                     std::string target_file);
+  static std::unique_ptr<Delta>
+  Make(std::string original_file, std::string target_file,
+       std::function<void(int original_pos, int target_pos)> *reporter =
+           nullptr);
 
   /**
    * \brief The length of the original.

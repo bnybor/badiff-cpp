@@ -22,6 +22,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef BADIFF_Q_STREAM_REPLACE_OP_QUEUE_HPP_
 #define BADIFF_Q_STREAM_REPLACE_OP_QUEUE_HPP_
 
+#include <functional>
+
 #include <badiff/q/op_queue.hpp>
 
 #include <badiff/defaults.hpp>
@@ -33,11 +35,15 @@ class StreamReplaceOpQueue : public OpQueue {
 public:
   StreamReplaceOpQueue(std::istream &original, int original_len,
                        std::istream &target, int target_len,
-                       int max_chunk_len = DEFAULT_CHUNK);
+                       int max_chunk_len = DEFAULT_CHUNK,
+                       std::function<void(int original_pos, int target_pos)>
+                           *reporter = nullptr);
   virtual ~StreamReplaceOpQueue();
 
 protected:
   virtual bool Pull() override;
+
+  std::function<void(int original_pos, int target_pos)> *reporter_;
 
   std::istream &original_;
   std::istream &target_;

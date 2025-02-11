@@ -22,16 +22,15 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <badiff/q/stream_replace_op_queue.hpp>
 
 namespace badiff {
-extern bool CONSOLE_OUTPUT;
-
 namespace q {
 
-StreamReplaceOpQueue::StreamReplaceOpQueue(std::istream &original,
-                                           int original_len,
-                                           std::istream &target, int target_len,
-                                           int max_chunk_len)
+StreamReplaceOpQueue::StreamReplaceOpQueue(
+    std::istream &original, int original_len, std::istream &target,
+    int target_len, int max_chunk_len,
+    std::function<void(int original_pos, int target_pos)> *reporter)
     : original_(original), target_(target), original_len_(original_len),
       target_len_(target_len) {
+  reporter_ = reporter;
   int chunks = std::max(1, std::max(original_len, target_len) / max_chunk_len);
   original_chunk_len_ = std::max(1, original_len / chunks);
   target_chunk_len_ = std::max(1, target_len / chunks);
@@ -53,10 +52,6 @@ bool StreamReplaceOpQueue::Pull() {
     } while (n < original_chunk_len_ && original_pos_ < original_len_);
     Prepare(Op(Op::DELETE, n, std::move(value)));
     prepared = true;
-    if (CONSOLE_OUTPUT) {
-      printf("-");
-      fflush(stdout);
-    }
   }
   if (target_pos_ < target_len_) {
     std::unique_ptr<char[]> value(new char[target_chunk_len_]);
@@ -67,12 +62,10 @@ bool StreamReplaceOpQueue::Pull() {
     } while (n < target_chunk_len_ && target_pos_ < target_len_);
     Prepare(Op(Op::INSERT, n, std::move(value)));
     prepared = true;
-    if (CONSOLE_OUTPUT) {
-      printf("+");
-      fflush(stdout);
-    }
   }
-
+  if (prepared && reporter_) {
+    (*reporter_)(original_pos_, target_pos_);
+  }
   return prepared;
 }
 

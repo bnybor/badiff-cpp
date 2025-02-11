@@ -22,15 +22,15 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <badiff/q/replace_op_queue.hpp>
 
 namespace badiff {
-extern bool CONSOLE_OUTPUT;
-
 namespace q {
 
-ReplaceOpQueue::ReplaceOpQueue(const char *original, int original_size,
-                               const char *target, int target_size,
-                               int max_chunk_size)
+ReplaceOpQueue::ReplaceOpQueue(
+    const char *original, int original_size, const char *target,
+    int target_size, int max_chunk_size,
+    std::function<void(int original_pos, int target_pos)> *reporter)
     : original_(original), target_(target), original_pos_(0),
       original_len_(original_size), target_pos_(0), target_len_(target_size) {
+  reporter_ = reporter;
   int chunks =
       std::max(1, std::max(original_size, target_size) / max_chunk_size);
   original_chunk_len_ = std::max(1, original_size / chunks);
@@ -49,10 +49,6 @@ bool ReplaceOpQueue::Pull() {
     Prepare(Op(Op::DELETE, size, std::move(value)));
     original_pos_ += size;
     prepared = true;
-    if (CONSOLE_OUTPUT) {
-      printf("-");
-      fflush(stdout);
-    }
   }
   if (target_pos_ < target_len_) {
     int size = std::min(target_chunk_len_, target_len_ - target_pos_);
@@ -61,10 +57,9 @@ bool ReplaceOpQueue::Pull() {
     Prepare(Op(Op::INSERT, size, std::move(value)));
     target_pos_ += size;
     prepared = true;
-    if (CONSOLE_OUTPUT) {
-      printf("+");
-      fflush(stdout);
-    }
+  }
+  if (prepared && reporter_) {
+    (*reporter_)(original_pos_, target_pos_);
   }
   return prepared;
 }
