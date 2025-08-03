@@ -1,20 +1,66 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(badiff_library VERSION 1.1.3)
-
-enable_testing()
-
-set(CMAKE_BUILD_TYPE Release)
+project(badiff_library VERSION 1.2.0)
 
 set(CMAKE_CXX_STANDARD 11)
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -flto -funroll-all-loops -fopenmp -march=native" CACHE STRING "Set C++ Compiler Flags" FORCE)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -flto -funroll-all-loops -fopenmp -march=native" CACHE STRING "Set C++ Compiler Flags" FORCE)
+endif()
+
+enable_testing()
 add_subdirectory(test)
+
+## shared library
+
+add_library(badiff_minimal_library SHARED 
+    src/minimal.cpp
+    src/op.cpp
+    src/alg/inertial_graph.cpp
+    src/q/compacting_op_queue.cpp
+    src/q/filter_op_queue.cpp
+    src/q/minimize_op_queue.cpp
+    src/q/op_queue.cpp
+    src/q/vector_op_queue.cpp
+)
+set_target_properties(badiff_minimal_library PROPERTIES OUTPUT_NAME "badiff_minimal")
+
+target_include_directories(badiff_minimal_library
+    PUBLIC 
+        ${PROJECT_SOURCE_DIR}/include
+)
+
+install (TARGETS badiff_minimal_library
+    LIBRARY DESTINATION lib)
+
+## static library
+
+add_library(badiff_minimal_archive STATIC 
+    src/minimal.cpp
+    src/op.cpp
+    src/alg/inertial_graph.cpp
+    src/q/compacting_op_queue.cpp
+    src/q/filter_op_queue.cpp
+    src/q/minimize_op_queue.cpp
+    src/q/op_queue.cpp
+    src/q/vector_op_queue.cpp
+)
+set_target_properties(badiff_minimal_archive PROPERTIES OUTPUT_NAME "badiff_minimal")
+
+target_include_directories(badiff_minimal_archive
+    PUBLIC 
+        ${PROJECT_SOURCE_DIR}/include
+)
+
+install (TARGETS badiff_minimal_archive
+    LIBRARY DESTINATION lib)
 
 ## shared library
 
 add_library(badiff_library SHARED 
     src/badiff.cpp
+    src/minimal.cpp
     src/op.cpp
     src/alg/edit_graph.cpp
     src/alg/inertial_graph.cpp
@@ -45,6 +91,7 @@ install (TARGETS badiff_library
 
 add_library(badiff_archive STATIC 
     src/badiff.cpp
+    src/minimal.cpp
     src/op.cpp
     src/alg/edit_graph.cpp
     src/alg/inertial_graph.cpp
@@ -73,8 +120,8 @@ install (TARGETS badiff_archive
 
 ## headers
 
-install(FILES ${PROJECT_SOURCE_DIR}/include/badiff/badiff.hpp 
-    DESTINATION include/badiff)
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/badiff 
+    DESTINATION include/)
 
 ## cli
 
@@ -85,6 +132,17 @@ add_executable(badiff_cli
 target_link_libraries( badiff_cli
     PRIVATE 
         badiff_archive
+)
+
+## cli
+
+add_executable(badiff_minimal_cli
+    main/minimal_main.cpp
+)
+
+target_link_libraries( badiff_minimal_cli
+    PRIVATE 
+        badiff_minimal_archive
 )
 
 set_target_properties(badiff_cli PROPERTIES OUTPUT_NAME "badiff")
