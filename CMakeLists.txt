@@ -2,13 +2,14 @@ cmake_minimum_required(VERSION 3.5)
 
 project(badiff_library VERSION 1.1.2)
 
-enable_testing()
-
-set(CMAKE_BUILD_TYPE Release)
-
 set(CMAKE_CXX_STANDARD 11)
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -flto -funroll-all-loops -fopenmp -march=native" CACHE STRING "Set C++ Compiler Flags" FORCE)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -flto -funroll-all-loops -fopenmp -march=native" CACHE STRING "Set C++ Compiler Flags" FORCE)
+endif()
+
+enable_testing()
 add_subdirectory(test)
 
 ## shared library
