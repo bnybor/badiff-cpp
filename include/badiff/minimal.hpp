@@ -30,6 +30,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace badiff {
 
+/**
+ * \brief Compute a diff from original to target, and store in dst.
+ * 
+ * \return The size of the diff, or -1 if the buffer was too small.
+ */
 inline int diff(char *dst, int dst_len, const char *original, int original_len,
                 const char *target, int target_len) {
   alg::InertialGraph graph;
@@ -45,6 +50,11 @@ inline int diff(char *dst, int dst_len, const char *original, int original_len,
   return s.size();
 }
 
+/**
+ * \brief Compute the target from original and diff, and store in dst.
+ * 
+ * \return The size of the target, or -1 if the buffer was too small.
+ */
 inline int patch(char *dst, int dst_len, const char *original, int original_len,
                  const char *diff, int diff_len) {
   std::string s1(diff, diff + diff_len);
