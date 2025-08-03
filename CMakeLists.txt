@@ -74,8 +74,8 @@ install (TARGETS badiff_archive
 
 ## headers
 
-install(FILES ${PROJECT_SOURCE_DIR}/include/badiff/badiff.hpp 
-    DESTINATION include/badiff)
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/badiff 
+    DESTINATION include/)
 
 ## cli
 
