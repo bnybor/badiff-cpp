@@ -134,7 +134,7 @@ target_link_libraries( badiff_cli
         badiff_archive
 )
 
-## cli
+## cli, only here to validate that minimal library compiles
 
 add_executable(badiff_minimal_cli
     main/minimal_main.cpp
