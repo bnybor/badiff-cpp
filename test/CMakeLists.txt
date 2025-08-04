@@ -1,7 +1,6 @@
-project(badiff_test)
-
-add_executable(${PROJECT_NAME}
+add_executable(badiff_test
     src/badiff_test.cpp
+    src/minimal_test.cpp
     src/op_test.cpp
     src/alg/edit_graph_test.cpp
     src/alg/inertial_graph_test.cpp
@@ -16,15 +15,15 @@ add_executable(${PROJECT_NAME}
     contrib/src/gtest/gtest_main.cc
 )
 
-target_include_directories(${PROJECT_NAME}
+target_include_directories(badiff_test
     PUBLIC 
-        ${PROJECT_SOURCE_DIR}/include
+        include
     PRIVATE
-        ${PROJECT_SOURCE_DIR}/contrib/include
+        contrib/include
 )
 
 
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(badiff_test
     badiff_library
 )
 
