@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(badiff_library VERSION 1.2.0)
+project(badiff_library VERSION 1.2.1)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -134,7 +134,7 @@ target_link_libraries( badiff_cli
         badiff_archive
 )
 
-## cli
+## cli, only here to validate that minimal library compiles
 
 add_executable(badiff_minimal_cli
     main/minimal_main.cpp
