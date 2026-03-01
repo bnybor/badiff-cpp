@@ -66,7 +66,8 @@ std::unique_ptr<q::OpQueue> ComputeDiff(std::unique_ptr<q::OpQueue> op_queue) {
 
   // Cap chunk sizes before the graph algorithm, which is O(n*m) in chunk size.
   // DEFAULT_CHUNK / 4 keeps peak memory per pair at ~50 MB.
-  op_queue.reset(new q::ChunkingOpQueue(std::move(op_queue), DEFAULT_CHUNK / 4));
+  op_queue.reset(
+      new q::ChunkingOpQueue(std::move(op_queue), DEFAULT_CHUNK / 4));
 
   // Perform the initial diffing operation.
   op_queue.reset(new q::GraphOpQueue(
@@ -227,18 +228,29 @@ static const char *MAGIC = "\xBA\xD1\xFF";
 static const char FORMAT_VERSION_MAJOR = 1;
 static const char FORMAT_VERSION_MINOR = 1;
 
-static void WriteInt32BE(std::ostream &out, int32_t val) {
-  out.put((val >> 24) & 0xFF);
-  out.put((val >> 16) & 0xFF);
-  out.put((val >> 8) & 0xFF);
-  out.put(val & 0xFF);
+static void WriteSize(std::ostream &out, std::size_t n) {
+  char buf[8];
+  buf[7] = (n & 0x7f);
+  n >>= 7;
+  std::size_t i = 7;
+  while (n) {
+    --i;
+    buf[i] = (n & 0x7f);
+    buf[i] |= 0x80;
+    n >>= 7;
+  }
+  out.write(buf + i, 8 - i);
 }
 
-static void ReadInt32BE(std::istream &in, int *val) {
-  *val  = (in.get() & 0xFF) << 24;
-  *val |= (in.get() & 0xFF) << 16;
-  *val |= (in.get() & 0xFF) << 8;
-  *val |= (in.get() & 0xFF);
+static void ReadSize(std::istream &in, int *val) {
+  std::size_t n = 0;
+  char c;
+  do {
+    in.read(&c, 1);
+    n <<= 7;
+    n |= (c & 0x7f);
+  } while (c & 0x80);
+  *val = n;
 }
 
 void Delta::Serialize(std::ostream &out) const {
@@ -246,9 +258,9 @@ void Delta::Serialize(std::ostream &out) const {
   out.put(FORMAT_VERSION_MAJOR);
   out.put(FORMAT_VERSION_MINOR);
 
-  WriteInt32BE(out, original_len_);
-  WriteInt32BE(out, target_len_);
-  WriteInt32BE(out, delta_len_);
+  WriteSize(out, original_len_);
+  WriteSize(out, target_len_);
+  WriteSize(out, delta_len_);
 
   out.write(delta_.get(), delta_len_);
 }
@@ -270,9 +282,9 @@ bool Delta::Deserialize(std::istream &in) {
   if (minor != FORMAT_VERSION_MINOR)
     return false;
 
-  ReadInt32BE(in, &original_len_);
-  ReadInt32BE(in, &target_len_);
-  ReadInt32BE(in, &delta_len_);
+  ReadSize(in, &original_len_);
+  ReadSize(in, &target_len_);
+  ReadSize(in, &delta_len_);
 
   delta_.reset(new char[delta_len_]);
   in.read(delta_.get(), delta_len_);
