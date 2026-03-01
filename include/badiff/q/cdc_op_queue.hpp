@@ -40,6 +40,10 @@ namespace q {
  *
  * Unlike ReplaceOpQueue, this finds matching blocks regardless of their
  * position in the file, so moved or shifted content is detected correctly.
+ *
+ * Unmatched chunks are paired by approximate similarity (bottom-K MinHash over
+ * 4-grams) using an order-preserving DP matching so the downstream graph queue
+ * diffs similar chunks against each other rather than random pairs.
  */
 class CdcOpQueue : public OpQueue {
 public:
@@ -64,9 +68,19 @@ private:
   std::vector<Op> inserts_;
   std::deque<Op> output_;
 
+  // Signature type: sorted vector of bottom-K 4-gram hashes for MinHash
+  // similarity estimation.
+  using Sig = std::vector<uint32_t>;
+  static const int kSigSize = 64;
+
   void CdcSplit(const char *data, int len, Op::Type type,
                 std::vector<Op> &out);
   uint32_t ChunkHash(const char *data, int len) const;
+  static Sig ChunkSig(const char *data, int len);
+  static float SigSimilarity(const Sig &a, const Sig &b);
+  void EmitSegment(int di0, int di1, int ii0, int ii1,
+                   const std::vector<Sig> &del_sigs,
+                   const std::vector<Sig> &ins_sigs);
   void Plan();
 };
 
