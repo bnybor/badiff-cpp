@@ -21,24 +21,9 @@ add_subdirectory(badiff_c)
 ## shared library
 
 add_library(badiff_library SHARED
-    src/badiff.cpp
-    src/op.cpp
-    src/alg/edit_graph.cpp
-    src/alg/inertial_graph.cpp
-    src/q/cdc_op_queue.cpp
-    src/q/chunking_op_queue.cpp
-    src/q/coalescing_op_queue.cpp
-    src/q/compacting_op_queue.cpp
-    src/q/deserialize_op_queue.cpp
-    src/q/filter_op_queue.cpp
-    src/q/graph_op_queue.cpp
-    src/q/minimize_op_queue.cpp
-    src/q/op_queue.cpp
-    src/q/replace_op_queue.cpp
-    src/q/rewinding_op_queue.cpp
-    src/q/stream_replace_op_queue.cpp
-    src/q/vector_op_queue.cpp
+    src/empty.cpp
 )
+target_link_libraries(badiff_library PRIVATE -Wl,--whole-archive badiff_archive -Wl,--no-whole-archive)
 set_target_properties(badiff_library PROPERTIES OUTPUT_NAME "badiff")
 
 target_include_directories(badiff_library
