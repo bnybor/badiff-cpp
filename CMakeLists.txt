@@ -16,8 +16,6 @@ endif()
 enable_testing()
 add_subdirectory(test)
 
-add_subdirectory(badiff_c)
-
 ## shared library
 
 add_library(badiff_library SHARED
