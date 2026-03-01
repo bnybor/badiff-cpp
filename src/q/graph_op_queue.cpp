@@ -75,7 +75,7 @@ bool GraphOpQueue::Pull() {
     Prepare(std::move(op));
   }
 
-  if (filtering_[0].GetType() == Op::NEXT) {
+  if (!filtering_.empty() && filtering_[0].GetType() == Op::NEXT) {
     Flush(1);
   }
 
