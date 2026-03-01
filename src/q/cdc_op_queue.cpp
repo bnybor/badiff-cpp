@@ -53,7 +53,9 @@ static void InitGear() {
 CdcOpQueue::CdcOpQueue(const char *original, int original_len,
                        const char *target, int target_len, int avg_chunk,
                        std::function<void(int, int, int, int)> *reporter)
-    : min_chunk_(avg_chunk / 4), max_chunk_(avg_chunk * 4) {
+    : min_chunk_(avg_chunk / 4), max_chunk_(avg_chunk * 4),
+      reporter_(reporter), original_len_(original_len),
+      target_len_(target_len), original_pos_(0), target_pos_(0) {
   InitGear();
   // mask_: set the low log2(avg_chunk) bits so split probability is ~1/avg_chunk
   uint32_t bits = 1;
@@ -64,9 +66,6 @@ CdcOpQueue::CdcOpQueue(const char *original, int original_len,
   CdcSplit(original, original_len, Op::DELETE, deletes_);
   CdcSplit(target, target_len, Op::INSERT, inserts_);
   Plan();
-
-  if (reporter)
-    (*reporter)(original_len, target_len, original_len, target_len);
 }
 
 CdcOpQueue::~CdcOpQueue() {}
@@ -171,8 +170,17 @@ void CdcOpQueue::Plan() {
 bool CdcOpQueue::Pull() {
   if (output_.empty())
     return false;
+  const Op &op = output_.front();
+  Op::Type type = op.GetType();
+  int len = op.GetLength();
   Prepare(std::move(output_.front()));
   output_.pop_front();
+  if (type == Op::DELETE || type == Op::NEXT)
+    original_pos_ += len;
+  if (type == Op::INSERT || type == Op::NEXT)
+    target_pos_ += len;
+  if (reporter_)
+    (*reporter_)(original_pos_, target_pos_, original_len_, target_len_);
   return true;
 }
 

@@ -56,6 +56,10 @@ private:
   int max_chunk_;
   uint32_t mask_;
 
+  std::function<void(int, int, int, int)> *reporter_;
+  int original_len_, target_len_;
+  int original_pos_, target_pos_;
+
   std::vector<Op> deletes_;
   std::vector<Op> inserts_;
   std::deque<Op> output_;
