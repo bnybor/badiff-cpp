@@ -10,8 +10,6 @@ add_executable(badiff_test
     src/q/replace_op_queue_test.cpp
     src/q/stream_replace_op_queue_test.cpp
 
-    src/c/diff_patch_test.cpp
-
     contrib/src/gmock/gmock-all.cc
     contrib/src/gtest/gtest-all.cc
     contrib/src/gtest/gtest_main.cc
@@ -27,7 +25,6 @@ target_include_directories(badiff_test
 
 target_link_libraries(badiff_test
     badiff_library
-    badiff_c_archive
 )
 
 add_test(badiff_test badiff_test)
