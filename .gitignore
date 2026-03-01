@@ -2,3 +2,5 @@ build
 .f
 .kdev4/
 badiff-cpp.kdev4
+.claude/
+/_build/

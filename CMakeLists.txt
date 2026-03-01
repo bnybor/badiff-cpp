@@ -60,12 +60,13 @@ install (TARGETS badiff_minimal_archive
 
 ## shared library
 
-add_library(badiff_library SHARED 
+add_library(badiff_library SHARED
     src/badiff.cpp
     src/minimal.cpp
     src/op.cpp
     src/alg/edit_graph.cpp
     src/alg/inertial_graph.cpp
+    src/q/cdc_op_queue.cpp
     src/q/chunking_op_queue.cpp
     src/q/coalescing_op_queue.cpp
     src/q/compacting_op_queue.cpp
@@ -91,12 +92,13 @@ install (TARGETS badiff_library
 
 ## static library
 
-add_library(badiff_archive STATIC 
+add_library(badiff_archive STATIC
     src/badiff.cpp
     src/minimal.cpp
     src/op.cpp
     src/alg/edit_graph.cpp
     src/alg/inertial_graph.cpp
+    src/q/cdc_op_queue.cpp
     src/q/chunking_op_queue.cpp
     src/q/coalescing_op_queue.cpp
     src/q/compacting_op_queue.cpp
