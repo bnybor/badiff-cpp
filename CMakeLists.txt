@@ -5,6 +5,10 @@ project(badiff_library VERSION 1.3.0)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+endif()
+
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -flto -funroll-all-loops -fopenmp -march=native" CACHE STRING "Set C++ Compiler Flags" FORCE)
 endif()
