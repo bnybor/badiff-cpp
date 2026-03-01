@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(badiff_library VERSION 1.2.1)
+project(badiff_library VERSION 1.3.0)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -11,6 +11,8 @@ endif()
 
 enable_testing()
 add_subdirectory(test)
+
+add_subdirectory(badiff_c)
 
 ## shared library
 
@@ -58,12 +60,13 @@ install (TARGETS badiff_minimal_archive
 
 ## shared library
 
-add_library(badiff_library SHARED 
+add_library(badiff_library SHARED
     src/badiff.cpp
     src/minimal.cpp
     src/op.cpp
     src/alg/edit_graph.cpp
     src/alg/inertial_graph.cpp
+    src/q/cdc_op_queue.cpp
     src/q/chunking_op_queue.cpp
     src/q/coalescing_op_queue.cpp
     src/q/compacting_op_queue.cpp
@@ -89,12 +92,13 @@ install (TARGETS badiff_library
 
 ## static library
 
-add_library(badiff_archive STATIC 
+add_library(badiff_archive STATIC
     src/badiff.cpp
     src/minimal.cpp
     src/op.cpp
     src/alg/edit_graph.cpp
     src/alg/inertial_graph.cpp
+    src/q/cdc_op_queue.cpp
     src/q/chunking_op_queue.cpp
     src/q/coalescing_op_queue.cpp
     src/q/compacting_op_queue.cpp

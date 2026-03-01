@@ -32,7 +32,10 @@ ChunkingOpQueue::ChunkingOpQueue(std::unique_ptr<OpQueue> source, int chunk_len)
 ChunkingOpQueue::~ChunkingOpQueue() {}
 
 bool ChunkingOpQueue::FlushInterleaved(unsigned int n) {
+  bool terminal = (n == (unsigned int)-1);
   while (n-- > 0 && (!deletes_.empty() || !inserts_.empty())) {
+    if (!terminal && (deletes_.empty() || inserts_.empty()))
+      break;
     if (!deletes_.empty()) {
       Prepare(std::move(deletes_.front()));
       deletes_.erase(deletes_.begin());
@@ -46,32 +49,37 @@ bool ChunkingOpQueue::FlushInterleaved(unsigned int n) {
 }
 
 bool ChunkingOpQueue::Pull() {
-  if (!Require(1))
-    return FlushInterleaved(-1);
+  while (true) {
+    if (!Require(1))
+      return FlushInterleaved(-1);
 
-  auto op(std::move(filtering_.front()));
-  filtering_.erase(filtering_.begin());
+    auto op(std::move(filtering_.front()));
+    filtering_.erase(filtering_.begin());
 
-  if (op.GetType() == Op::NEXT) {
-    FlushInterleaved(-1);
-    Prepare(std::move(op));
-    return true;
-  }
-
-  for (int i = 0; i < op.GetLength(); i += chunk_len_) {
-    int extent = std::min(op.GetLength() - i, chunk_len_);
-    std::unique_ptr<char[]> value(new char[extent]);
-    std::copy(op.GetValue().get() + i, op.GetValue().get() + i + extent,
-              value.get());
-    Op chunk(op.GetType(), extent, std::move(value));
-    if (chunk.GetType() == Op::DELETE) {
-      deletes_.push_back(std::move(chunk));
-    } else {
-      inserts_.push_back(std::move(chunk));
+    if (op.GetType() == Op::NEXT) {
+      FlushInterleaved(-1);
+      Prepare(std::move(op));
+      return true;
     }
-  }
 
-  return FlushInterleaved(1);
+    for (int i = 0; i < op.GetLength(); i += chunk_len_) {
+      int extent = std::min(op.GetLength() - i, chunk_len_);
+      std::unique_ptr<char[]> value(new char[extent]);
+      std::copy(op.GetValue().get() + i, op.GetValue().get() + i + extent,
+                value.get());
+      Op chunk(op.GetType(), extent, std::move(value));
+      if (chunk.GetType() == Op::DELETE) {
+        deletes_.push_back(std::move(chunk));
+      } else {
+        inserts_.push_back(std::move(chunk));
+      }
+    }
+
+    FlushInterleaved(1);
+    if (!prepared_.empty())
+      return true;
+    // No paired output yet; pull another op from source before returning.
+  }
 }
 
 } // namespace q

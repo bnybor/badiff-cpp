@@ -5,4 +5,5 @@ badiff-cpp.kdev4
 .project
 .cproject
 .settings
-
+.claude/
+/_build/

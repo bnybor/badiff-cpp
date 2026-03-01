@@ -28,6 +28,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <badiff/alg/graph.hpp>
 #include <badiff/alg/inertial_graph.hpp>
 
+#include <badiff/q/cdc_op_queue.hpp>
 #include <badiff/q/chunking_op_queue.hpp>
 #include <badiff/q/coalescing_op_queue.hpp>
 #include <badiff/q/compacting_op_queue.hpp>
@@ -41,7 +42,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <fstream>
 #include <functional>
 #include <istream>
-#include <map>
 #include <ostream>
 #include <sstream>
 
@@ -63,6 +63,11 @@ namespace {
  * diffing.
  */
 std::unique_ptr<q::OpQueue> ComputeDiff(std::unique_ptr<q::OpQueue> op_queue) {
+
+  // Cap chunk sizes before the graph algorithm, which is O(n*m) in chunk size.
+  // DEFAULT_CHUNK / 4 keeps peak memory per pair at ~50 MB.
+  op_queue.reset(
+      new q::ChunkingOpQueue(std::move(op_queue), DEFAULT_CHUNK / 4));
 
   // Perform the initial diffing operation.
   op_queue.reset(new q::GraphOpQueue(
@@ -120,8 +125,7 @@ Delta::Make(const char *original, int original_len, const char *target,
             int target_len,
             std::function<void(int original_pos, int target_pos,
                                int original_len, int target_len)> *reporter) {
-  // OpQueues for the byte arrays, in order and in reverse order.
-  std::unique_ptr<q::OpQueue> op_queue(new q::ReplaceOpQueue(
+  std::unique_ptr<q::OpQueue> op_queue(new q::CdcOpQueue(
       original, original_len, target, target_len, DEFAULT_CHUNK, reporter));
 
   MakeParameters parameters;
@@ -222,33 +226,31 @@ void Delta::Apply(std::string original_file, std::string target_file) {
 
 static const char *MAGIC = "\xBA\xD1\xFF";
 static const char FORMAT_VERSION_MAJOR = 1;
-static const char FORMAT_VERSION_MINOR = 0;
+static const char FORMAT_VERSION_MINOR = 1;
 
-static const char *ORIGINAL_LEN_FIELD = "original_len";
-static const char *TARGET_LEN_FIELD = "target_len";
-static const char *DELTA_LEN_FIELD = "delta_len";
-
-static void WriteFieldLength(std::ostream &out, int len) {
-  out.put(len >> 8);
-  out.put(len);
+static void WriteSize(std::ostream &out, std::size_t n) {
+  char buf[8];
+  buf[7] = (n & 0x7f);
+  n >>= 7;
+  std::size_t i = 7;
+  while (n) {
+    --i;
+    buf[i] = (n & 0x7f);
+    buf[i] |= 0x80;
+    n >>= 7;
+  }
+  out.write(buf + i, 8 - i);
 }
 
-static void ReadFieldLength(std::istream &in, int *len) {
-  *len = in.get() << 8;
-  *len += in.get();
-}
-
-static void WriteFieldString(std::ostream &out, const std::string &string) {
-  WriteFieldLength(out, string.size());
-  out.write(string.c_str(), string.size());
-}
-
-static void ReadFieldString(std::istream &in, std::string *string) {
-  int size;
-  ReadFieldLength(in, &size);
-  char buf[size];
-  in.read(buf, size);
-  *string = std::string(buf, buf + size);
+static void ReadSize(std::istream &in, int *val) {
+  std::size_t n = 0;
+  char c;
+  do {
+    in.read(&c, 1);
+    n <<= 7;
+    n |= (c & 0x7f);
+  } while (c & 0x80);
+  *val = n;
 }
 
 void Delta::Serialize(std::ostream &out) const {
@@ -256,16 +258,9 @@ void Delta::Serialize(std::ostream &out) const {
   out.put(FORMAT_VERSION_MAJOR);
   out.put(FORMAT_VERSION_MINOR);
 
-  std::map<std::string, std::string> fields;
-  fields[ORIGINAL_LEN_FIELD] = std::to_string(original_len_);
-  fields[TARGET_LEN_FIELD] = std::to_string(target_len_);
-  fields[DELTA_LEN_FIELD] = std::to_string(delta_len_);
-
-  WriteFieldLength(out, fields.size());
-  for (auto &field : fields) {
-    WriteFieldString(out, field.first);
-    WriteFieldString(out, field.second);
-  }
+  WriteSize(out, original_len_);
+  WriteSize(out, target_len_);
+  WriteSize(out, delta_len_);
 
   out.write(delta_.get(), delta_len_);
 }
@@ -284,23 +279,12 @@ bool Delta::Deserialize(std::istream &in) {
   if (major != FORMAT_VERSION_MAJOR)
     return false;
   char minor = in.get();
-  if (minor > FORMAT_VERSION_MINOR)
+  if (minor != FORMAT_VERSION_MINOR)
     return false;
 
-  int num_fields;
-  ReadFieldLength(in, &num_fields);
-  std::map<std::string, std::string> fields;
-  for (int i = 0; i < num_fields; ++i) {
-    std::string key;
-    ReadFieldString(in, &key);
-    std::string value;
-    ReadFieldString(in, &value);
-    fields[key] = value;
-  }
-
-  original_len_ = atoi(fields[ORIGINAL_LEN_FIELD].c_str());
-  target_len_ = atoi(fields[TARGET_LEN_FIELD].c_str());
-  delta_len_ = atoi(fields[DELTA_LEN_FIELD].c_str());
+  ReadSize(in, &original_len_);
+  ReadSize(in, &target_len_);
+  ReadSize(in, &delta_len_);
 
   delta_.reset(new char[delta_len_]);
   in.read(delta_.get(), delta_len_);
