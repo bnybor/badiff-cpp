@@ -103,6 +103,135 @@ uint32_t CdcOpQueue::ChunkHash(const char *data, int len) const {
   return h;
 }
 
+CdcOpQueue::Sig CdcOpQueue::ChunkSig(const char *data, int len) {
+  // Compute the kSigSize smallest FNV-1a 4-gram hashes (bottom-K MinHash).
+  // Maintained as a max-heap so large values are cheaply discarded.
+  // The final sorted vector supports O(n) set-intersection in SigSimilarity.
+  std::vector<uint32_t> heap;
+  heap.reserve(kSigSize + 1);
+  for (int i = 0; i + 3 < len; i++) {
+    uint32_t h = 2166136261u;
+    h = (h ^ (uint8_t)data[i]) * 16777619u;
+    h = (h ^ (uint8_t)data[i + 1]) * 16777619u;
+    h = (h ^ (uint8_t)data[i + 2]) * 16777619u;
+    h = (h ^ (uint8_t)data[i + 3]) * 16777619u;
+    if ((int)heap.size() < kSigSize) {
+      heap.push_back(h);
+      if ((int)heap.size() == kSigSize)
+        std::make_heap(heap.begin(), heap.end());
+    } else if (h < heap.front()) {
+      std::pop_heap(heap.begin(), heap.end());
+      heap.back() = h;
+      std::push_heap(heap.begin(), heap.end());
+    }
+  }
+  std::sort(heap.begin(), heap.end());
+  return heap;
+}
+
+float CdcOpQueue::SigSimilarity(const Sig &a, const Sig &b) {
+  if (a.empty() || b.empty())
+    return 0.0f;
+  int common = 0, i = 0, j = 0;
+  while (i < (int)a.size() && j < (int)b.size()) {
+    if (a[i] == b[j]) {
+      ++common;
+      ++i;
+      ++j;
+    } else if (a[i] < b[j]) {
+      ++i;
+    } else {
+      ++j;
+    }
+  }
+  // Normalize by the larger signature size (Jaccard estimate for bottom-K MinHash).
+  return (float)common / std::max((int)a.size(), (int)b.size());
+}
+
+void CdcOpQueue::EmitSegment(int di0, int di1, int ii0, int ii1,
+                              const std::vector<Sig> &del_sigs,
+                              const std::vector<Sig> &ins_sigs) {
+  const int nd = di1 - di0;
+  const int ni = ii1 - ii0;
+  if (nd == 0) {
+    for (int ii = ii0; ii < ii1; ii++)
+      output_.push_back(std::move(inserts_[ii]));
+    return;
+  }
+  if (ni == 0) {
+    for (int di = di0; di < di1; di++)
+      output_.push_back(std::move(deletes_[di]));
+    return;
+  }
+
+  // Order-preserving approximate matching via DP (weighted LCS).
+  // dp[a*W+b] = best total similarity using deletes_[di0..di0+a) paired with
+  // inserts_[ii0..ii0+b). choice records the decision at each cell.
+  static const float kMinSimilarity = 0.1f;
+  const int W = ni + 1;
+  std::vector<float> dp((nd + 1) * W, 0.0f);
+  std::vector<uint8_t> choice((nd + 1) * W, 0); // 0=skip-d 1=skip-i 2=match
+
+  for (int a = 1; a <= nd; a++) {
+    for (int b = 1; b <= ni; b++) {
+      float best = dp[(a - 1) * W + b];
+      uint8_t ch = 0;
+      if (dp[a * W + (b - 1)] > best) {
+        best = dp[a * W + (b - 1)];
+        ch = 1;
+      }
+      float sim = SigSimilarity(del_sigs[di0 + a - 1], ins_sigs[ii0 + b - 1]);
+      if (sim >= kMinSimilarity && dp[(a - 1) * W + (b - 1)] + sim > best) {
+        best = dp[(a - 1) * W + (b - 1)] + sim;
+        ch = 2;
+      }
+      dp[a * W + b] = best;
+      choice[a * W + b] = ch;
+    }
+  }
+
+  // Backtrack to collect matched pairs (in reverse order, then reversed).
+  std::vector<std::pair<int, int>> matches;
+  for (int a = nd, b = ni; a > 0 && b > 0;) {
+    switch (choice[a * W + b]) {
+    case 2:
+      matches.push_back(std::make_pair(di0 + a - 1, ii0 + b - 1));
+      --a;
+      --b;
+      break;
+    case 0:
+      --a;
+      break;
+    default:
+      --b;
+      break;
+    }
+  }
+  std::reverse(matches.begin(), matches.end());
+
+  // Emit: place each matched pair as adjacent DELETE+INSERT so GraphOpQueue
+  // diffs them against each other; interleave remaining unmatched chunks.
+  int di = di0, ii = ii0;
+  for (int m = 0; m < (int)matches.size(); m++) {
+    int mdi = matches[m].first;
+    int mii = matches[m].second;
+    while (di < mdi || ii < mii) {
+      if (di < mdi)
+        output_.push_back(std::move(deletes_[di++]));
+      if (ii < mii)
+        output_.push_back(std::move(inserts_[ii++]));
+    }
+    output_.push_back(std::move(deletes_[di++]));
+    output_.push_back(std::move(inserts_[ii++]));
+  }
+  while (di < di1 || ii < ii1) {
+    if (di < di1)
+      output_.push_back(std::move(deletes_[di++]));
+    if (ii < ii1)
+      output_.push_back(std::move(inserts_[ii++]));
+  }
+}
+
 void CdcOpQueue::Plan() {
   // Build hash index: content hash -> sorted list of delete chunk indices.
   std::unordered_map<uint32_t, std::vector<int>> hash_to_di;
@@ -133,7 +262,7 @@ void CdcOpQueue::Plan() {
       if (d.GetLength() == ins.GetLength() &&
           std::equal(d.GetValue().get(), d.GetValue().get() + d.GetLength(),
                      ins.GetValue().get())) {
-        lcs.push_back({di, ii});
+        lcs.push_back(std::make_pair(di, ii));
         di_used[di] = true;
         min_di = di + 1;
         break;
@@ -141,30 +270,28 @@ void CdcOpQueue::Plan() {
     }
   }
 
+  // Compute bottom-K MinHash signatures for all chunks (used by EmitSegment
+  // to pair approximately similar unmatched chunks for graph diffing).
+  std::vector<Sig> del_sigs(deletes_.size());
+  std::vector<Sig> ins_sigs(inserts_.size());
+  for (int i = 0; i < (int)deletes_.size(); i++)
+    del_sigs[i] = ChunkSig(deletes_[i].GetValue().get(), deletes_[i].GetLength());
+  for (int i = 0; i < (int)inserts_.size(); i++)
+    ins_sigs[i] = ChunkSig(inserts_[i].GetValue().get(), inserts_[i].GetLength());
+
   // Generate the op sequence from the LCS alignment.
-  // Between matched pairs: interleave unmatched DELETEs and INSERTs so the
-  // downstream GraphOpQueue can diff them byte-by-byte.
-  // At each matched pair: emit NEXT (identical content, no diffing needed).
+  // Between exact-match anchors: use approximate matching to pair similar
+  // unmatched chunks adjacent (DELETE then INSERT) for graph diffing.
+  // At each exact-match anchor: emit NEXT (no diffing needed).
   int di = 0, ii = 0;
-  for (auto &match : lcs) {
-    int lcs_di = match.first, lcs_ii = match.second;
-    while (di < lcs_di || ii < lcs_ii) {
-      if (di < lcs_di)
-        output_.push_back(std::move(deletes_[di++]));
-      if (ii < lcs_ii)
-        output_.push_back(std::move(inserts_[ii++]));
-    }
+  for (int m = 0; m < (int)lcs.size(); m++) {
+    int lcs_di = lcs[m].first, lcs_ii = lcs[m].second;
+    EmitSegment(di, lcs_di, ii, lcs_ii, del_sigs, ins_sigs);
     output_.emplace_back(Op::NEXT, deletes_[lcs_di].GetLength());
-    di++;
-    ii++;
+    di = lcs_di + 1;
+    ii = lcs_ii + 1;
   }
-  // Remaining unmatched chunks.
-  while (di < (int)deletes_.size() || ii < (int)inserts_.size()) {
-    if (di < (int)deletes_.size())
-      output_.push_back(std::move(deletes_[di++]));
-    if (ii < (int)inserts_.size())
-      output_.push_back(std::move(inserts_[ii++]));
-  }
+  EmitSegment(di, (int)deletes_.size(), ii, (int)inserts_.size(), del_sigs, ins_sigs);
 }
 
 bool CdcOpQueue::Pull() {

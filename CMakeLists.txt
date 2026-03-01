@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(badiff_library VERSION 1.3.1)
+project(badiff_library VERSION 1.4.0)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -15,8 +15,6 @@ endif()
 
 enable_testing()
 add_subdirectory(test)
-
-add_subdirectory(badiff_c)
 
 ## shared library
 
