@@ -249,8 +249,8 @@ void Delta::Apply(const char *original, char *target) {
 }
 
 void Delta::Apply(std::string original_file, std::string target_file) {
-  std::ifstream original_stream(original_file);
-  std::ofstream target_stream(target_file);
+  std::ifstream original_stream(original_file, std::ios::binary);
+  std::ofstream target_stream(target_file, std::ios::binary);
   Apply(original_stream, target_stream);
 }
 
@@ -300,7 +300,7 @@ void Delta::Serialize(std::ostream &out) const {
 }
 
 void Delta::Serialize(std::string delta_file) const {
-  std::ofstream delta_stream(delta_file);
+  std::ofstream delta_stream(delta_file, std::ios::binary);
   Serialize(delta_stream);
 }
 
@@ -344,7 +344,7 @@ bool Delta::Deserialize(std::istream &in) {
 }
 
 bool Delta::Deserialize(std::string delta_file) {
-  std::ifstream delta_stream(delta_file);
+  std::ifstream delta_stream(delta_file, std::ios::binary);
   return Deserialize(delta_stream);
 }
 
