@@ -34,17 +34,19 @@ namespace q {
 class StreamReplaceOpQueue : public OpQueue {
 public:
   StreamReplaceOpQueue(
-      std::istream &original, int original_len, std::istream &target,
-      int target_len, int max_chunk_len = DEFAULT_CHUNK,
-      std::function<void(int original_pos, int target_pos, int original_len,
-                         int target_len)> *reporter = nullptr);
+      std::istream &original, std::size_t original_len, std::istream &target,
+      std::size_t target_len, int max_chunk_len = DEFAULT_CHUNK,
+      std::function<void(std::size_t original_pos, std::size_t target_pos,
+                         std::size_t original_len, std::size_t target_len)>
+          *reporter = nullptr);
   virtual ~StreamReplaceOpQueue();
 
 protected:
   virtual bool Pull() override;
 
-  std::function<void(int original_pos, int target_pos, int original_len,
-                     int target_len)> *reporter_;
+  std::function<void(std::size_t original_pos, std::size_t target_pos,
+                     std::size_t original_len, std::size_t target_len)>
+      *reporter_;
 
   std::istream &original_;
   std::istream &target_;

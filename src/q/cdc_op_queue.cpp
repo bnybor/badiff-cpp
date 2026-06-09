@@ -50,9 +50,11 @@ static void InitGear() {
 
 } // namespace
 
-CdcOpQueue::CdcOpQueue(const char *original, int original_len,
-                       const char *target, int target_len, int avg_chunk,
-                       std::function<void(int, int, int, int)> *reporter)
+CdcOpQueue::CdcOpQueue(const char *original, std::size_t original_len,
+                       const char *target, std::size_t target_len,
+                       int avg_chunk,
+                       std::function<void(std::size_t, std::size_t, std::size_t,
+                                          std::size_t)> *reporter)
     : min_chunk_(avg_chunk / 4), max_chunk_(avg_chunk * 4),
       reporter_(reporter), original_len_(original_len),
       target_len_(target_len), original_pos_(0), target_pos_(0) {

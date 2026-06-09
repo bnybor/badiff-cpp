@@ -22,6 +22,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef BADIFF_BADIFF_HPP_
 #define BADIFF_BADIFF_HPP_
 
+#include <cstddef>
 #include <functional>
 #include <istream>
 #include <memory>
@@ -38,10 +39,11 @@ struct Delta {
    * \brief Compute a delta using two arrays of bytes.
    */
   static std::unique_ptr<Delta>
-  Make(const char *original, int original_len, const char *target,
-       int target_len,
-       std::function<void(int original_pos, int target_pos, int original_len,
-                          int target_len)> *reporter = nullptr);
+  Make(const char *original, std::size_t original_len, const char *target,
+       std::size_t target_len,
+       std::function<void(std::size_t original_pos, std::size_t target_pos,
+                          std::size_t original_len, std::size_t target_len)>
+           *reporter = nullptr);
 
   /**
    * \brief Compute a delta using two streams and their lengths.
@@ -49,10 +51,11 @@ struct Delta {
    * The streams must support istream::seekg.
    */
   static std::unique_ptr<Delta>
-  Make(std::istream &original, int original_len, std::istream &target,
-       int target_len,
-       std::function<void(int original_pos, int target_pos, int original_len,
-                          int target_len)> *reporter = nullptr);
+  Make(std::istream &original, std::size_t original_len, std::istream &target,
+       std::size_t target_len,
+       std::function<void(std::size_t original_pos, std::size_t target_pos,
+                          std::size_t original_len, std::size_t target_len)>
+           *reporter = nullptr);
 
   /**
    * \brief Memory-maps files and computes the diff.
@@ -61,23 +64,24 @@ struct Delta {
    */
   static std::unique_ptr<Delta>
   Make(std::string original_file, std::string target_file,
-       std::function<void(int original_pos, int target_pos, int original_len,
-                          int target_len)> *reporter = nullptr);
+       std::function<void(std::size_t original_pos, std::size_t target_pos,
+                          std::size_t original_len, std::size_t target_len)>
+           *reporter = nullptr);
 
   /**
    * \brief The length of the original.
    */
-  int original_len_;
+  std::size_t original_len_;
 
   /**
    * \brief The length of the target.
    */
-  int target_len_;
+  std::size_t target_len_;
 
   /**
    * \brief The length of the delta.
    */
-  int delta_len_;
+  std::size_t delta_len_;
 
   /**
    * \brief The delta itself.

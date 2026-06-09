@@ -19,7 +19,6 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include <badiff/alg/edit_graph.hpp>
 #include <badiff/alg/inertial_graph.hpp>
 #include <badiff/q/graph_op_queue.hpp>
 #include <badiff/q/replace_op_queue.hpp>
@@ -68,20 +67,6 @@ TEST_F(GraphOpQueueTest, TestHelloWorld) {
 
   {
     auto graph = std::unique_ptr<alg::Graph>(new alg::InertialGraph);
-    auto op_queue = std::unique_ptr<q::OpQueue>(new q::ReplaceOpQueue(
-        original.get(), hello.size(), target.get(), world.size()));
-
-    op_queue.reset(new q::GraphOpQueue(std::move(op_queue), std::move(graph)));
-
-    std::istringstream in(std::string(original.get(), hello.size()));
-    std::ostringstream out;
-    op_queue->Apply(in, out);
-
-    ASSERT_EQ(out.str(), world);
-  }
-
-  {
-    auto graph = std::unique_ptr<alg::Graph>(new alg::EditGraph);
     auto op_queue = std::unique_ptr<q::OpQueue>(new q::ReplaceOpQueue(
         original.get(), hello.size(), target.get(), world.size()));
 

@@ -24,7 +24,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <badiff/defaults.hpp>
 
-#include <badiff/alg/edit_graph.hpp>
 #include <badiff/alg/graph.hpp>
 #include <badiff/alg/inertial_graph.hpp>
 
@@ -39,11 +38,13 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <badiff/q/rewinding_op_queue.hpp>
 #include <badiff/q/stream_replace_op_queue.hpp>
 
+#include <algorithm>
 #include <fstream>
 #include <functional>
 #include <istream>
 #include <ostream>
 #include <sstream>
+#include <string>
 
 #include <malloc.h>
 #include <stdio.h>
@@ -92,13 +93,13 @@ std::unique_ptr<q::OpQueue> ComputeDiff(std::unique_ptr<q::OpQueue> op_queue) {
 
 struct MakeParameters {
   std::unique_ptr<q::OpQueue> forward_op_queue_;
-  int original_len_;
-  int target_len_;
+  std::size_t original_len_;
+  std::size_t target_len_;
 };
 
 std::unique_ptr<Delta> MakeParameterized(MakeParameters parameters) {
-  int original_len = parameters.original_len_;
-  int target_len = parameters.target_len_;
+  std::size_t original_len = parameters.original_len_;
+  std::size_t target_len = parameters.target_len_;
   // OpQueues for the byte arrays, in order and in reverse order.
   std::unique_ptr<q::OpQueue> op_queue(std::move(parameters.forward_op_queue_));
   op_queue = ComputeDiff(std::move(op_queue)); // forward diff
@@ -121,10 +122,11 @@ std::unique_ptr<Delta> MakeParameterized(MakeParameters parameters) {
 } // namespace
 
 std::unique_ptr<Delta>
-Delta::Make(const char *original, int original_len, const char *target,
-            int target_len,
-            std::function<void(int original_pos, int target_pos,
-                               int original_len, int target_len)> *reporter) {
+Delta::Make(const char *original, std::size_t original_len, const char *target,
+            std::size_t target_len,
+            std::function<void(std::size_t original_pos, std::size_t target_pos,
+                               std::size_t original_len, std::size_t target_len)>
+                *reporter) {
   std::unique_ptr<q::OpQueue> op_queue(new q::CdcOpQueue(
       original, original_len, target, target_len, DEFAULT_CHUNK, reporter));
 
@@ -137,10 +139,11 @@ Delta::Make(const char *original, int original_len, const char *target,
 }
 
 std::unique_ptr<Delta>
-Delta::Make(std::istream &original, int original_len, std::istream &target,
-            int target_len,
-            std::function<void(int original_pos, int target_pos,
-                               int original_len, int target_len)> *reporter) {
+Delta::Make(std::istream &original, std::size_t original_len,
+            std::istream &target, std::size_t target_len,
+            std::function<void(std::size_t original_pos, std::size_t target_pos,
+                               std::size_t original_len, std::size_t target_len)>
+                *reporter) {
   std::unique_ptr<q::OpQueue> op_queue(new q::StreamReplaceOpQueue(
       original, original_len, target, target_len, DEFAULT_CHUNK, reporter));
 
@@ -154,8 +157,9 @@ Delta::Make(std::istream &original, int original_len, std::istream &target,
 
 std::unique_ptr<Delta>
 Delta::Make(std::string original_file, std::string target_file,
-            std::function<void(int original_pos, int target_pos,
-                               int original_len, int target_len)> *reporter) {
+            std::function<void(std::size_t original_pos, std::size_t target_pos,
+                               std::size_t original_len, std::size_t target_len)>
+                *reporter) {
   // Memory-map the files and diff them.
 
   struct stat original_stat;
@@ -181,16 +185,42 @@ Delta::Make(std::string original_file, std::string target_file,
     return nullptr;
   }
 
-  int original_size = original_stat.st_size;
-  int target_size = target_stat.st_size;
+  std::size_t original_size = original_stat.st_size;
+  std::size_t target_size = target_stat.st_size;
 
-  const char *original_mmap = (const char *)mmap(NULL, original_size, PROT_READ,
-                                                 MAP_PRIVATE, original_fd, 0);
-  const char *target_mmap = (const char *)mmap(NULL, target_size, PROT_READ,
-                                               MAP_PRIVATE, target_fd, 0);
+  // mmap rejects a zero length, so map only non-empty files and use a valid
+  // non-null placeholder otherwise (never dereferenced when the length is 0).
+  const char *original_mmap = "";
+  if (original_size > 0) {
+    original_mmap = (const char *)mmap(NULL, original_size, PROT_READ,
+                                       MAP_PRIVATE, original_fd, 0);
+    if (original_mmap == MAP_FAILED) {
+      close(original_fd);
+      close(target_fd);
+      return nullptr;
+    }
+  }
 
-  auto diff = badiff::Delta::Make(original_mmap, original_stat.st_size,
-                                  target_mmap, target_stat.st_size, reporter);
+  const char *target_mmap = "";
+  if (target_size > 0) {
+    target_mmap = (const char *)mmap(NULL, target_size, PROT_READ, MAP_PRIVATE,
+                                     target_fd, 0);
+    if (target_mmap == MAP_FAILED) {
+      if (original_size > 0)
+        munmap((void *)original_mmap, original_size);
+      close(original_fd);
+      close(target_fd);
+      return nullptr;
+    }
+  }
+
+  auto diff = badiff::Delta::Make(original_mmap, original_size, target_mmap,
+                                  target_size, reporter);
+
+  if (original_size > 0)
+    munmap((void *)original_mmap, original_size);
+  if (target_size > 0)
+    munmap((void *)target_mmap, target_size);
   close(original_fd);
   close(target_fd);
   return std::move(diff);
@@ -219,38 +249,42 @@ void Delta::Apply(const char *original, char *target) {
 }
 
 void Delta::Apply(std::string original_file, std::string target_file) {
-  std::ifstream original_stream(original_file);
-  std::ofstream target_stream(target_file);
+  std::ifstream original_stream(original_file, std::ios::binary);
+  std::ofstream target_stream(target_file, std::ios::binary);
   Apply(original_stream, target_stream);
 }
 
-static const char *MAGIC = "\xBA\xD1\xFF";
-static const char FORMAT_VERSION_MAJOR = 1;
-static const char FORMAT_VERSION_MINOR = 1;
+static const char MAGIC[] = {'\xBA', '\xD1', '\xFF'};
+static const char FORMAT_VERSION_MAJOR = 2;
+static const char FORMAT_VERSION_MINOR = 0;
 
 static void WriteSize(std::ostream &out, std::size_t n) {
-  char buf[8];
-  buf[7] = (n & 0x7f);
+  // Max bytes for a base-128 varint of a size_t (7 data bits per byte).
+  constexpr std::size_t kMaxBytes = (sizeof(std::size_t) * 8 + 6) / 7;
+  char buf[kMaxBytes];
+  std::size_t i = kMaxBytes - 1;
+  buf[i] = (n & 0x7f);
   n >>= 7;
-  std::size_t i = 7;
   while (n) {
     --i;
     buf[i] = (n & 0x7f);
     buf[i] |= 0x80;
     n >>= 7;
   }
-  out.write(buf + i, 8 - i);
+  out.write(buf + i, kMaxBytes - i);
 }
 
-static void ReadSize(std::istream &in, int *val) {
+static bool ReadSize(std::istream &in, std::size_t *val) {
   std::size_t n = 0;
   char c;
   do {
-    in.read(&c, 1);
+    if (!in.read(&c, 1))
+      return false;
     n <<= 7;
     n |= (c & 0x7f);
   } while (c & 0x80);
   *val = n;
+  return true;
 }
 
 void Delta::Serialize(std::ostream &out) const {
@@ -266,7 +300,7 @@ void Delta::Serialize(std::ostream &out) const {
 }
 
 void Delta::Serialize(std::string delta_file) const {
-  std::ofstream delta_stream(delta_file);
+  std::ofstream delta_stream(delta_file, std::ios::binary);
   Serialize(delta_stream);
 }
 
@@ -282,17 +316,35 @@ bool Delta::Deserialize(std::istream &in) {
   if (minor != FORMAT_VERSION_MINOR)
     return false;
 
-  ReadSize(in, &original_len_);
-  ReadSize(in, &target_len_);
-  ReadSize(in, &delta_len_);
+  if (!ReadSize(in, &original_len_))
+    return false;
+  if (!ReadSize(in, &target_len_))
+    return false;
+  if (!ReadSize(in, &delta_len_))
+    return false;
+
+  // delta_len_ is attacker-controlled, so grow the buffer as bytes arrive and
+  // fail if the stream ends before delta_len_ bytes.
+  std::string payload;
+  payload.reserve(std::min<std::size_t>(delta_len_, 1u << 20));
+  char buf[64 * 1024];
+  while (payload.size() < delta_len_) {
+    std::size_t want =
+        std::min<std::size_t>(sizeof(buf), delta_len_ - payload.size());
+    in.read(buf, want);
+    std::streamsize got = in.gcount();
+    if (got <= 0)
+      return false;
+    payload.append(buf, static_cast<std::size_t>(got));
+  }
 
   delta_.reset(new char[delta_len_]);
-  in.read(delta_.get(), delta_len_);
+  std::copy(payload.begin(), payload.end(), delta_.get());
   return true;
 }
 
 bool Delta::Deserialize(std::string delta_file) {
-  std::ifstream delta_stream(delta_file);
+  std::ifstream delta_stream(delta_file, std::ios::binary);
   return Deserialize(delta_stream);
 }
 

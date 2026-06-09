@@ -20,263 +20,13 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 #include <algorithm>
-#include <bitset>
-#include <limits>
-#include <type_traits>
 
 #include <badiff/alg/inertial_graph.hpp>
 #include <badiff/q/compacting_op_queue.hpp>
 #include <badiff/q/op_queue.hpp>
 #include <badiff/q/vector_op_queue.hpp>
-#include <iostream>
-#include <numeric>
 
 #include <climits>
-#include <cstdint>
-
-namespace {
-
-template <typename T>
-static inline // static if you want to compile with -mpopcnt in one
-              // compilation unit but not others
-    typename std::enable_if<std::is_integral<T>::value, unsigned>::type
-    popcount(T x) {
-  static_assert(std::numeric_limits<T>::radix == 2, "non-binary type");
-
-  // sizeof(x)*CHAR_BIT
-  constexpr int bitwidth =
-      std::numeric_limits<T>::digits + std::numeric_limits<T>::is_signed;
-  // std::bitset constructor was only unsigned long before C++11.  Beware if
-  // porting to C++03
-  static_assert(bitwidth <= std::numeric_limits<unsigned long long>::digits,
-                "arg too wide for std::bitset() constructor");
-
-  typedef typename std::make_unsigned<T>::type
-      UT; // probably not needed, bitset width chops after sign-extension
-
-  std::bitset<bitwidth> bs(static_cast<UT>(x));
-  return bs.count();
-}
-
-/**
- * Return a mask for whether the argument is negative.
- * @param l The number to check
- * @return {@code -1} if negative, {@code 0} if non-negative
- */
-static inline long negative(long l) { return l >> 63; }
-
-/**
- * Return a mask for whether the argument is negative.
- * @param i The number to check
- * @return {@code -1} if negative, {@code 0} if non-negative
- */
-static inline int negative(int i) { return i >> 31; }
-
-/**
- * Return a mask for whether the argument is negative.
- * @param s The number to check
- * @return {@code -1} if negative, {@code 0} if non-negative
- */
-static inline short netative(short s) { return (short)negative((int)s); }
-
-/**
- * Returns the minimum of the two arguments.  Equivalent
- * to {@code (lhs < rhs ? lhs : rhs)} but requires no
- * branching.
- * @param lhs The left-hand side
- * @param rhs The right-hand side
- * @return The minimum of {@code lhs} and {@code rhs}
- */
-static inline long min(long lhs, long rhs) {
-  long m = negative(lhs - rhs);
-  return (lhs & m) | (rhs & ~m);
-}
-
-/**
- * Returns the minimum of the two arguments.  Equivalent
- * to {@code (lhs < rhs ? lhs : rhs)} but requires no
- * branching.
- * @param lhs The left-hand side
- * @param rhs The right-hand side
- * @return The minimum of {@code lhs} and {@code rhs}
- */
-static inline int min(int lhs, int rhs) {
-  int m = negative(lhs - rhs);
-  return (lhs & m) | (rhs & ~m);
-}
-
-/**
- * Returns the minimum of the two arguments.  Equivalent
- * to {@code (lhs < rhs ? lhs : rhs)} but requires no
- * branching.
- * @param lhs The left-hand side
- * @param rhs The right-hand side
- * @return The minimum of {@code lhs} and {@code rhs}
- */
-static inline short min(short lhs, short rhs) {
-  return (short)min((int)lhs, (int)rhs);
-}
-
-/**
- * Returns the maximum of the two arguments.  Equivalent
- * to {@code (lhs > rhs ? lhs : rhs)} but requires no
- * branching.
- * @param lhs The left-hand side
- * @param rhs The right-hand side
- * @return The maximum of {@code lhs} and {@code rhs}
- */
-static inline long max(long lhs, long rhs) {
-  long m = negative(lhs - rhs);
-  return (lhs & ~m) | (rhs & m);
-}
-
-/**
- * Returns the maximum of the two arguments.  Equivalent
- * to {@code (lhs > rhs ? lhs : rhs)} but requires no
- * branching.
- * @param lhs The left-hand side
- * @param rhs The right-hand side
- * @return The maximum of {@code lhs} and {@code rhs}
- */
-static inline int max(int lhs, int rhs) {
-  int m = negative(lhs - rhs);
-  return (lhs & ~m) | (rhs & m);
-}
-
-/**
- * Returns the maximum of the two arguments.  Equivalent
- * to {@code (lhs > rhs ? lhs : rhs)} but requires no
- * branching.
- * @param lhs The left-hand side
- * @param rhs The right-hand side
- * @return The maximum of {@code lhs} and {@code rhs}
- */
-static inline short max(short lhs, short rhs) {
-  return (short)max((int)lhs, (int)rhs);
-}
-
-/**
- * Returns a mask for whether any bits of the argument are set.
- * Equivalent to {@code (l == 0 ? 0 : -1)} but requires
- * no branching.
- * @param l The argument to check
- * @return {@code -1} if any bits are set, {@code 0} otherwise.
- */
-static inline long any(long l) {
-  l = l | (l << 32) | (l > 32);
-  l = l | (l << 16) | (l >> 16);
-  l = l | (l << 8) | (l >> 8);
-  l = l | (l << 4) | (l >> 4);
-  l = l | (l << 2) | (l >> 2);
-  l = l | (l << 1) | (l >> 1);
-  return l;
-}
-
-/**
- * Returns a mask for whether any bits of the argument are set.
- * Equivalent to {@code (l == 0 ? 0 : -1)} but requires
- * no branching.
- * @param l The argument to check
- * @return {@code -1} if any bits are set, {@code 0} otherwise.
- */
-static inline int any(int i) { return (int)any((long)i); }
-
-/**
- * Returns a mask for whether any bits of the argument are set.
- * Equivalent to {@code (l == 0 ? 0 : -1)} but requires
- * no branching.
- * @param l The argument to check
- * @return {@code -1} if any bits are set, {@code 0} otherwise.
- */
-static inline short any(short s) { return (short)any((long)s); }
-
-/**
- * Returns a mask for whether all bits of the argument are set.
- * Equivalent to {@code (l == -1 ? -1 : 0)} but requires
- * no branching.
- * @param l The argument to check
- * @return {@code -1} if all bits are set, {@code 0} otherwise.
- */
-static inline long all(long l) {
-  long c = popcount(l);
-  return ~any(c ^ 64);
-}
-
-/**
- * Returns a mask for whether all bits of the argument are set.
- * Equivalent to {@code (l == -1 ? -1 : 0)} but requires
- * no branching.
- * @param l The argument to check
- * @return {@code -1} if all bits are set, {@code 0} otherwise.
- */
-static inline int all(int n) {
-  long l = n;
-  l = l | (l << 32);
-  return (int)all(l);
-}
-
-/**
- * Returns a mask for whether all bits of the argument are set.
- * Equivalent to {@code (l == -1 ? -1 : 0)} but requires
- * no branching.
- * @param l The argument to check
- * @return {@code -1} if all bits are set, {@code 0} otherwise.
- */
-static inline short all(short s) {
-  long l = s;
-  l = l | (l << 32);
-  l = l | (l << 16);
-  return (short)all(l);
-}
-
-/**
- * Compares whether {@code lhs} and {@code rhs} are equal, and
- * returns either {@code equal} or {@code unequal}.  Equivalent
- * to {@code (lhs == rhs ? equal : unequal)} but requires
- * no branching.
- * @param lhs The left-hand side
- * @param rhs The right-hand side
- * @param equal Returned if {@code lhs == rhs}
- * @param unequal Returned if {@code lhs != rhs}
- * @return {@code (lhs == rhs ? equal : unequal)}
- */
-static inline long cmp(long lhs, long rhs, long equal, long unequal) {
-  long mask = negative(lhs - rhs) | negative(rhs - lhs);
-  return (equal & ~mask) | (unequal & mask);
-}
-
-/**
- * Compares whether {@code lhs} and {@code rhs} are equal, and
- * returns either {@code equal} or {@code unequal}.  Equivalent
- * to {@code (lhs == rhs ? equal : unequal)} but requires
- * no branching.
- * @param lhs The left-hand side
- * @param rhs The right-hand side
- * @param equal Returned if {@code lhs == rhs}
- * @param unequal Returned if {@code lhs != rhs}
- * @return {@code (lhs == rhs ? equal : unequal)}
- */
-static inline int cmp(long lhs, long rhs, int equal, int unequal) {
-  long mask = negative(lhs - rhs) | negative(rhs - lhs);
-  return (int)((equal & ~mask) | (unequal & mask));
-}
-
-/**
- * Compares whether {@code lhs} and {@code rhs} are equal, and
- * returns either {@code equal} or {@code unequal}.  Equivalent
- * to {@code (lhs == rhs ? equal : unequal)} but requires
- * no branching.
- * @param lhs The left-hand side
- * @param rhs The right-hand side
- * @param equal Returned if {@code lhs == rhs}
- * @param unequal Returned if {@code lhs != rhs}
- * @return {@code (lhs == rhs ? equal : unequal)}
- */
-static inline short cmp(long lhs, long rhs, short equal, short unequal) {
-  return (short)cmp(lhs, rhs, (int)equal, (int)unequal);
-}
-
-} // namespace
 
 namespace badiff {
 
@@ -295,6 +45,16 @@ int Cost(Op::Type from, Op::Type to) {
   return DEFAULT_TRANSITION_COSTS[from][to];
 }
 
+/**
+ * Saturating cost addition. Entry costs use INT_MAX as "infinity" for an
+ * unavailable path, which stays infinite.
+ */
+static inline int AddCost(int a, int b) {
+  if (a == INT_MAX || b == INT_MAX)
+    return INT_MAX;
+  return a + b;
+}
+
 static char DELETE = 0;
 static char INSERT = 1;
 static char NEXT = 2;
@@ -304,10 +64,14 @@ static int NUM_FIELDS = 3;
 
 void InertialGraph::Compute(const char *original, std::size_t original_length,
                             const char *target, std::size_t target_length) {
-  cost_ = std::vector<int>(NUM_FIELDS * (original_length + 1) *
-                           (target_length + 1));
+  // Reuse the buffer across chunk-pairs (this graph is shared by a GraphOpQueue
+  // for every chunk): grow only when a larger chunk needs it. Every cell in
+  // [0, costLength) is written before it is read, so no zero-fill is needed.
+  std::size_t cost_size =
+      NUM_FIELDS * (original_length + 1) * (target_length + 1);
+  if (cost_.size() < cost_size)
+    cost_.resize(cost_size);
 
-  int capacity;
   xval_.resize(original_length + 1);
   yval_.resize(target_length + 1);
 
@@ -343,36 +107,43 @@ void InertialGraph::Compute(const char *original, std::size_t original_length,
 
     f = (pos - 1) * NUM_FIELDS + DELETE;
     f = (f + costLength) % costLength;
-    edc = cmp(x, 0, cmp(y, 0, 0, INT_MAX), cost_[f]);
+    edc = (x == 0) ? ((y == 0) ? 0 : INT_MAX) : cost_[f];
 
     f = (pos - xvalLength) * NUM_FIELDS + INSERT;
     f = (f + costLength) % costLength;
-    eic = cmp(y, 0, cmp(x, 0, 0, INT_MAX), cost_[f]);
+    eic = (y == 0) ? ((x == 0) ? 0 : INT_MAX) : cost_[f];
 
     f = (pos - 1 - xvalLength) * NUM_FIELDS + NEXT;
     f = (f + costLength) % costLength;
-    enc = cmp(x, 0, cmp(y, 0, 0, INT_MAX),
-              cmp(y, 0, INT_MAX, cmp(xval_[x], yval_[y], cost_[f], INT_MAX)));
+    enc = (x == 0) ? ((y == 0) ? 0 : INT_MAX)
+          : (y == 0) ? INT_MAX
+                     : ((xval_[x] == yval_[y]) ? cost_[f] : INT_MAX);
 
-    int cost;
+    int cost, c;
 
     // compute delete cost
-    cost = edc + cdd;
-    cost = min(cost, eic + cid);
-    cost = min(cost, enc + cnd);
-    cost_[pos * NUM_FIELDS + DELETE] = min(cost, INT_MAX);
+    cost = AddCost(edc, cdd);
+    c = AddCost(eic, cid);
+    cost = c < cost ? c : cost;
+    c = AddCost(enc, cnd);
+    cost = c < cost ? c : cost;
+    cost_[pos * NUM_FIELDS + DELETE] = cost;
 
     // compute insert cost
-    cost = eic + cii;
-    cost = min(cost, edc + cdi);
-    cost = min(cost, enc + cni);
-    cost_[pos * NUM_FIELDS + INSERT] = min(cost, INT_MAX);
+    cost = AddCost(eic, cii);
+    c = AddCost(edc, cdi);
+    cost = c < cost ? c : cost;
+    c = AddCost(enc, cni);
+    cost = c < cost ? c : cost;
+    cost_[pos * NUM_FIELDS + INSERT] = cost;
 
     // compute next cost
-    cost = enc + cnn;
-    cost = min(cost, edc + cdn);
-    cost = min(cost, eic + cin);
-    cost_[pos * NUM_FIELDS + NEXT] = min(cost, INT_MAX);
+    cost = AddCost(enc, cnn);
+    c = AddCost(edc, cdn);
+    cost = c < cost ? c : cost;
+    c = AddCost(eic, cin);
+    cost = c < cost ? c : cost;
+    cost_[pos * NUM_FIELDS + NEXT] = cost;
 
     x++;
     y += (x / xvalLength);
@@ -403,27 +174,28 @@ public:
     int cost = INT_MAX;
     if (x > 0 && y > 0 && graph_->xval_[x] == graph_->yval_[y]) {
       op = Op::NEXT;
-      cost =
-          graph_->cost_[(pos - 1 - graph_->xval_.size()) * NUM_FIELDS + NEXT] +
-          Cost(Op::NEXT, prev);
+      cost = AddCost(
+          graph_->cost_[(pos - 1 - graph_->xval_.size()) * NUM_FIELDS + NEXT],
+          Cost(Op::NEXT, prev));
     }
 
-    if (y > 0 &&
-        (x == 0 ||
-         graph_->cost_[(pos - graph_->xval_.size()) * NUM_FIELDS + INSERT] +
-                 Cost(Op::INSERT, prev) <
-             cost)) {
-      op = Op::INSERT;
-      cost = graph_->cost_[(pos - graph_->xval_.size()) * NUM_FIELDS + INSERT] +
-             Cost(Op::INSERT, prev);
+    if (y > 0) {
+      int insert_cost = AddCost(
+          graph_->cost_[(pos - graph_->xval_.size()) * NUM_FIELDS + INSERT],
+          Cost(Op::INSERT, prev));
+      if (x == 0 || insert_cost < cost) {
+        op = Op::INSERT;
+        cost = insert_cost;
+      }
     }
 
-    if (x > 0 && (y == 0 || graph_->cost_[(pos - 1) * NUM_FIELDS + DELETE] +
-                                    Cost(Op::DELETE, prev) <
-                                cost)) {
-      op = Op::DELETE;
-      cost = graph_->cost_[(pos - 1) * NUM_FIELDS + DELETE] +
-             Cost(Op::DELETE, prev);
+    if (x > 0) {
+      int delete_cost = AddCost(graph_->cost_[(pos - 1) * NUM_FIELDS + DELETE],
+                                Cost(Op::DELETE, prev));
+      if (y == 0 || delete_cost < cost) {
+        op = Op::DELETE;
+        cost = delete_cost;
+      }
     }
 
     Op e;

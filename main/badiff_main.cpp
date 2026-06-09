@@ -24,7 +24,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <string>
 #include <vector>
 
-#include <malloc.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -56,8 +55,6 @@ static int help(int status) {
 int main(int argc, const char **argv) {
   using badiff::Delta;
 
-  mallopt(M_MMAP_THRESHOLD, 128 * 1024 * 1024);
-
   struct {
     bool verbose_ = false;
     bool positional_only_ = false;
@@ -76,13 +73,14 @@ int main(int argc, const char **argv) {
       positional_args.push_back(arg);
   }
 
-  std::function<void(int original_pos, int target_pos, int original_len,
-                     int target_len)> *reporter = nullptr;
+  std::function<void(std::size_t original_pos, std::size_t target_pos,
+                     std::size_t original_len, std::size_t target_len)>
+      *reporter = nullptr;
 
-  std::function<void(int original_pos, int target_pos, int original_len,
-                     int target_len)>
-      verbose_reporter([](int original_pos, int target_pos, int original_len,
-                          int target_len) {
+  std::function<void(std::size_t original_pos, std::size_t target_pos,
+                     std::size_t original_len, std::size_t target_len)>
+      verbose_reporter([](std::size_t original_pos, std::size_t target_pos,
+                          std::size_t original_len, std::size_t target_len) {
         printf("%i%% %i%%\n", (int)(100 * original_pos / (double)original_len),
                (int)(100 * target_pos / (double)target_len));
       });
@@ -109,6 +107,11 @@ int main(int argc, const char **argv) {
     std::string delta = positional_args[3];
 
     auto diff = badiff::Delta::Make(original, target, reporter);
+
+    if (!diff) {
+      fprintf(stderr, "Could not read input files.\n");
+      return EXIT_FAILURE;
+    }
 
     if (delta == "-") {
       diff->Serialize(std::cout);
