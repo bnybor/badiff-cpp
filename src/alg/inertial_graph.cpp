@@ -67,7 +67,6 @@ void InertialGraph::Compute(const char *original, std::size_t original_length,
   cost_ = std::vector<int>(NUM_FIELDS * (original_length + 1) *
                            (target_length + 1));
 
-  int capacity;
   xval_.resize(original_length + 1);
   yval_.resize(target_length + 1);
 

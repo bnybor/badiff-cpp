@@ -56,7 +56,6 @@ add_library(badiff_archive STATIC
     src/q/chunking_op_queue.cpp
     src/q/coalescing_op_queue.cpp
     src/q/compacting_op_queue.cpp
-    src/q/deserialize_op_queue.cpp
     src/q/filter_op_queue.cpp
     src/q/graph_op_queue.cpp
     src/q/minimize_op_queue.cpp
