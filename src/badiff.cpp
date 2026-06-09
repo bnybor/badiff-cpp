@@ -259,17 +259,19 @@ static const char FORMAT_VERSION_MAJOR = 2;
 static const char FORMAT_VERSION_MINOR = 0;
 
 static void WriteSize(std::ostream &out, std::size_t n) {
-  char buf[8];
-  buf[7] = (n & 0x7f);
+  // Max bytes for a base-128 varint of a size_t (7 data bits per byte).
+  constexpr std::size_t kMaxBytes = (sizeof(std::size_t) * 8 + 6) / 7;
+  char buf[kMaxBytes];
+  std::size_t i = kMaxBytes - 1;
+  buf[i] = (n & 0x7f);
   n >>= 7;
-  std::size_t i = 7;
   while (n) {
     --i;
     buf[i] = (n & 0x7f);
     buf[i] |= 0x80;
     n >>= 7;
   }
-  out.write(buf + i, 8 - i);
+  out.write(buf + i, kMaxBytes - i);
 }
 
 static bool ReadSize(std::istream &in, std::size_t *val) {
