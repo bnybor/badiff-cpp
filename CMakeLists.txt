@@ -25,7 +25,7 @@ if(BADIFF_NATIVE_ARCH AND CMAKE_BUILD_TYPE STREQUAL "Release")
 endif()
 
 option(BADIFF_ENABLE_TESTS "Enable test suite" ON)
-if(BADIFF_ENABLLE_TESTS)
+if(BADIFF_ENABLE_TESTS)
 enable_testing()
 add_subdirectory(test)
 endif()
