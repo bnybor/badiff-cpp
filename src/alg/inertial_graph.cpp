@@ -64,8 +64,13 @@ static int NUM_FIELDS = 3;
 
 void InertialGraph::Compute(const char *original, std::size_t original_length,
                             const char *target, std::size_t target_length) {
-  cost_ = std::vector<int>(NUM_FIELDS * (original_length + 1) *
-                           (target_length + 1));
+  // Reuse the buffer across chunk-pairs (this graph is shared by a GraphOpQueue
+  // for every chunk): grow only when a larger chunk needs it. Every cell in
+  // [0, costLength) is written before it is read, so no zero-fill is needed.
+  std::size_t cost_size =
+      NUM_FIELDS * (original_length + 1) * (target_length + 1);
+  if (cost_.size() < cost_size)
+    cost_.resize(cost_size);
 
   xval_.resize(original_length + 1);
   yval_.resize(target_length + 1);

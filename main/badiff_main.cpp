@@ -24,7 +24,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <string>
 #include <vector>
 
-#include <malloc.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -55,8 +54,6 @@ static int help(int status) {
 
 int main(int argc, const char **argv) {
   using badiff::Delta;
-
-  mallopt(M_MMAP_THRESHOLD, 128 * 1024 * 1024);
 
   struct {
     bool verbose_ = false;
