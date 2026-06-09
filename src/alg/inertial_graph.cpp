@@ -163,7 +163,7 @@ static inline short max(short lhs, short rhs) {
  * @return {@code -1} if any bits are set, {@code 0} otherwise.
  */
 static inline long any(long l) {
-  l = l | (l << 32) | (l > 32);
+  l = l | (l << 32) | (l >> 32);
   l = l | (l << 16) | (l >> 16);
   l = l | (l << 8) | (l >> 8);
   l = l | (l << 4) | (l >> 4);
@@ -295,6 +295,18 @@ int Cost(Op::Type from, Op::Type to) {
   return DEFAULT_TRANSITION_COSTS[from][to];
 }
 
+/**
+ * Saturating cost addition. Entry costs use INT_MAX as "infinity" for an
+ * unavailable path. Plain addition of a transition cost would overflow INT_MAX
+ * to a negative value, making an impossible path appear cheapest; saturating
+ * keeps infinity at infinity.
+ */
+static inline int AddCost(int a, int b) {
+  if (a == INT_MAX || b == INT_MAX)
+    return INT_MAX;
+  return a + b;
+}
+
 static char DELETE = 0;
 static char INSERT = 1;
 static char NEXT = 2;
@@ -357,21 +369,21 @@ void InertialGraph::Compute(const char *original, std::size_t original_length,
     int cost;
 
     // compute delete cost
-    cost = edc + cdd;
-    cost = min(cost, eic + cid);
-    cost = min(cost, enc + cnd);
+    cost = AddCost(edc, cdd);
+    cost = min(cost, AddCost(eic, cid));
+    cost = min(cost, AddCost(enc, cnd));
     cost_[pos * NUM_FIELDS + DELETE] = min(cost, INT_MAX);
 
     // compute insert cost
-    cost = eic + cii;
-    cost = min(cost, edc + cdi);
-    cost = min(cost, enc + cni);
+    cost = AddCost(eic, cii);
+    cost = min(cost, AddCost(edc, cdi));
+    cost = min(cost, AddCost(enc, cni));
     cost_[pos * NUM_FIELDS + INSERT] = min(cost, INT_MAX);
 
     // compute next cost
-    cost = enc + cnn;
-    cost = min(cost, edc + cdn);
-    cost = min(cost, eic + cin);
+    cost = AddCost(enc, cnn);
+    cost = min(cost, AddCost(edc, cdn));
+    cost = min(cost, AddCost(eic, cin));
     cost_[pos * NUM_FIELDS + NEXT] = min(cost, INT_MAX);
 
     x++;
@@ -403,27 +415,28 @@ public:
     int cost = INT_MAX;
     if (x > 0 && y > 0 && graph_->xval_[x] == graph_->yval_[y]) {
       op = Op::NEXT;
-      cost =
-          graph_->cost_[(pos - 1 - graph_->xval_.size()) * NUM_FIELDS + NEXT] +
-          Cost(Op::NEXT, prev);
+      cost = AddCost(
+          graph_->cost_[(pos - 1 - graph_->xval_.size()) * NUM_FIELDS + NEXT],
+          Cost(Op::NEXT, prev));
     }
 
-    if (y > 0 &&
-        (x == 0 ||
-         graph_->cost_[(pos - graph_->xval_.size()) * NUM_FIELDS + INSERT] +
-                 Cost(Op::INSERT, prev) <
-             cost)) {
-      op = Op::INSERT;
-      cost = graph_->cost_[(pos - graph_->xval_.size()) * NUM_FIELDS + INSERT] +
-             Cost(Op::INSERT, prev);
+    if (y > 0) {
+      int insert_cost = AddCost(
+          graph_->cost_[(pos - graph_->xval_.size()) * NUM_FIELDS + INSERT],
+          Cost(Op::INSERT, prev));
+      if (x == 0 || insert_cost < cost) {
+        op = Op::INSERT;
+        cost = insert_cost;
+      }
     }
 
-    if (x > 0 && (y == 0 || graph_->cost_[(pos - 1) * NUM_FIELDS + DELETE] +
-                                    Cost(Op::DELETE, prev) <
-                                cost)) {
-      op = Op::DELETE;
-      cost = graph_->cost_[(pos - 1) * NUM_FIELDS + DELETE] +
-             Cost(Op::DELETE, prev);
+    if (x > 0) {
+      int delete_cost = AddCost(graph_->cost_[(pos - 1) * NUM_FIELDS + DELETE],
+                                Cost(Op::DELETE, prev));
+      if (y == 0 || delete_cost < cost) {
+        op = Op::DELETE;
+        cost = delete_cost;
+      }
     }
 
     Op e;
