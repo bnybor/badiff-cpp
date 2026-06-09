@@ -92,13 +92,13 @@ std::unique_ptr<q::OpQueue> ComputeDiff(std::unique_ptr<q::OpQueue> op_queue) {
 
 struct MakeParameters {
   std::unique_ptr<q::OpQueue> forward_op_queue_;
-  int original_len_;
-  int target_len_;
+  std::size_t original_len_;
+  std::size_t target_len_;
 };
 
 std::unique_ptr<Delta> MakeParameterized(MakeParameters parameters) {
-  int original_len = parameters.original_len_;
-  int target_len = parameters.target_len_;
+  std::size_t original_len = parameters.original_len_;
+  std::size_t target_len = parameters.target_len_;
   // OpQueues for the byte arrays, in order and in reverse order.
   std::unique_ptr<q::OpQueue> op_queue(std::move(parameters.forward_op_queue_));
   op_queue = ComputeDiff(std::move(op_queue)); // forward diff
@@ -121,10 +121,11 @@ std::unique_ptr<Delta> MakeParameterized(MakeParameters parameters) {
 } // namespace
 
 std::unique_ptr<Delta>
-Delta::Make(const char *original, int original_len, const char *target,
-            int target_len,
-            std::function<void(int original_pos, int target_pos,
-                               int original_len, int target_len)> *reporter) {
+Delta::Make(const char *original, std::size_t original_len, const char *target,
+            std::size_t target_len,
+            std::function<void(std::size_t original_pos, std::size_t target_pos,
+                               std::size_t original_len, std::size_t target_len)>
+                *reporter) {
   std::unique_ptr<q::OpQueue> op_queue(new q::CdcOpQueue(
       original, original_len, target, target_len, DEFAULT_CHUNK, reporter));
 
@@ -137,10 +138,11 @@ Delta::Make(const char *original, int original_len, const char *target,
 }
 
 std::unique_ptr<Delta>
-Delta::Make(std::istream &original, int original_len, std::istream &target,
-            int target_len,
-            std::function<void(int original_pos, int target_pos,
-                               int original_len, int target_len)> *reporter) {
+Delta::Make(std::istream &original, std::size_t original_len,
+            std::istream &target, std::size_t target_len,
+            std::function<void(std::size_t original_pos, std::size_t target_pos,
+                               std::size_t original_len, std::size_t target_len)>
+                *reporter) {
   std::unique_ptr<q::OpQueue> op_queue(new q::StreamReplaceOpQueue(
       original, original_len, target, target_len, DEFAULT_CHUNK, reporter));
 
@@ -154,8 +156,9 @@ Delta::Make(std::istream &original, int original_len, std::istream &target,
 
 std::unique_ptr<Delta>
 Delta::Make(std::string original_file, std::string target_file,
-            std::function<void(int original_pos, int target_pos,
-                               int original_len, int target_len)> *reporter) {
+            std::function<void(std::size_t original_pos, std::size_t target_pos,
+                               std::size_t original_len, std::size_t target_len)>
+                *reporter) {
   // Memory-map the files and diff them.
 
   struct stat original_stat;
@@ -181,16 +184,16 @@ Delta::Make(std::string original_file, std::string target_file,
     return nullptr;
   }
 
-  int original_size = original_stat.st_size;
-  int target_size = target_stat.st_size;
+  std::size_t original_size = original_stat.st_size;
+  std::size_t target_size = target_stat.st_size;
 
   const char *original_mmap = (const char *)mmap(NULL, original_size, PROT_READ,
                                                  MAP_PRIVATE, original_fd, 0);
   const char *target_mmap = (const char *)mmap(NULL, target_size, PROT_READ,
                                                MAP_PRIVATE, target_fd, 0);
 
-  auto diff = badiff::Delta::Make(original_mmap, original_stat.st_size,
-                                  target_mmap, target_stat.st_size, reporter);
+  auto diff = badiff::Delta::Make(original_mmap, original_size, target_mmap,
+                                  target_size, reporter);
   close(original_fd);
   close(target_fd);
   return std::move(diff);
@@ -242,7 +245,7 @@ static void WriteSize(std::ostream &out, std::size_t n) {
   out.write(buf + i, 8 - i);
 }
 
-static void ReadSize(std::istream &in, int *val) {
+static void ReadSize(std::istream &in, std::size_t *val) {
   std::size_t n = 0;
   char c;
   do {

@@ -25,16 +25,18 @@ namespace badiff {
 namespace q {
 
 StreamReplaceOpQueue::StreamReplaceOpQueue(
-    std::istream &original, int original_len, std::istream &target,
-    int target_len, int max_chunk_len,
-    std::function<void(int original_pos, int target_pos, int original_len,
-                       int target_len)> *reporter)
+    std::istream &original, std::size_t original_len, std::istream &target,
+    std::size_t target_len, int max_chunk_len,
+    std::function<void(std::size_t original_pos, std::size_t target_pos,
+                       std::size_t original_len, std::size_t target_len)>
+        *reporter)
     : original_(original), target_(target), original_len_(original_len),
       target_len_(target_len) {
   reporter_ = reporter;
-  int chunks = std::max(1, std::max(original_len, target_len) / max_chunk_len);
-  original_chunk_len_ = std::max(1, original_len / chunks);
-  target_chunk_len_ = std::max(1, target_len / chunks);
+  std::size_t chunks = std::max<std::size_t>(
+      1, std::max(original_len, target_len) / max_chunk_len);
+  original_chunk_len_ = std::max<std::size_t>(1, original_len / chunks);
+  target_chunk_len_ = std::max<std::size_t>(1, target_len / chunks);
   original_pos_ = 0;
   target_pos_ = 0;
 }

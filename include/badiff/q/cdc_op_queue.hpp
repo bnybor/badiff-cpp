@@ -47,9 +47,10 @@ namespace q {
  */
 class CdcOpQueue : public OpQueue {
 public:
-  CdcOpQueue(const char *original, int original_len, const char *target,
-             int target_len, int avg_chunk = DEFAULT_CHUNK,
-             std::function<void(int, int, int, int)> *reporter = nullptr);
+  CdcOpQueue(const char *original, std::size_t original_len, const char *target,
+             std::size_t target_len, int avg_chunk = DEFAULT_CHUNK,
+             std::function<void(std::size_t, std::size_t, std::size_t,
+                                std::size_t)> *reporter = nullptr);
   virtual ~CdcOpQueue();
 
 protected:
@@ -60,7 +61,8 @@ private:
   int max_chunk_;
   uint32_t mask_;
 
-  std::function<void(int, int, int, int)> *reporter_;
+  std::function<void(std::size_t, std::size_t, std::size_t, std::size_t)>
+      *reporter_;
   int original_len_, target_len_;
   int original_pos_, target_pos_;
 
