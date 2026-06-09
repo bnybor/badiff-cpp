@@ -28,30 +28,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <climits>
 
-namespace {
-
-// Branchless helpers used by the cost DP below. The graph computes Op::Length
-// counts and INT_MAX sentinels that never reach the sign bit ambiguously, so
-// signed shifts are well-defined here.
-
-/** Mask of all 1s if the argument is negative, else 0. */
-static inline long negative(long l) { return l >> 63; }
-static inline int negative(int i) { return i >> 31; }
-
-/** Branchless minimum: (lhs < rhs ? lhs : rhs). */
-static inline int min(int lhs, int rhs) {
-  int m = negative(lhs - rhs);
-  return (lhs & m) | (rhs & ~m);
-}
-
-/** Branchless select: (lhs == rhs ? equal : unequal). */
-static inline int cmp(long lhs, long rhs, int equal, int unequal) {
-  long mask = negative(lhs - rhs) | negative(rhs - lhs);
-  return (int)((equal & ~mask) | (unequal & mask));
-}
-
-} // namespace
-
 namespace badiff {
 
 namespace alg {
@@ -129,36 +105,43 @@ void InertialGraph::Compute(const char *original, std::size_t original_length,
 
     f = (pos - 1) * NUM_FIELDS + DELETE;
     f = (f + costLength) % costLength;
-    edc = cmp(x, 0, cmp(y, 0, 0, INT_MAX), cost_[f]);
+    edc = (x == 0) ? ((y == 0) ? 0 : INT_MAX) : cost_[f];
 
     f = (pos - xvalLength) * NUM_FIELDS + INSERT;
     f = (f + costLength) % costLength;
-    eic = cmp(y, 0, cmp(x, 0, 0, INT_MAX), cost_[f]);
+    eic = (y == 0) ? ((x == 0) ? 0 : INT_MAX) : cost_[f];
 
     f = (pos - 1 - xvalLength) * NUM_FIELDS + NEXT;
     f = (f + costLength) % costLength;
-    enc = cmp(x, 0, cmp(y, 0, 0, INT_MAX),
-              cmp(y, 0, INT_MAX, cmp(xval_[x], yval_[y], cost_[f], INT_MAX)));
+    enc = (x == 0) ? ((y == 0) ? 0 : INT_MAX)
+          : (y == 0) ? INT_MAX
+                     : ((xval_[x] == yval_[y]) ? cost_[f] : INT_MAX);
 
-    int cost;
+    int cost, c;
 
     // compute delete cost
     cost = AddCost(edc, cdd);
-    cost = min(cost, AddCost(eic, cid));
-    cost = min(cost, AddCost(enc, cnd));
-    cost_[pos * NUM_FIELDS + DELETE] = min(cost, INT_MAX);
+    c = AddCost(eic, cid);
+    cost = c < cost ? c : cost;
+    c = AddCost(enc, cnd);
+    cost = c < cost ? c : cost;
+    cost_[pos * NUM_FIELDS + DELETE] = cost;
 
     // compute insert cost
     cost = AddCost(eic, cii);
-    cost = min(cost, AddCost(edc, cdi));
-    cost = min(cost, AddCost(enc, cni));
-    cost_[pos * NUM_FIELDS + INSERT] = min(cost, INT_MAX);
+    c = AddCost(edc, cdi);
+    cost = c < cost ? c : cost;
+    c = AddCost(enc, cni);
+    cost = c < cost ? c : cost;
+    cost_[pos * NUM_FIELDS + INSERT] = cost;
 
     // compute next cost
     cost = AddCost(enc, cnn);
-    cost = min(cost, AddCost(edc, cdn));
-    cost = min(cost, AddCost(eic, cin));
-    cost_[pos * NUM_FIELDS + NEXT] = min(cost, INT_MAX);
+    c = AddCost(edc, cdn);
+    cost = c < cost ? c : cost;
+    c = AddCost(eic, cin);
+    cost = c < cost ? c : cost;
+    cost_[pos * NUM_FIELDS + NEXT] = cost;
 
     x++;
     y += (x / xvalLength);
