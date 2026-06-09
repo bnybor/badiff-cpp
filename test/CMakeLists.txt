@@ -1,7 +1,6 @@
 add_executable(badiff_test
     src/badiff_test.cpp
     src/op_test.cpp
-    src/alg/edit_graph_test.cpp
     src/alg/inertial_graph_test.cpp
     src/q/coalescing_op_queue_test.cpp
     src/q/graph_op_queue_test.cpp

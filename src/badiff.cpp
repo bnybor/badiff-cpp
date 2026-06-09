@@ -24,7 +24,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <badiff/defaults.hpp>
 
-#include <badiff/alg/edit_graph.hpp>
 #include <badiff/alg/graph.hpp>
 #include <badiff/alg/inertial_graph.hpp>
 

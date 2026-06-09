@@ -51,7 +51,6 @@ install (TARGETS badiff_library
 add_library(badiff_archive STATIC
     src/badiff.cpp
     src/op.cpp
-    src/alg/edit_graph.cpp
     src/alg/inertial_graph.cpp
     src/q/cdc_op_queue.cpp
     src/q/chunking_op_queue.cpp
