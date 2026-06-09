@@ -13,8 +13,11 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -flto -funroll-all-loops -fopenmp -march=native" CACHE STRING "Set C++ Compiler Flags" FORCE)
 endif()
 
+option(BADIFF_ENABLE_TESTS "Enable test suite" ON)
+if(BADIFF_ENABLLE_TESTS)
 enable_testing()
 add_subdirectory(test)
+endif()
 
 ## shared library
 
