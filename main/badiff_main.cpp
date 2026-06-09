@@ -111,6 +111,11 @@ int main(int argc, const char **argv) {
 
     auto diff = badiff::Delta::Make(original, target, reporter);
 
+    if (!diff) {
+      fprintf(stderr, "Could not read input files.\n");
+      return EXIT_FAILURE;
+    }
+
     if (delta == "-") {
       diff->Serialize(std::cout);
     } else {

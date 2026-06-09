@@ -47,9 +47,7 @@ int Cost(Op::Type from, Op::Type to) {
 
 /**
  * Saturating cost addition. Entry costs use INT_MAX as "infinity" for an
- * unavailable path. Plain addition of a transition cost would overflow INT_MAX
- * to a negative value, making an impossible path appear cheapest; saturating
- * keeps infinity at infinity.
+ * unavailable path, which stays infinite.
  */
 static inline int AddCost(int a, int b) {
   if (a == INT_MAX || b == INT_MAX)
