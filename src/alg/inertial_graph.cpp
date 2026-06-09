@@ -20,260 +20,34 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 #include <algorithm>
-#include <bitset>
-#include <limits>
-#include <type_traits>
 
 #include <badiff/alg/inertial_graph.hpp>
 #include <badiff/q/compacting_op_queue.hpp>
 #include <badiff/q/op_queue.hpp>
 #include <badiff/q/vector_op_queue.hpp>
-#include <iostream>
-#include <numeric>
 
 #include <climits>
-#include <cstdint>
 
 namespace {
 
-template <typename T>
-static inline // static if you want to compile with -mpopcnt in one
-              // compilation unit but not others
-    typename std::enable_if<std::is_integral<T>::value, unsigned>::type
-    popcount(T x) {
-  static_assert(std::numeric_limits<T>::radix == 2, "non-binary type");
+// Branchless helpers used by the cost DP below. The graph computes Op::Length
+// counts and INT_MAX sentinels that never reach the sign bit ambiguously, so
+// signed shifts are well-defined here.
 
-  // sizeof(x)*CHAR_BIT
-  constexpr int bitwidth =
-      std::numeric_limits<T>::digits + std::numeric_limits<T>::is_signed;
-  // std::bitset constructor was only unsigned long before C++11.  Beware if
-  // porting to C++03
-  static_assert(bitwidth <= std::numeric_limits<unsigned long long>::digits,
-                "arg too wide for std::bitset() constructor");
-
-  typedef typename std::make_unsigned<T>::type
-      UT; // probably not needed, bitset width chops after sign-extension
-
-  std::bitset<bitwidth> bs(static_cast<UT>(x));
-  return bs.count();
-}
-
-/**
- * Return a mask for whether the argument is negative.
- * @param l The number to check
- * @return {@code -1} if negative, {@code 0} if non-negative
- */
+/** Mask of all 1s if the argument is negative, else 0. */
 static inline long negative(long l) { return l >> 63; }
-
-/**
- * Return a mask for whether the argument is negative.
- * @param i The number to check
- * @return {@code -1} if negative, {@code 0} if non-negative
- */
 static inline int negative(int i) { return i >> 31; }
 
-/**
- * Return a mask for whether the argument is negative.
- * @param s The number to check
- * @return {@code -1} if negative, {@code 0} if non-negative
- */
-static inline short netative(short s) { return (short)negative((int)s); }
-
-/**
- * Returns the minimum of the two arguments.  Equivalent
- * to {@code (lhs < rhs ? lhs : rhs)} but requires no
- * branching.
- * @param lhs The left-hand side
- * @param rhs The right-hand side
- * @return The minimum of {@code lhs} and {@code rhs}
- */
-static inline long min(long lhs, long rhs) {
-  long m = negative(lhs - rhs);
-  return (lhs & m) | (rhs & ~m);
-}
-
-/**
- * Returns the minimum of the two arguments.  Equivalent
- * to {@code (lhs < rhs ? lhs : rhs)} but requires no
- * branching.
- * @param lhs The left-hand side
- * @param rhs The right-hand side
- * @return The minimum of {@code lhs} and {@code rhs}
- */
+/** Branchless minimum: (lhs < rhs ? lhs : rhs). */
 static inline int min(int lhs, int rhs) {
   int m = negative(lhs - rhs);
   return (lhs & m) | (rhs & ~m);
 }
 
-/**
- * Returns the minimum of the two arguments.  Equivalent
- * to {@code (lhs < rhs ? lhs : rhs)} but requires no
- * branching.
- * @param lhs The left-hand side
- * @param rhs The right-hand side
- * @return The minimum of {@code lhs} and {@code rhs}
- */
-static inline short min(short lhs, short rhs) {
-  return (short)min((int)lhs, (int)rhs);
-}
-
-/**
- * Returns the maximum of the two arguments.  Equivalent
- * to {@code (lhs > rhs ? lhs : rhs)} but requires no
- * branching.
- * @param lhs The left-hand side
- * @param rhs The right-hand side
- * @return The maximum of {@code lhs} and {@code rhs}
- */
-static inline long max(long lhs, long rhs) {
-  long m = negative(lhs - rhs);
-  return (lhs & ~m) | (rhs & m);
-}
-
-/**
- * Returns the maximum of the two arguments.  Equivalent
- * to {@code (lhs > rhs ? lhs : rhs)} but requires no
- * branching.
- * @param lhs The left-hand side
- * @param rhs The right-hand side
- * @return The maximum of {@code lhs} and {@code rhs}
- */
-static inline int max(int lhs, int rhs) {
-  int m = negative(lhs - rhs);
-  return (lhs & ~m) | (rhs & m);
-}
-
-/**
- * Returns the maximum of the two arguments.  Equivalent
- * to {@code (lhs > rhs ? lhs : rhs)} but requires no
- * branching.
- * @param lhs The left-hand side
- * @param rhs The right-hand side
- * @return The maximum of {@code lhs} and {@code rhs}
- */
-static inline short max(short lhs, short rhs) {
-  return (short)max((int)lhs, (int)rhs);
-}
-
-/**
- * Returns a mask for whether any bits of the argument are set.
- * Equivalent to {@code (l == 0 ? 0 : -1)} but requires
- * no branching.
- * @param l The argument to check
- * @return {@code -1} if any bits are set, {@code 0} otherwise.
- */
-static inline long any(long l) {
-  l = l | (l << 32) | (l >> 32);
-  l = l | (l << 16) | (l >> 16);
-  l = l | (l << 8) | (l >> 8);
-  l = l | (l << 4) | (l >> 4);
-  l = l | (l << 2) | (l >> 2);
-  l = l | (l << 1) | (l >> 1);
-  return l;
-}
-
-/**
- * Returns a mask for whether any bits of the argument are set.
- * Equivalent to {@code (l == 0 ? 0 : -1)} but requires
- * no branching.
- * @param l The argument to check
- * @return {@code -1} if any bits are set, {@code 0} otherwise.
- */
-static inline int any(int i) { return (int)any((long)i); }
-
-/**
- * Returns a mask for whether any bits of the argument are set.
- * Equivalent to {@code (l == 0 ? 0 : -1)} but requires
- * no branching.
- * @param l The argument to check
- * @return {@code -1} if any bits are set, {@code 0} otherwise.
- */
-static inline short any(short s) { return (short)any((long)s); }
-
-/**
- * Returns a mask for whether all bits of the argument are set.
- * Equivalent to {@code (l == -1 ? -1 : 0)} but requires
- * no branching.
- * @param l The argument to check
- * @return {@code -1} if all bits are set, {@code 0} otherwise.
- */
-static inline long all(long l) {
-  long c = popcount(l);
-  return ~any(c ^ 64);
-}
-
-/**
- * Returns a mask for whether all bits of the argument are set.
- * Equivalent to {@code (l == -1 ? -1 : 0)} but requires
- * no branching.
- * @param l The argument to check
- * @return {@code -1} if all bits are set, {@code 0} otherwise.
- */
-static inline int all(int n) {
-  long l = n;
-  l = l | (l << 32);
-  return (int)all(l);
-}
-
-/**
- * Returns a mask for whether all bits of the argument are set.
- * Equivalent to {@code (l == -1 ? -1 : 0)} but requires
- * no branching.
- * @param l The argument to check
- * @return {@code -1} if all bits are set, {@code 0} otherwise.
- */
-static inline short all(short s) {
-  long l = s;
-  l = l | (l << 32);
-  l = l | (l << 16);
-  return (short)all(l);
-}
-
-/**
- * Compares whether {@code lhs} and {@code rhs} are equal, and
- * returns either {@code equal} or {@code unequal}.  Equivalent
- * to {@code (lhs == rhs ? equal : unequal)} but requires
- * no branching.
- * @param lhs The left-hand side
- * @param rhs The right-hand side
- * @param equal Returned if {@code lhs == rhs}
- * @param unequal Returned if {@code lhs != rhs}
- * @return {@code (lhs == rhs ? equal : unequal)}
- */
-static inline long cmp(long lhs, long rhs, long equal, long unequal) {
-  long mask = negative(lhs - rhs) | negative(rhs - lhs);
-  return (equal & ~mask) | (unequal & mask);
-}
-
-/**
- * Compares whether {@code lhs} and {@code rhs} are equal, and
- * returns either {@code equal} or {@code unequal}.  Equivalent
- * to {@code (lhs == rhs ? equal : unequal)} but requires
- * no branching.
- * @param lhs The left-hand side
- * @param rhs The right-hand side
- * @param equal Returned if {@code lhs == rhs}
- * @param unequal Returned if {@code lhs != rhs}
- * @return {@code (lhs == rhs ? equal : unequal)}
- */
+/** Branchless select: (lhs == rhs ? equal : unequal). */
 static inline int cmp(long lhs, long rhs, int equal, int unequal) {
   long mask = negative(lhs - rhs) | negative(rhs - lhs);
   return (int)((equal & ~mask) | (unequal & mask));
-}
-
-/**
- * Compares whether {@code lhs} and {@code rhs} are equal, and
- * returns either {@code equal} or {@code unequal}.  Equivalent
- * to {@code (lhs == rhs ? equal : unequal)} but requires
- * no branching.
- * @param lhs The left-hand side
- * @param rhs The right-hand side
- * @param equal Returned if {@code lhs == rhs}
- * @param unequal Returned if {@code lhs != rhs}
- * @return {@code (lhs == rhs ? equal : unequal)}
- */
-static inline short cmp(long lhs, long rhs, short equal, short unequal) {
-  return (short)cmp(lhs, rhs, (int)equal, (int)unequal);
 }
 
 } // namespace
