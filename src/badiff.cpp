@@ -224,9 +224,9 @@ void Delta::Apply(std::string original_file, std::string target_file) {
   Apply(original_stream, target_stream);
 }
 
-static const char *MAGIC = "\xBA\xD1\xFF";
-static const char FORMAT_VERSION_MAJOR = 1;
-static const char FORMAT_VERSION_MINOR = 1;
+static const char MAGIC[] = {'\xBA', '\xD1', '\xFF'};
+static const char FORMAT_VERSION_MAJOR = 2;
+static const char FORMAT_VERSION_MINOR = 0;
 
 static void WriteSize(std::ostream &out, std::size_t n) {
   char buf[8];
